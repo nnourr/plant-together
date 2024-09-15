@@ -64,7 +64,7 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
         </TransformWrapper>
       )}
       {syntaxError && (
-        <div className="absolute top-6 right-1/2 translate-x-1/2 text-3xl">
+        <div className="absolute top-6 text-center w-full text-3xl">
           {syntaxError}!
         </div>
       )}
