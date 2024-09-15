@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://nnourr.github.io/plant-together/",
+  "homepage": "https://plant-together.nnourr.tech/",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
