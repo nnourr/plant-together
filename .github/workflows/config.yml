@@ -39,7 +39,7 @@ jobs:
         run: npm ci
       - name: Build
         env:
-          VITE_SERVER_WS_URL: "ws://35.208.201.115:1234"
+          VITE_SERVER_WS_URL: "wss://35.208.201.115:1234"
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4
