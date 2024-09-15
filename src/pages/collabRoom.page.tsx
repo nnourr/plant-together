@@ -20,7 +20,7 @@ export const CollabRoom: React.FC = () => {
   return (
     <div className="w-full h-full flex flex-col">
       <NavBar />
-      <div className="flex w-full h-full max-w-[100vw] flex-col md:flex-row">
+      <div className="flex w-full h-full max-w-[100vw] flex-col-reverse md:flex-row">
         <UmlEditor
           className="h-1/2 md:w-1/2 md:h-full"
           roomId={roomId}

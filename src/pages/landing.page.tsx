@@ -19,10 +19,10 @@ export const Landing: React.FC = () => {
 
   return (
     <div className="w-full h-full bg-slate-900 flex justify-center items-center flex-col gap-16">
-      <h1 className="text-white text-9xl font-mono font-bold">
+      <h1 className="text-white text-6xl text-center lg:text-9xl font-mono font-bold">
         Plant Together
       </h1>
-      <div className="flex gap-4">
+      <div className="flex gap-4 flex-col md:flex-row">
         <input
           onChange={(event) => setRoomName(event.target.value)}
           className="rounded-xl bg-transparent border-2 border-white/20 text-white text-2xl px-4 py-2"
