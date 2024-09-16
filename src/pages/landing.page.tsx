@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer.component";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSeedling } from "@fortawesome/free-solid-svg-icons";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
@@ -26,11 +28,25 @@ export const Landing: React.FC = () => {
 
   return (
     <div>
-      <div className="w-full h-[100dvh] bg-slate-900 flex justify-center items-center flex-col gap-16">
-        <h1 className="text-white max-w-[100vw] text-6xl text-center lg:text-9xl font-mono font-bold">
-          Plant Together
+      <div className="w-full h-[100dvh] bg-slate-900 flex justify-center items-center flex-col gap-12">
+        <h1 className="text-white max-w-[100vw] text-6xl relative text-center lg:text-9xl font-mono font-bold">
+          <FontAwesomeIcon icon={faSeedling} className="lg:mr-16" />
+          Plant Together.
         </h1>
-        <div className="flex gap-4 flex-col md:flex-row box-border">
+        <h2 className="text-white text-center text-3xl">
+          A simple, collaborative PlantUML editor.
+          <br />
+          Powered by{" "}
+          <a
+            className="font-mono underline"
+            href="https://cheerpj.com/"
+            target="__blank"
+          >
+            Cheerpj
+          </a>
+          .
+        </h2>
+        <div className="flex gap-4 flex-col md:flex-row box-border mt-8">
           <input
             onChange={(event) => setRoomName(event.target.value)}
             className="rounded-xl bg-transparent border-2 border-white/20 text-white text-2xl w-[80vw] lg:w-auto px-4 py-2"
