@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Footer } from "../components/footer.component";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
@@ -24,25 +25,28 @@ export const Landing: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full bg-slate-900 flex justify-center items-center flex-col gap-16">
-      <h1 className="text-white max-w-[100vw] text-6xl text-center lg:text-9xl font-mono font-bold">
-        Plant Together
-      </h1>
-      <div className="flex gap-4 flex-col md:flex-row box-border">
-        <input
-          onChange={(event) => setRoomName(event.target.value)}
-          className="rounded-xl bg-transparent border-2 border-white/20 text-white text-2xl w-[80vw] lg:w-auto px-4 py-2"
-          type="text"
-          placeholder="enter a room name"
-          onKeyDown={handleKeyDown}
-        ></input>
-        <button
-          className="text-white text-2xl border-white/20 border-2 rounded-xl w-[80vw] lg:w-auto px-4 py-2 transition-all hover:border-white/60"
-          onClick={goToRoom}
-        >
-          Submit
-        </button>
+    <div>
+      <div className="w-full h-[100dvh] bg-slate-900 flex justify-center items-center flex-col gap-16">
+        <h1 className="text-white max-w-[100vw] text-6xl text-center lg:text-9xl font-mono font-bold">
+          Plant Together
+        </h1>
+        <div className="flex gap-4 flex-col md:flex-row box-border">
+          <input
+            onChange={(event) => setRoomName(event.target.value)}
+            className="rounded-xl bg-transparent border-2 border-white/20 text-white text-2xl w-[80vw] lg:w-auto px-4 py-2"
+            type="text"
+            placeholder="enter a room name"
+            onKeyDown={handleKeyDown}
+          ></input>
+          <button
+            className="text-white text-2xl border-white/20 border-2 rounded-xl w-[80vw] lg:w-auto px-4 py-2 transition-all hover:border-white/60"
+            onClick={goToRoom}
+          >
+            Submit
+          </button>
+        </div>
       </div>
+      <Footer className="w-full" />
     </div>
   );
 };
