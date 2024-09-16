@@ -28,12 +28,19 @@ export const Landing: React.FC = () => {
 
   return (
     <div>
-      <div className="w-full h-[100dvh] bg-slate-900 flex justify-center items-center flex-col gap-12">
-        <h1 className="text-white max-w-[100vw] text-6xl relative text-center lg:text-9xl font-mono font-bold">
-          <FontAwesomeIcon icon={faSeedling} className="lg:mr-16" />
+      <div className="w-full h-[100dvh] bg-slate-900 text-white flex justify-center items-center flex-col gap-12">
+        <h1 className="max-w-[100vw] text-6xl relative text-center lg:text-9xl font-mono font-bold">
+          <FontAwesomeIcon
+            icon={faSeedling}
+            className="mr-16 hidden lg:inline"
+          />
           Plant Together.
         </h1>
-        <h2 className="text-white text-center text-3xl">
+        <FontAwesomeIcon
+          icon={faSeedling}
+          className="text-6xl -my-4 lg:hidden"
+        />
+        <h2 className="text-center text-xl px-8 lg:text-3xl">
           A simple, collaborative PlantUML editor.
           <br />
           Powered by{" "}
@@ -49,13 +56,13 @@ export const Landing: React.FC = () => {
         <div className="flex gap-4 flex-col md:flex-row box-border mt-8">
           <input
             onChange={(event) => setRoomName(event.target.value)}
-            className="rounded-xl bg-transparent border-2 border-white/20 text-white text-2xl w-[80vw] lg:w-auto px-4 py-2"
+            className="rounded-xl bg-transparent border-2 border-white/20 text-2xl w-[80vw] lg:w-auto px-4 py-2"
             type="text"
             placeholder="enter a room name"
             onKeyDown={handleKeyDown}
           ></input>
           <button
-            className="text-white text-2xl border-white/20 border-2 rounded-xl w-[80vw] lg:w-auto px-4 py-2 transition-all hover:border-white/60"
+            className="text-2xl border-white/20 border-2 rounded-xl w-[80vw] lg:w-auto px-4 py-2 transition-all hover:border-white/60"
             onClick={goToRoom}
           >
             Submit
