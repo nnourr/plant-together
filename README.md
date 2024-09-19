@@ -49,10 +49,12 @@ I chose React because I'm quite familiar with it now 🤷‍♂️
 
 ## Limitations
 This was just a quick weekend project, so there are some limitations I want to address:
+- Cross Browser Editing Bug: If one peer is connected with a Windows device, but another peer is connected with MacOS/iOS/Android, the edits will not be merged gracefully (e.g 3 characters behind where it's supposed to be).
+  - This is not the case with Windows->Windows or MacOS->Android.
+  - It seems to be related to [this issue with y-webrtc](https://github.com/yjs/y-monaco/issues/6).
 - Room persistence: Right now rooms are persisted in memory, meaning it's difficult to control how long they retain data after all users have been disconnected.
 - Room access: Anyone can access any room if they know the room name, or even enter the same room name coincidentally. A system to seperate room codes and room names, or even a password protected implementation would help avoid this.
 - User Cursors: When someone else is editing the same PlantUml text, it looks like text is magically manifesting on screen. It would be pretty helpful to see which user is editing what and where.
-- Mobile Editing Bug: If the same room is open on a desktop PC and on a phone, edits will be synced in the wrong place. A mobile user entering text will reflect correctly for the mobile user, but appear 3 characters away for the desktop user. This makes cross-platform collaboration impossible, and some investigation is neccessary to figure out why this happens.
 
 # Thank You! 👋
   
