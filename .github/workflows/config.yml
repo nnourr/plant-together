@@ -37,8 +37,10 @@ jobs:
           cache: "npm"
           cache-dependency-path: "react/package-lock.json"
       - name: Install dependencies
+        working-directory: "./react"
         run: npm ci
       - name: Build
+        working-directory: "./react"
         env:
           VITE_SERVER_WS_URL: ${{ secrets.VITE_SERVER_WS_URL }}
         run: npm run build
