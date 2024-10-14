@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/plantuml/plantuml.js/issues"
   },
-  "homepage": "https://github.com/plantuml/plantuml.js#readme"
+  "homepage": "https://github.com/plantuml/plantuml.js#readme",
+  "dependencies": {
+    "@sakirtemel/plantuml.js": "file:"
+  }
 }
