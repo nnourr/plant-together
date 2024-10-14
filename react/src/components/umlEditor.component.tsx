@@ -23,6 +23,15 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
   function handleEditorDidMount(editor: editor.IStandaloneCodeEditor) {
     editorRef.current = editor;
 
+    const newModel = editorRef.current.getModel();
+    if (newModel === null) {
+      console.log("everything is dead");
+      
+      return
+    }
+    newModel.setEOL(0);
+    editorRef.current.setModel(newModel);
+    
     // Initialize yjs
     const doc = new Y.Doc(); // collection of shared objects
 
@@ -45,8 +54,8 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
   return (
     <div className={`${className}`}>
       <Editor
-        language={"python"}
         theme={"vs-dark"}
+        defaultLanguage={"python"}
         onMount={handleEditorDidMount}
         onChange={(value) => setEditorValue(value || "")}
       />
