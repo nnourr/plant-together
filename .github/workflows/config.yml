@@ -82,15 +82,15 @@ jobs:
       - name: Configure Docker for Artifact Registry
         run: |
           echo ${{ secrets.GCP_ARTIFACT_REGISTRY_KEY }} > /tmp/key.json
-          gcloud auth configure-docker US-CENTRAL1-docker.pkg.dev --quiet
+          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
       - name: Build Docker Image
         run: |
-          docker build -t US-CENTRAL1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest ./express
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest ./express
 
       - name: Push Docker Image to Artifact Registry
         run: |
-          docker push US-CENTRAL1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
       - name: Set up SSH Agent
         uses: webfactory/ssh-agent@v0.5.4
@@ -107,10 +107,10 @@ jobs:
             fi
 
             # Pull the latest image
-            docker pull US-CENTRAL1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
+            docker pull us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
             # Run the container
-            docker run -d --name plant-express --expose ${{secrets.SERVER_PORT}} -p ${{secrets.SERVER_PORT}}:${{secrets.SERVER_PORT}} US-CENTRAL1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
+            docker run -v /host/path:/container/path -d --name plant-express --expose ${{secrets.SERVER_PORT}} -p ${{secrets.SERVER_PORT}}:${{secrets.SERVER_PORT}} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
             # Optionally, prune unused Docker images
             docker image prune -f
