@@ -84,7 +84,7 @@ jobs:
     # needs: filter
     environment:
       name: express-deployment
-    if: needs.filter.outputs.backend == 'true'
+    # if: needs.filter.outputs.backend == 'true'
 
     steps:
       - name: Checkout Code
