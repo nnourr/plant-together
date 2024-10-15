@@ -110,7 +110,7 @@ jobs:
             docker pull us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
             # Run the container
-            docker run -v /host/path:/container/path -d --name plant-express --expose ${{secrets.SERVER_PORT}} -p ${{secrets.SERVER_PORT}}:${{secrets.SERVER_PORT}} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
+            docker run -v /host/path:/container/path -d --name plant-express -p ${{secrets.SERVER_PORT}}:${{secrets.SERVER_PORT}} PORT=${{ secrets.SERVER_PORT }} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
             # Optionally, prune unused Docker images
             docker image prune -f
