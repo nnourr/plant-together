@@ -1,5 +1,5 @@
 # Plant Together: A simple, collaborative PlantUML Editor
-
+## ⚠️ Plant Together is undergoing a large infastructure change. Collaboration features are currently limited to within browser.
 For one of my courses, we needed to use PlantUML to create usecase and sequence diagrams. To facilitate easier collaboration, I created Plant Together, allowing any number of people to work on the same PlantUML diagram together! Check it out on [plant-together.nnourr.tech](https://plant-together.nnourr.tech/)
 
 <div align="center">
