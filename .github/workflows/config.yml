@@ -70,7 +70,8 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_ARTIFACT_REGISTRY_KEY }}
+          workload_identity_provider: "/projects/30841348734/locations/global/workloadIdentityPools/github/providers/my-repo"
+          service_account: plant-registry-deployer@plant-together-435705.iam.gserviceaccount.com
 
       - name: Configure Docker for Artifact Registry
         run: |
