@@ -26,12 +26,12 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     const newModel = editorRef.current.getModel();
     if (newModel === null) {
       console.log("everything is dead");
-      
-      return
+
+      return;
     }
     newModel.setEOL(0);
     editorRef.current.setModel(newModel);
-    
+
     // Initialize yjs
     const doc = new Y.Doc(); // collection of shared objects
 
