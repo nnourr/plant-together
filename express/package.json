@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts"
+    "dev": "npx tsx src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +19,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "express-ws": "^5.0.2",
-    "socket.io": "^4.7.5",
+    "plant-together-express": "file:",
     "winston": "^3.14.2",
     "ws": "^8.18.0",
     "y-websocket": "^2.0.4",
@@ -30,7 +30,6 @@
     "@types/express": "^4.17.21",
     "@types/node": "^22.5.5",
     "nodemon": "^3.1.4",
-    "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
   }
 }

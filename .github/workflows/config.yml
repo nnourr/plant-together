@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   # Single deploy job since we're just deploying
-  deploy:
+  deploy-frontend:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -54,3 +54,57 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  build-deploy-backend:
+    name: Build and Deploy Backend
+    runs-on: ubuntu-latest
+    needs: deploy-frontend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_ARTIFACT_REGISTRY_KEY }}
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          echo ${{ secrets.GCP_ARTIFACT_REGISTRY_KEY }} > /tmp/key.json
+          gcloud auth configure-docker US-CENTRAL1-docker.pkg.dev --quiet
+
+      - name: Build Docker Image
+        run: |
+          docker build -t US-CENTRAL1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest ./express
+
+      - name: Push Docker Image to Artifact Registry
+        run: |
+          docker push US-CENTRAL1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
+
+      - name: Set up SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.GCP_SSH_KEY }}
+
+      - name: Pull and Run Docker Container on GCP VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.GCP_SSH_USER }}@${{ secrets.GCP_VM_IP }} << 'EOF'
+            # Stop existing container if running
+            if [ $(docker ps -q -f name=plant-express) ]; then
+              docker stop plant-express
+              docker rm plant-express
+            fi
+
+            # Pull the latest image
+            docker pull US-CENTRAL1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
+
+            # Run the container
+            docker run -d --name plant-express --expose ${{secrets.SERVER_PORT}} -p ${{secrets.SERVER_PORT}}:${{secrets.SERVER_PORT}} US-CENTRAL1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
+
+            # Optionally, prune unused Docker images
+            docker image prune -f
+          EOF

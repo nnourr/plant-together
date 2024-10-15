@@ -1,12 +1,24 @@
-import { WebSocketServer } from "ws";
-import { Doc } from "yjs";
-import { createYjsServer } from "yjs-server";
+import * as dotenv from "dotenv";
+dotenv.config();
 
-const wss = new WebSocketServer({ port: 8080 });
-const yjss = createYjsServer({
-  createDoc: () => new Doc(),
+import express from "express";
+import expressWs from "express-ws";
+// @ts-expect-error import directly from dist folder
+import { setupWSConnection } from "../node_modules/y-websocket/bin/utils.cjs";
+
+const { app } = expressWs(express());
+const port = process.env.PORT || 3333;
+
+app.use(express.json());
+
+app.get("/", (_, res) => {
+  res.json({ hello: "world" });
 });
 
-wss.on("connection", (socket, request) => {
-  yjss.handleConnection(socket, request);
+app.ws("/collaboration/:document", (ws, req) => {
+  setupWSConnection(ws, req, { docName: req.params.document });
+});
+
+app.listen(port, () => {
+  console.log(`express server started on ${port}`);
 });

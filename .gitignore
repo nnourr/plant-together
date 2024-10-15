@@ -15,6 +15,7 @@
 *.sln
 *.sw?
 
-# Certificates
+# Secrets
 *.cert*
 *.key*
+/secrets*
