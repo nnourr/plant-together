@@ -21,12 +21,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  filter:
+    name: Determine Changed Paths
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up paths-filter
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'backend/**'
+
   # Single deploy job since we're just deploying
   deploy-frontend:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    needs: filter
+    if: needs.filter.outputs.frontend == 'true'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,9 +81,10 @@ jobs:
   build-deploy-backend:
     name: Build and Deploy Backend
     runs-on: ubuntu-latest
-    needs: deploy-frontend
+    needs: filter
     environment:
       name: express-deployment
+    if: needs.filter.outputs.backend == 'true'
 
     steps:
       - name: Checkout Code
