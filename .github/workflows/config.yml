@@ -134,7 +134,17 @@ jobs:
             docker pull us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
             # Run the container
-            docker run -e PORT=${{ secrets.SERVER_PORT }} -e SSL_PASS=${{secrets.SSL_PASS}} -e KEY_PATH=${{ secrets.KEY_PATH }} -e CERT_PATH=${{ secrets.CERT_PATH }} -v /host/path:/container/path -d --name plant-express -p ${{secrets.SERVER_PORT}}:${{secrets.SERVER_PORT}} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
+            docker run \ 
+            -e PORT=${{ secrets.SERVER_PORT }} \
+            -e SSL_PASS=${{secrets.SSL_PASS}} \
+            -e KEY_PATH=${{ secrets.KEY_PATH }} \
+            -e CERT_PATH=${{ secrets.CERT_PATH }} \
+            -v ${{ secrets.CERT_PATH }} : ${{ secrets.CERT_PATH }} \
+            -v ${{ secrets.KEY_PATH }} : ${{ secrets.KEY_PATH }} \
+            -v /host/path:/container/path \
+            -d --name plant-express \
+            -p ${{secrets.SERVER_PORT}}:${{secrets.SERVER_PORT}} \
+            us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
             docker ps
 
