@@ -24,22 +24,22 @@ jobs:
   filter:
     name: Determine Changed Paths
     runs-on: ubuntu-latest
-    outputs:
-      frontend: ${{ steps.filter.outputs.frontend }}
-      backend: ${{ steps.filter.outputs.backend }}
+    # outputs:
+    #   frontend: ${{ steps.filter.outputs.frontend }}
+    #   backend: ${{ steps.filter.outputs.backend }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up paths-filter
-        id: filter
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            frontend:
-              - 'frontend/**'
-            backend:
-              - 'backend/**'
+      # - name: Set up paths-filter
+      #   id: filter
+      #   uses: dorny/paths-filter@v2
+      #   with:
+      #     filters: |
+      #       frontend:
+      #         - 'react/**'
+      #       backend:
+      #         - 'express/**'
 
   # Single deploy job since we're just deploying
   deploy-frontend:
