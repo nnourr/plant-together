@@ -15,6 +15,7 @@ const app = express();
 const PORT = (process.env.PORT || 3333) as number;
 const KEY_PATH = process.env.KEY_PATH || "";
 const CERT_PATH = process.env.CERT_PATH || "";
+const SSL_PASS = process.env.SSL_PASS || "";
 
 app.use(express.json());
 
@@ -30,6 +31,7 @@ if (KEY_PATH != "" || CERT_PATH != "") {
     {
       key: key,
       cert: cert,
+      passphrase: SSL_PASS,
     },
     app
   );
