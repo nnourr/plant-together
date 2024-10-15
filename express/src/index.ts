@@ -6,14 +6,15 @@ import express from "express";
 import { createServer as createHttpServer } from "http";
 import { createServer as createHttpsServer } from "https";
 import { WebSocketServer } from "ws";
+import * as fs from "fs";
 
 // @ts-expect-error import directly from dist folder
 import { setupWSConnection } from "../node_modules/y-websocket/bin/utils.cjs";
 
 const app = express();
 const PORT = (process.env.PORT || 3333) as number;
-const KEY = process.env.KEY || "";
-const CERT = process.env.CERT || "";
+const KEY_PATH = process.env.KEY_PATH || "";
+const CERT_PATH = process.env.CERT_PATH || "";
 
 app.use(express.json());
 
@@ -22,17 +23,18 @@ app.get("/", (_, res) => {
 });
 
 let server;
-if (KEY != "" || CERT != "") {
+if (KEY_PATH != "" || CERT_PATH != "") {
+  const key = fs.readFileSync(KEY_PATH);
+  const cert = fs.readFileSync(CERT_PATH);
   server = createHttpsServer(
     {
-      key: KEY,
-      cert: CERT,
+      key: key,
+      cert: cert,
     },
     app
   );
 } else {
   console.log("running http");
-
   server = createHttpServer(app);
 }
 

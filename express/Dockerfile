@@ -6,6 +6,8 @@ RUN npm install
 COPY . .
 
 ENV PORT=3000
+ENV KEY_PATH = ''
+ENV CERT_PATH = ''
 
 EXPOSE $PORT
 
