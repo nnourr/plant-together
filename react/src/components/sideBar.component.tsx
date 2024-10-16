@@ -1,7 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DocumentModel } from "../models/document.model";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
-import { useState } from "react";
 
 interface SideBarProps {
   currDocument?: DocumentModel;
