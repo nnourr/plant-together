@@ -10,6 +10,12 @@ ENV KEY_PATH = ''
 ENV CERT_PATH = ''
 ENV SSL_PASS = ''
 
+ENV DB_HOST=''
+ENV DB_NAME=''
+ENV DB_PORT=''
+ENV DB_USER=''
+ENV DB_PASS=''
+
 EXPOSE $PORT
 
 RUN npm run build
