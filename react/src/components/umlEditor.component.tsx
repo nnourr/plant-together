@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Editor } from "@monaco-editor/react";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
@@ -22,7 +22,7 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
   className,
 }) => {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
-  const [wsID, setWsID] = useState<string>(`${roomId}${currDocument.id}${currDocument.name}`);
+  const [wsID, setWsID] = useState<string>(`${roomId}${currDocument.id}`);
   const providerRef = useRef<WebsocketProvider | null>(null);
   const docRef = useRef<Y.Doc | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
@@ -31,16 +31,15 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     setWsID(`${roomId}${currDocument.id}`);
   }, [currDocument, roomId]);
 
-  useEffect(() => {
-    if (!!!currDocument) {
-      return;
-    }
-
+  const setBinding = useCallback( () => {
     // Clean up the previous provider if it exists
     if (providerRef.current) {
       providerRef.current.destroy();
-      bindingRef.current?.destroy();
+      if (bindingRef.current) {
+        bindingRef.current.destroy();
+      }
       docRef.current = null;
+      providerRef.current = null;
     }
 
     // Create a new Yjs document and WebSocket provider
@@ -66,8 +65,16 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     return () => {
       provider.destroy();
       bindingRef.current?.destroy();
-    };
-  }, [wsID, currDocument]); // Add currDocument as a dependency
+    }
+  }, [wsID])
+
+  useEffect(() => {
+    if (!!!currDocument || !!!roomId) {
+      return;
+    }
+
+    setBinding()    
+  }, [currDocument, roomId, setBinding]); // Add currDocument as a dependency
 
   function handleEditorDidMount(editor: editor.IStandaloneCodeEditor) {
     editorRef.current = editor;
@@ -79,6 +86,8 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     }
     newModel.setEOL(0);
     editorRef.current.setModel(newModel);
+
+    setBinding()
   }
 
   return (
