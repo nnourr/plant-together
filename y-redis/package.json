@@ -9,7 +9,7 @@
     "url": "https://github.com/sponsors/dmonad"
   },
   "scripts": {
-    "start": "concurrently -r 'npm run redis' 'npm run start:server' 'npm run start:worker'",
+    "start": "concurrently -r 'npm run start:server' 'npm run start:worker'",
     "start:server": "node --env-file .env ./bin/server.js",
     "debug:server": "node --env-file .env --inspect-brk ./bin/worker.js ./bin/server.js",
     "start:worker": "node --env-file .env ./bin/worker.js",
