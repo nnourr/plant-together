@@ -8,7 +8,7 @@ const port = number.parseInt(env.getConf('port') || '3002')
 const redisPrefix = env.getConf('redis-prefix') || 'y'
 const postgresUrl = env.getConf('postgres')
 const s3Endpoint = env.getConf('s3-endpoint')
-const checkPermCallbackUrl = env.getConf('AUTH_PERM_CALLBACK')
+const checkPermCallbackUrl = env.getConf('AUTH_PERM_CALLBACK') || ''
 
 let store
 if (s3Endpoint) {
