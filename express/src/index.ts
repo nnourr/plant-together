@@ -1,14 +1,12 @@
 import express from "express";
 import { createServer as createHttpServer } from "http";
-import { createServer as createHttpsServer } from "https";
 import { WebSocketServer } from "ws";
-import * as fs from "fs";
 
 import cors from "cors";
 
 // @ts-expect-error import directly from dist folder
 import { setupWSConnection } from "../node_modules/y-websocket/bin/utils.cjs";
-import {CERT_PATH, KEY_PATH, PORT, SSL_PASS} from './config.js'
+import {PORT} from './config.js'
 import * as roomRepo from './room/room.repo.js'
 
 
@@ -44,21 +42,7 @@ app.post('/room/:room_id/document/:document_name', async (req, res) => {
 })
 
 let server;
-if (KEY_PATH != "" || CERT_PATH != "") {
-  const key = fs.readFileSync(KEY_PATH);
-  const cert = fs.readFileSync(CERT_PATH);
-  server = createHttpsServer(
-    {
-      key: key,
-      cert: cert,
-      passphrase: SSL_PASS,
-    },
-    app
-  );
-} else {
-  console.log("running http");
-  server = createHttpServer(app);
-}
+server = createHttpServer(app);
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`express server started on ${PORT}`);

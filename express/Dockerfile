@@ -6,9 +6,6 @@ RUN npm install
 COPY . .
 
 ENV PORT=3000
-ENV KEY_PATH = ''
-ENV CERT_PATH = ''
-ENV SSL_PASS = ''
 
 ENV DB_HOST=''
 ENV DB_NAME=''

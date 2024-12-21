@@ -74,7 +74,7 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     }
 
     setBinding()    
-  }, [currDocument, roomId, setBinding]); // Add currDocument as a dependency
+  }, [currDocument, roomId, setBinding]);
 
   function handleEditorDidMount(editor: editor.IStandaloneCodeEditor) {
     editorRef.current = editor;

@@ -34,7 +34,7 @@ export const getRoomWithDocuments = async (roomId: string) => {
       WHERE room_id = ${roomId}
     `;
 
-    console.log(`Documents in Room ${roomId}:`, documents);
+    console.info(`Documents in Room ${roomId}:`, documents);
     return {room_id: roomId, documents: documents};
   } catch (error) {
     console.error('Error fetching documents:', error);
