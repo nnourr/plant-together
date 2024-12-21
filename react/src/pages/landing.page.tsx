@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer.component";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -25,6 +25,10 @@ export const Landing: React.FC = () => {
       goToRoom();
     }
   };
+
+  useEffect(() => {
+    alert("Plant Together is undergoing maintenance, and collaboration is unavailable at the moment.")
+  }, [])
 
   return (
     <div>
