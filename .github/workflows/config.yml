@@ -200,7 +200,7 @@ jobs:
             docker pull us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/y_redis:latest
 
             # Run the container
-            docker run --network host -e POSTGRES=${{ secrets.Y_REDIS_POSTGRES_STRING }} -v /host/path:/container/path -d --name y_redis -p ${{secrets.Y_REDIS_PORT}}:${{secrets.Y_REDIS_PORT}} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/y_redis:latest
+            docker run --network host -e POSTGRES=${{ secrets.Y_REDIS_POSTGRES_STRING }} -v /host/path:/container/path --name y_redis -p ${{secrets.Y_REDIS_PORT}}:${{secrets.Y_REDIS_PORT}} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/y_redis:latest
 
             # Optionally, prune unused Docker images
             docker image prune -f

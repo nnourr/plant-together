@@ -20,9 +20,15 @@ COPY . .
 ENV REDIS='redis://localhost:6379'
 ENV POSTGRES=''
 
+# ENV DB_HOST=''
+# ENV DB_NAME=''
+# ENV DB_PORT=''
+# ENV DB_USER=''
+# ENV DB_PASS=''
+
 # Make port 3002 available to the world outside this container,
 # assuming your app runs on port 3002
 EXPOSE 3002
 
 # Removed CMD instruction to allow dynamic command execution at runtime
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:worker"]

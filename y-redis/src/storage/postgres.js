@@ -18,7 +18,18 @@ export const createPostgresStorage = async ({ database } = {}) => {
   if (database) {
     postgresConf.database = database
   }
+
   const sql = postgres(postgresUrl, { database })
+
+  // const sql = postgres({
+  //   user: DB_USER,
+  //   pass: DB_PASS,
+  //   host: DB_HOST,
+  //   database: DB_NAME, 
+  //   port: (DB_PORT || 5432),     
+  //   idle_timeout: 20,
+  //   max_lifetime: 60 * 30            
+  // }, { database })
   const docsTableExists = await sql`
     SELECT EXISTS (
       SELECT FROM 
