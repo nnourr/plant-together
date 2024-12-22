@@ -72,5 +72,4 @@ function destroyConnections() {
 
 await connectProviders();
 
-// Optional: Cleanup after a timeout
 setTimeout(destroyConnections, 10000);

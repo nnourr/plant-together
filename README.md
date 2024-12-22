@@ -53,7 +53,8 @@ This was just a quick weekend project, so there are some limitations I want to a
   - ~~This is not the case with Windows->Windows or MacOS->Android.~~
   - ~~It seems to be related to [this issue with y-webrtc](https://github.com/yjs/y-monaco/issues/6).~~
   - Fixed as of 9/19/2024 🎉
-- Room persistence: Right now rooms are persisted in memory, meaning it's difficult to control how long they retain data after all users have been disconnected.
+- ~~Room persistence: Right now rooms are persisted in memory, meaning it's difficult to control how long they retain data after all users have been disconnected.~~
+  - Thanks to [Kevin Jahns](https://github.com/dmonad) for creating y-redis, a persisted extension of y-websocket, we're able to store the rooms in a persisted database! 
 - Room access: Anyone can access any room if they know the room name, or even enter the same room name coincidentally. A system to seperate room codes and room names, or even a password protected implementation would help avoid this.
 - User Cursors: When someone else is editing the same PlantUml text, it looks like text is magically manifesting on screen. It would be pretty helpful to see which user is editing what and where.
 
