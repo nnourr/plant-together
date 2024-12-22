@@ -31,4 +31,4 @@ ENV POSTGRES=''
 EXPOSE 3002
 
 # Removed CMD instruction to allow dynamic command execution at runtime
-CMD ["npm", "run", "start:worker"]
+CMD ["npm", "run", "start"]
