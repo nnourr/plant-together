@@ -30,5 +30,4 @@ ENV POSTGRES=''
 # assuming your app runs on port 3002
 EXPOSE 3002
 
-# Removed CMD instruction to allow dynamic command execution at runtime
 CMD ["npm", "run", "start"]
