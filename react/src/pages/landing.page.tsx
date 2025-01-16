@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer.component";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
