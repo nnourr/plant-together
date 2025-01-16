@@ -26,10 +26,6 @@ export const Landing: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    alert("Plant Together is undergoing maintenance, and collaboration is unavailable at the moment.")
-  }, [])
-
   return (
     <div>
       <div className="w-full h-[100dvh] bg-slate-900 text-white flex justify-center items-center flex-col gap-12">
