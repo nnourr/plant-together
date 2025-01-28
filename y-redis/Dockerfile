@@ -30,4 +30,4 @@ ENV POSTGRES=''
 # assuming your app runs on port 3002
 EXPOSE 3002
 
-CMD ["npm", "run", "start"]
+CMD "npm run start"
