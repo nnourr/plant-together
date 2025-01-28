@@ -9,7 +9,7 @@
     "url": "https://github.com/sponsors/dmonad"
   },
   "scripts": {
-    "start": "npm run redis && concurrently -r 'npm run start:server' 'npm run start:worker'",
+    "start": "npm run redis & npm run start:server & npm run start:worker",
     "dev": "concurrently -r 'npm run redis' 'npm run dev:server' 'npm run dev:worker'",
     "start:server": "node ./bin/server.js",
     "dev:server": "node --env-file .env ./bin/server.js",
@@ -18,7 +18,7 @@
     "dev:worker": "node --env-file .env ./bin/worker.js",
     "debug:worker": "node --env-file .env --inspect-brk ./bin/worker.js",
     "migrate": "node --env-file .env ./src/migrate.js",
-    "redis": "docker run -p 6379:6379 redis",
+    "redis": "docker run -d -p 6379:6379 redis",
     "dist": "tsc",
     "lint": "standard && tsc",
     "test": "node --env-file .env tests/index.js",

@@ -51,7 +51,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: filter
-    # if: needs.filter.outputs.frontend == 'true'
+    if: needs.filter.outputs.frontend == 'true'
 
     steps:
       - name: Checkout
@@ -88,7 +88,7 @@ jobs:
     needs: filter
     environment:
       name: express-deployment
-    # if: needs.filter.outputs.backend == 'true'
+    if: needs.filter.outputs.backend == 'true'
 
     steps:
       - name: Checkout Code
@@ -150,7 +150,7 @@ jobs:
     needs: filter
     environment:
       name: express-deployment
-    # if: needs.filter.outputs.y_redis == 'true'
+    if: needs.filter.outputs.y_redis == 'true'
 
     steps:
       - name: Checkout Code
