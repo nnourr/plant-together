@@ -137,9 +137,6 @@ jobs:
             # Pull the latest image
             docker pull us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
-            # run redis
-            docker run --name redis -d redis
-
             # Run the container
             docker run --network host -e DB_HOST=${{ secrets.DB_HOST }} -e DB_NAME=${{ secrets.DB_NAME }} -e DB_PORT=${{ secrets.DB_PORT }} -e DB_USER=${{ secrets.DB_USER }} -e DB_PASS=${{ secrets.DB_PASS }} -e PORT=${{ secrets.SERVER_PORT }} -v /host/path:/container/path -d --name plant-express -p ${{secrets.SERVER_PORT}}:${{secrets.SERVER_PORT}} us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
@@ -199,6 +196,9 @@ jobs:
               docker rm y_redis
             fi
 
+            # run redis
+            docker run --name redis -d redis
+            
             # Pull the latest image
             docker pull us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/y_redis:latest
 
