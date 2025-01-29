@@ -197,7 +197,7 @@ jobs:
             fi
 
             # run redis
-            docker run --name redis -d redis
+            docker run --name redis -p 6379:6379 -d redis
 
             # Pull the latest image
             docker pull us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/y_redis:latest
