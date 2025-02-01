@@ -150,7 +150,7 @@ jobs:
     needs: filter
     environment:
       name: express-deployment
-    # if: needs.filter.outputs.y_redis == 'true'
+    if: needs.filter.outputs.y_redis == 'true'
 
     steps:
       - name: Checkout Code
@@ -195,9 +195,6 @@ jobs:
               docker stop y_redis
               docker rm y_redis
             fi
-
-            # run redis
-            docker run --name redis -p 6379:6379 -d redis
 
             # Pull the latest image
             docker pull us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/y_redis:latest
