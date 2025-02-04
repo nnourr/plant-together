@@ -1,0 +1,65 @@
+version: '3.8'
+name: plant-together
+
+services:
+  plant-together-express:
+    build:
+      context: .
+    container_name: plant-together-express
+    restart: always
+    environment:
+      - PORT=${PORT:-3000}
+
+      # Adjust database credentials locally in .env, do not commit!
+      - DB_NAME=${DB_NAME:-postgres}
+      - DB_HOST=${DB_HOST:-database-psql}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASS=${DB_PASS}
+    depends_on:
+      - database-psql
+    ports:
+      - "3000:3000"
+    networks:
+      - plant-together-network
+
+  database-psql:
+    image: postgres:16.2
+    container_name: database-psql
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - pgdata-plant-together:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASS}
+    ports:
+      - "5432:5432"
+    networks:
+      - plant-together-network
+
+  pgadmin-together:
+    image: dpage/pgadmin4:8.4
+    container_name: pgadmin-together
+    restart: always
+    depends_on:
+      - database-psql
+    volumes:
+      - pgadmin-together:/var/lib/pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${ADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${ADMIN_PASS}
+    ports:
+      - "5555:80"
+    networks:
+      - plant-together-network
+
+volumes:
+  pgdata-plant-together:
+    name: pgdata-plant-together
+    driver: local
+  pgadmin-together:
+    name: pgadmin-together
+    driver: local
+
+networks:
+  plant-together-network:
