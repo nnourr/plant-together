@@ -19,7 +19,7 @@ services:
     depends_on:
       - database-psql
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:${PORT:-3000}"
     networks:
       - plant-together-network
 

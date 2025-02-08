@@ -1,13 +1,14 @@
-import express from "express";
-import { createServer as createHttpServer } from "http";
-import { WebSocketServer } from "ws";
+import express from 'express';
+import { createServer as createHttpServer } from 'http';
+import { WebSocketServer } from 'ws';
+import { Server as SocketIOServer } from 'socket.io';
 
 import cors from "cors";
 
-// @ts-expect-error import directly from dist folder
-import { setupWSConnection } from "../node_modules/y-websocket/bin/utils.cjs";
-import {PORT} from './config.js'
+import { PORT, DOCSVC_PORT } from './config.js'
 import * as roomRepo from './room/room.repo.js'
+import { documentSocketIO } from './document/document-service.js';
+import { logger } from './logger.js';
 
 
 const app = express();
@@ -48,6 +49,8 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`express server started on ${PORT}`);
 });
 
-const ws = new WebSocketServer({ server });
+// Setup document service SocketIO connection
+const socketIO = new SocketIOServer(server);
 
-ws.on("connection", setupWSConnection);
+socketIO.of('/').on("connection", (socket) => logger.info(`New root namespace socket connection ${socket.id}`));
+socketIO.of('/documents').on("connection", (socket) => documentSocketIO(socketIO, socket));
