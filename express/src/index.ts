@@ -1,11 +1,10 @@
 import express from 'express';
 import { createServer as createHttpServer } from 'http';
-import { WebSocketServer } from 'ws';
 import { Server as SocketIOServer } from 'socket.io';
 
 import cors from "cors";
 
-import { PORT, DOCSVC_PORT } from './config.js'
+import { PORT } from './config.js'
 import * as roomRepo from './room/room.repo.js'
 import { documentSocketIO } from './document/document-service.js';
 import { logger } from './logger.js';
