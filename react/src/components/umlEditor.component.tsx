@@ -31,7 +31,7 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     setWsID(`${roomId}${currDocument.id}`);
   }, [currDocument, roomId]);
 
-  const setBinding = useCallback( () => {
+  const setBinding = useCallback(() => {
     // Clean up the previous provider if it exists
     if (providerRef.current) {
       providerRef.current.destroy();
@@ -56,7 +56,8 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
       const binding = new MonacoBinding(
         type,
         editorRef.current.getModel()!,
-        new Set([editorRef.current])
+        new Set([editorRef.current]),
+        provider.awareness
       );
       bindingRef.current = binding;
     }
@@ -65,15 +66,15 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     return () => {
       provider.destroy();
       bindingRef.current?.destroy();
-    }
-  }, [wsID])
+    };
+  }, [wsID]);
 
   useEffect(() => {
     if (!!!currDocument || !!!roomId) {
       return;
     }
 
-    setBinding()    
+    setBinding();
   }, [currDocument, roomId, setBinding]);
 
   function handleEditorDidMount(editor: editor.IStandaloneCodeEditor) {
@@ -87,7 +88,7 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     newModel.setEOL(0);
     editorRef.current.setModel(newModel);
 
-    setBinding()
+    setBinding();
   }
 
   return (
