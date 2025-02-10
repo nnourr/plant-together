@@ -1,9 +1,5 @@
-import { it, describe, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/vitest';
-
-import React from 'react'
-import { NavBar } from '../../src/components/navBar.component';
+import { NavBar } from '../../components/navBar.component';
 import { BrowserRouter } from 'react-router-dom';
 
 
