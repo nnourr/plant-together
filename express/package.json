@@ -7,7 +7,7 @@
     "build": "npx tsc",
     "start": "node dist/index.js",
     "dev": "npx tsx src/index.ts",
-    "test": "jest"
+    "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules npm run build && node --experimental-vm-modules ./node_modules/.bin/jest --forceExit"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "express-ws": "^5.0.2",
+    "pgmock": "^1.0.3",
     "plant-together-express": "file:",
     "postgres": "^3.4.4",
     "prexit": "^2.3.0",
@@ -35,6 +36,7 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^22.5.5",
     "@types/supertest": "^6.0.2",
+    "cross-env": "^7.0.3",
     "jest": "^29.7.0",
     "nodemon": "^3.1.4",
     "supertest": "^7.0.0",
