@@ -4,7 +4,6 @@ import { logger } from "../logger.js";
 
 import { DocumentData, DocumentCallback, DocumentResponse } from './document-types.js';
 import { validateDocumentData, notifyClientsDocChange } from './document-helpers.js';
-import Module from "module";
 
 const onConnect = (socket: Socket) => {
     const roomId: string = socket.handshake.headers?.room_id as string;

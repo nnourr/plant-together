@@ -6,6 +6,7 @@ import cors from "cors";
 
 import { PORT } from './config.js'
 import * as roomRepo from './room/room.repo.js'
+import { documentRepo } from './document/document.repo.js';
 import { documentSocketIO } from './document/document-service.js';
 import { logger } from './logger.js';
 
@@ -22,7 +23,7 @@ app.get("/", (_, res) => {
 
 app.get('/room/:room_id', async (req, res) => {
   const roomId = req.params.room_id
-  const room = await roomRepo.getRoomWithDocuments(roomId)
+  const room = await documentRepo.getRoomWithDocuments(roomId)
   res.json(room)
 })
 
@@ -37,7 +38,7 @@ app.post('/room/:room_id', async (req, res) => {
 app.post('/room/:room_id/document/:document_name', async (req, res) => {
   const room_id = req.params.room_id
   const document_name = req.params.document_name
-  await roomRepo.createDocumentInRoom(room_id, document_name)
+  await documentRepo.createDocumentInRoom(room_id, document_name)
   res.sendStatus(200)
 })
 
