@@ -31,7 +31,7 @@ describe('Repositories', () => {
       const documentName = 'Document One'
 
       await room.createRoomWithDocument(roomId, roomName, documentName)
-      const roomWithDocuments = await documentRepo.getRoomWithDocuments(roomId)
+      const roomWithDocuments = await documentRepo.getDocumentsInRoom(roomId)
 
       expect(roomWithDocuments?.room_id).toBe(roomId)
       expect(roomWithDocuments?.documents).toEqual(
@@ -44,8 +44,8 @@ describe('Repositories', () => {
     it('adds 1 document to a room', async () => {
       const documentName = "Document Two"
 
-      await documentRepo.createDocumentInRoom(defaultRoomId, documentName)
-      const roomWithDocuments = await documentRepo.getRoomWithDocuments(defaultRoomId)
+      await documentRepo.createDocument(defaultRoomId, documentName)
+      const roomWithDocuments = await documentRepo.getDocumentsInRoom(defaultRoomId)
 
       expect(roomWithDocuments?.room_id).toBe(defaultRoomId)
       expect(roomWithDocuments?.documents).toEqual(
@@ -56,7 +56,7 @@ describe('Repositories', () => {
     })
 
     it('gets documents from a room', async () => {
-      const roomWithDocuments = await documentRepo.getRoomWithDocuments(defaultRoomId)
+      const roomWithDocuments = await documentRepo.getDocumentsInRoom(defaultRoomId)
 
       expect(roomWithDocuments?.room_id).toBe(defaultRoomId)
       expect(roomWithDocuments?.documents).toBeInstanceOf(Array)
@@ -72,12 +72,11 @@ import { io as ClientSocket, Socket as ClientSocketType } from 'socket.io-client
 
 import express from 'express';
 
-import { documentSocketIO } from '../document/document-service.js';
+import { documentSocketRouter } from '../document/document.service.js';
 import { logger } from '../logger.js';
-import { DocumentResponse } from '../document/document-types.js';
+import { DocumentResponse } from '../document/document.types.js';
 import { documentRepo } from '../document/document.repo.js';
 import { createRoomWithDocument } from '../room/room.repo.js';
-import { stat } from "fs";
 
 const PORT = 7565;
 
@@ -91,8 +90,7 @@ describe('Socket.IO Connections', () => {
     server = createHttpServer(app);
     io = new SocketIOServer(server);
 
-    io.of('/').on('connection', (socket) => logger.info(`New root namespace socket connection ${socket.id}`));
-    io.of('/documents').on('connection', (socket) => documentSocketIO(io, socket));
+    io.of('/documents').on('connection', (socket) => documentSocketRouter(io, socket));
 
     server.listen(PORT, () => {
       console.log(`Test server started on port ${PORT}`);
@@ -109,11 +107,6 @@ describe('Socket.IO Connections', () => {
   afterEach((done) => {
     if (clientSocket.connected) clientSocket.disconnect();
     done();
-  });
-
-  test('should connect to the default namespace', (done) => {
-    clientSocket = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { room_id: '55' } });
-    clientSocket.on('connect', done);
   });
 
   test('should connect to the /documents namespace', (done) => {
@@ -141,8 +134,7 @@ describe('Socket.IO Documents Namespace', () => {
     server = createHttpServer(app);
     io = new SocketIOServer(server);
 
-    io.of('/').on('connection', (socket) => logger.info(`New root namespace socket connection ${socket.id}`));
-    io.of('/documents').on('connection', (socket) => documentSocketIO(io, socket));
+    io.of('/documents').on('connection', (socket) => documentSocketRouter(io, socket));
 
     server.listen(PORT, () => {
       console.log(`Test server started on port ${PORT}`);
@@ -186,7 +178,7 @@ describe('Socket.IO Documents Namespace', () => {
       expect(response.code).toBe(200);
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Received event: /create'));
 
-      const documemts = await documentRepo.getRoomWithDocuments('55');
+      const documemts = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
       expect(documemts?.documents).toEqual(expect.arrayContaining([expect.objectContaining({ name: DEFAULT_DOCUMENT_NAME })]));
 
       done();
@@ -205,7 +197,7 @@ describe('Socket.IO Documents Namespace', () => {
         expect(response.code).toBe(200);
         expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Received event: /create'));
 
-        const documents = await documentRepo.getRoomWithDocuments(DEFAULT_ROOM_ID);
+        const documents = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
         expect(documents?.documents).toEqual(expect.arrayContaining([expect.objectContaining({ name: DEFAULT_DOCUMENT_NAME })]));
       });
 

@@ -2,8 +2,8 @@ import { Socket, Server as SocketIOServer } from "socket.io";
 import { documentRepo } from "./document.repo.js";
 import { logger } from "../logger.js";
 
-import { DocumentData, DocumentCallback, DocumentResponse } from './document-types.js';
-import { validateDocumentData, notifyClientsDocChange } from './document-helpers.js';
+import { DocumentData, DocumentCallback, DocumentResponse } from './document.types.js';
+import { validateDocumentData, notifyClientsDocChange } from './document.helpers.js';
 
 const onConnect = (socket: Socket) => {
     const roomId: string = socket.handshake.headers?.room_id as string;
@@ -24,14 +24,14 @@ const onConnect = (socket: Socket) => {
 }
 
 const createEventHandler = async (socket: Socket, data: DocumentData, callback: DocumentCallback) => {
-    if (typeof callback !== 'function') callback = (response: DocumentResponse) => logger.info(JSON.stringify(response));
+    if (typeof callback !== 'function') callback = (response: DocumentResponse) => { };
     if (!validateDocumentData(data, callback)) return;
 
     const { documentName } = data;
     const roomId = socket.handshake.headers?.room_id as string;
 
     try {
-        await documentRepo.createDocumentInRoom(roomId, documentName);
+        await documentRepo.createDocument(roomId, documentName);
     } catch (error) {
         logger.error(`Error creating document: ${error}`);
         callback({ status: 'ERROR', code: 500, message: 'Internal server error' } as DocumentResponse);
@@ -43,7 +43,7 @@ const createEventHandler = async (socket: Socket, data: DocumentData, callback: 
     callback({ status: 'SUCCESS', code: 200 } as DocumentResponse);
 }
 
-export const documentSocketIO = (io: SocketIOServer, socket: Socket) => {
+export const documentSocketRouter = (io: SocketIOServer, socket: Socket) => {
     logger.info(`New document socket connection ${socket.id}`);
 
     let roomId: string;

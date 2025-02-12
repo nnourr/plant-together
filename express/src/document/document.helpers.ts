@@ -1,4 +1,4 @@
-import { DocumentData, DocumentCallback, DocumentResponse } from './document-types.js';
+import { DocumentData, DocumentCallback, DocumentResponse } from './document.types.js';
 import { Socket } from 'socket.io';
 
 export const validateDocumentData = (data: DocumentData, callback: DocumentCallback) => {
