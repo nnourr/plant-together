@@ -16,34 +16,33 @@ if (process.env.NODE_ENV === 'test') {
   const connectionString = await mock.listen(6969)
   sql = postgres(connectionString)
   sql.mock = mock
-
-  // TODO: Replace with db migrations
-  await sql`
-    CREATE TABLE IF NOT EXISTS room (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL
-    );
-  `
-  // TODO: Replace with db migrations
-  await sql`
-    CREATE TABLE IF NOT EXISTS document (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      room_id INTEGER NOT NULL REFERENCES room(id)
-    );
-  `
-
 } else {
   sql = postgres({
     user: DB_USER,
     pass: DB_PASS,
     host: DB_HOST,
-    database: DB_NAME, 
-    port: (DB_PORT || 5432) as number,     
+    database: DB_NAME,
+    port: (DB_PORT || 5432) as number,
     idle_timeout: 20,
-    max_lifetime: 60 * 30,         
+    max_lifetime: 60 * 30,
   });
 }
+
+// TODO: Replace with db migrations
+await sql`
+CREATE TABLE IF NOT EXISTS room (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+`
+// TODO: Replace with db migrations
+await sql`
+CREATE TABLE IF NOT EXISTS document (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  room_id INTEGER NOT NULL REFERENCES room(id)
+);
+`
 
 // Test the connection
 const alive = await sql`SELECT NOW()`
