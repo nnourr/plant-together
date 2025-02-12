@@ -1,15 +1,20 @@
 import { UmlEditor } from "../components/umlEditor.component";
 import { UmlDisplay } from "../components/umlDisplay.component";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { NavBar } from "../components/navBar.component";
-import * as plantService from "../service/plant.service"
+import * as plantService from "../service/plant.service.tsx"
 import { DocumentModel } from "../models/document.model";
 import { SideBar } from "../components/sideBar.component";
+import { useSocket } from "../hooks/useSocket.tsx";
+import { useSocketEvent } from "../hooks/useSocketEvent.tsx";
+import { SocketContext } from "../context/SocketContext.tsx";
 
 export const CollabRoom: React.FC = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
+  const socket = useContext(SocketContext);
+  // useSocketEvent("/document", console.log());
   const [editorValue, setEditorValue] = useState<string>("");
   const [roomDocuments, setRoomDocuments] = useState<DocumentModel[]>([])
   const [currDocument, setCurrDocument] = useState<DocumentModel>()
@@ -38,8 +43,9 @@ export const CollabRoom: React.FC = () => {
   }  
 
   const createNewDocument = async (roomId: string, documentName: any) => {
-    await plantService.createDocumentInRoom(roomId, documentName)
-    window.location.reload()
+    console.log(socket);
+    await plantService.createDocumentInRoom(socket!, roomId, documentName, () => console.log("HeLLo wOrLD"))
+    // window.location.reload()
   }
 
   return (
@@ -53,7 +59,7 @@ export const CollabRoom: React.FC = () => {
         newDocument={() => createNewDocument(roomId, `Document${roomDocuments.length+1}`)}
         className="w-80"
         />
-        {currDocument &&
+        {/* {currDocument &&
         <UmlEditor
           className="h-1/2 md:w-1/3 md:h-full"
           roomId={roomId}
@@ -61,7 +67,7 @@ export const CollabRoom: React.FC = () => {
           setEditorValue={setEditorValue}
         />
         }
-        <UmlDisplay className="h-1/2 md:w-1/2 md:h-full" umlStr={editorValue} />
+        <UmlDisplay className="h-1/2 md:w-1/2 md:h-full" umlStr={editorValue} /> */}
       </div>
     </div>
   );

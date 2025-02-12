@@ -1,20 +1,8 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { createHashRouter, RouterProvider } from "react-router-dom";
-import { Landing } from "./pages/landing.page.tsx";
-import { CollabRoom } from "./pages/collabRoom.page.tsx";
+import App from "./app.tsx"
 
-const router = createHashRouter([
-  {
-    path: "*",
-    element: <Landing />,
-  },
-  {
-    path: "/room/:roomId",
-    element: <CollabRoom />,
-  },
-]);
-
+// replace with app 
 createRoot(document.getElementById("root")!).render(
-  <RouterProvider router={router} />
+    <App />
 );
