@@ -55,9 +55,8 @@ export const Landing: React.FC = () => {
           .
         </h2>
         <div className="flex gap-4 flex-col md:flex-row box-border mt-8">
-          <InputField
-            label = ""
-            onChange={setRoomName}
+          <InputField 
+            onChange= {(e) => setRoomName(e.target.value)}
             type="text"
             placeholder="enter a room name"
             onKeyDown={handleKeyDown}
