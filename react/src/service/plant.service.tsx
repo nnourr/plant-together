@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client";
 
-const serverHttpUrl = "http://localhost:6575";
+const serverHttpUrl = (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000");
 
 export const createRoomWithDocument = async (roomId: string, roomName: string, documentName: string) => {
   const response = await fetch(`${serverHttpUrl}/room/${roomId}`, {

@@ -8,7 +8,7 @@ import { DocumentModel } from "../models/document.model";
 import { SideBar } from "../components/sideBar.component";
 import { io, Socket } from "socket.io-client";
 
-const serverHttpUrl = import.meta.env.VITE_SERVER_HTTP_URL + "/documents";
+const serverHttpUrl = (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000") + "/documents";
 
 export const CollabRoom: React.FC = () => {
   const { roomId } = useParams();
