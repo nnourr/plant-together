@@ -26,12 +26,12 @@ const onConnect = (socket: Socket) => {
 const createEventHandler = async (socket: Socket, data: DocumentData, callback: DocumentCallback) => {
     if (typeof callback !== 'function') callback = (response: DocumentResponse) => { };
     if (!validateDocumentData(data, callback)) return;
-
+    let id;
     const { documentName } = data;
     const roomId = socket.handshake.headers?.room_id as string;
 
     try {
-        await documentRepo.createDocument(roomId, documentName);
+        id = await documentRepo.createDocument(roomId, documentName);
     } catch (error) {
         logger.error(`Error creating document: ${error}`);
         callback({ status: 'ERROR', code: 500, message: 'Internal server error' } as DocumentResponse);
@@ -39,8 +39,8 @@ const createEventHandler = async (socket: Socket, data: DocumentData, callback: 
         return;
     }
 
-    notifyClientsDocChange(socket, roomId, documentName);
-    callback({ status: 'SUCCESS', code: 200 } as DocumentResponse);
+    notifyClientsDocChange(socket, roomId, documentName, id);
+    callback({ status: 'SUCCESS', code: 200, id: id } as DocumentResponse);
 }
 
 export const documentSocketRouter = (io: SocketIOServer, socket: Socket) => {

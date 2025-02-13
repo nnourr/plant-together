@@ -48,7 +48,7 @@ services:
       - PGADMIN_DEFAULT_EMAIL=${ADMIN_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${ADMIN_PASS}
     ports:
-      - "5555:80"
+      - "1007:80"
     networks:
       - plant-together-network
 
