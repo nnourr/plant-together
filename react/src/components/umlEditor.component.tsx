@@ -45,9 +45,6 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     // Create a new Yjs document and WebSocket provider
     const doc = new Y.Doc();
     docRef.current = doc;
-    console.log(serverWsUrl);
-    console.log(wsID);
-    console.log(doc);
     const provider = new WebsocketProvider(serverWsUrl, wsID, doc);
     providerRef.current = provider;
 

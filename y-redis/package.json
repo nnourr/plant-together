@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "concurrently -r 'npm run start:server' 'npm run start:worker'",
-    "dev": "npx concurrently -r \"npm run redis\" \"npm run dev:server\" \"npm run dev:worker\"",
+    "dev": "concurrently -r 'npm run redis' 'npm run dev:server' 'npm run dev:worker'",
     "start:server": "node ./bin/server.js",
     "dev:server": "node --env-file .env ./bin/server.js",
     "debug:server": "node --env-file .env --inspect-brk ./bin/worker.js ./bin/server.js",

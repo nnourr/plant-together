@@ -43,7 +43,6 @@ export const CollabRoom: React.FC = () => {
   }
 
   const createNewDocument = async (roomId: string, documentName: any) => {
-    console.log(socket);
     await plantService.createDocumentInRoom(socket!, documentName, ({ id }) => {
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
       setCurrDocument({ id: id, name: documentName })
@@ -53,12 +52,11 @@ export const CollabRoom: React.FC = () => {
 
   useEffect(() => {
     const newSocket = io(serverHttpUrl, { extraHeaders: { room_id: roomId } });
-    console.log(serverHttpUrl);
     setSocket(newSocket);
 
     newSocket.on("/document", ({ code, documentName, id }: any) => {
       if (code != 200) {
-        console.error("Unable to update with new document")
+        alert("Unable to update new document");
       }
 
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }])
