@@ -6,7 +6,7 @@ import { MonacoBinding } from "y-monaco";
 import { editor } from "monaco-editor";
 import { DocumentModel } from "../models/document.model";
 
-const serverWsUrl = import.meta.env.VITE_SERVER_WS_URL;
+const serverWsUrl = "http://localhost:6575";
 
 interface UmlEditorProps {
   roomId: string;
@@ -45,6 +45,9 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     // Create a new Yjs document and WebSocket provider
     const doc = new Y.Doc();
     docRef.current = doc;
+    console.log(serverWsUrl);
+    console.log(wsID);
+    console.log(doc);
     const provider = new WebsocketProvider(serverWsUrl, wsID, doc);
     providerRef.current = provider;
 

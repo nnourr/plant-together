@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client";
 
-const serverHttpUrl = "https://fcab-2607-f2c0-e6fd-fae0-5c70-a205-cf03-1cf7.ngrok-free.app";
+const serverHttpUrl = "http://localhost:6575";
 
 export const createRoomWithDocument = async (roomId: string, roomName: string, documentName: string) => {
   const response = await fetch(`${serverHttpUrl}/room/${roomId}`, {
@@ -20,13 +20,12 @@ export const createRoomWithDocument = async (roomId: string, roomName: string, d
 
 export const createDocumentInRoom = (
   socket: Socket,
-  roomId: string,
   documentName: string,
   callback: (response: any) => void
 ) => {
   socket.emit(
-    "/documents/create", 
-    { roomId, documentName },
+    "/create", 
+    {documentName: documentName},
     (response: any) => {
       if (response.status === "SUCCESS") {
         console.log("Document created successfully!");
