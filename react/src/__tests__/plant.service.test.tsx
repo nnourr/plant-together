@@ -2,27 +2,26 @@ import { createDocumentInRoom } from "../service/plant.service";
 import { Socket } from 'socket.io-client';
 import jest from 'jest-mock';
 
-// Mock the Socket instance
 const mockSocket = {
   emit: jest.fn(),
 } as unknown as Socket;
 
 describe('createDocumentInRoom', () => {
   beforeEach(() => {
-    jest.clearAllMocks(); // Clear mocks before each test
+    jest.clearAllMocks();
   });
 
   test('should emit the /create event with correct data and handle success response', (done) => {
     const documentName = 'Test Document';
     const mockResponse = { status: 'SUCCESS', message: 'Document created successfully!' };
     
-    // Mock the emit function to call the callback with mockResponse
+
     mockSocket.emit = jest.fn((event, data, callback) => {
       if (event === '/create') callback(mockResponse);
     });
 
     const callback = jest.fn((response) => {
-      expect(response).toEqual(mockResponse); // Ensure callback is called with mockResponse
+      expect(response).toEqual(mockResponse);
       done();
     });
 
@@ -39,13 +38,12 @@ describe('createDocumentInRoom', () => {
     const documentName = 'Test Document';
     const mockResponse = { status: 'FAILURE', message: 'Error creating document' };
 
-    // Mock the emit function to call the callback with mockResponse
     mockSocket.emit = jest.fn((event, data, callback) => {
       if (event === '/create') callback(mockResponse);
     });
 
     const callback = jest.fn((response) => {
-      expect(response).toEqual(mockResponse); // Ensure callback is called with mockResponse
+      expect(response).toEqual(mockResponse);
       done();
     });
 
@@ -62,9 +60,9 @@ describe('createDocumentInRoom', () => {
     const documentName = 'Test Document';
     const mockResponse = { status: 'SUCCESS', message: 'Document created successfully!' };
 
-    console.log = jest.fn(); // Mock console.log
+    console.log = jest.fn(); 
 
-    // Mock the emit function to call the callback with mockResponse
+
     mockSocket.emit = jest.fn((event, data, callback) => {
       if (event === '/create') callback(mockResponse);
     });
@@ -85,9 +83,8 @@ describe('createDocumentInRoom', () => {
     const documentName = 'Test Document';
     const mockResponse = { status: 'FAILURE', message: 'Error creating document' };
 
-    console.error = jest.fn(); // Mock console.error
+    console.error = jest.fn(); 
 
-    // Mock the emit function to call the callback with mockResponse
     mockSocket.emit = jest.fn((event, data, callback) => {
       if (event === '/create') callback(mockResponse);
     });
