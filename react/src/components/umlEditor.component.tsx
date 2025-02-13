@@ -6,7 +6,7 @@ import { MonacoBinding } from "y-monaco";
 import { editor } from "monaco-editor";
 import { DocumentModel } from "../models/document.model";
 
-const serverWsUrl = "http://localhost:6575";
+const serverWsUrl = (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000")
 
 interface UmlEditorProps {
   roomId: string;

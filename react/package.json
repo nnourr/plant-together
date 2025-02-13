@@ -25,6 +25,7 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
     "react-zoom-pan-pinch": "^3.6.1",
+    "socket.io-client": "^4.8.1",
     "y-monaco": "^0.1.6",
     "y-websocket": "^2.0.4",
     "yjs": "^13.6.19"

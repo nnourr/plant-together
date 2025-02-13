@@ -1,28 +1,27 @@
 import { createDocumentInRoom } from "../service/plant.service";
 import { Socket } from 'socket.io-client';
-import jest from 'jest-mock';
+import { vi } from 'vitest'
 
 const mockSocket = {
-  emit: jest.fn(),
+  emit: vi.fn(),
 } as unknown as Socket;
 
 describe('createDocumentInRoom', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  test('should emit the /create event with correct data and handle success response', (done) => {
+  test('should emit the /create event with correct data and handle success response', () => {
     const documentName = 'Test Document';
     const mockResponse = { status: 'SUCCESS', message: 'Document created successfully!' };
     
 
-    mockSocket.emit = jest.fn((event, data, callback) => {
+    mockSocket.emit = vi.fn((event, data, callback) => {
       if (event === '/create') callback(mockResponse);
     });
 
-    const callback = jest.fn((response) => {
+    const callback = vi.fn((response) => {
       expect(response).toEqual(mockResponse);
-      done();
     });
 
     createDocumentInRoom(mockSocket, documentName, callback);
@@ -34,17 +33,16 @@ describe('createDocumentInRoom', () => {
     );
   });
 
-  test('should emit the /create event and handle failure response', (done) => {
+  test('should emit the /create event and handle failure response', () => {
     const documentName = 'Test Document';
     const mockResponse = { status: 'FAILURE', message: 'Error creating document' };
 
-    mockSocket.emit = jest.fn((event, data, callback) => {
+    mockSocket.emit = vi.fn((event, data, callback) => {
       if (event === '/create') callback(mockResponse);
     });
 
-    const callback = jest.fn((response) => {
+    const callback = vi.fn((response) => {
       expect(response).toEqual(mockResponse);
-      done();
     });
 
     createDocumentInRoom(mockSocket, documentName, callback);
@@ -56,20 +54,19 @@ describe('createDocumentInRoom', () => {
     );
   });
 
-  test('should log success message to console on success', (done) => {
+  test('should log success message to console on success', () => {
     const documentName = 'Test Document';
     const mockResponse = { status: 'SUCCESS', message: 'Document created successfully!' };
 
-    console.log = jest.fn(); 
+    console.log = vi.fn(); 
 
 
-    mockSocket.emit = jest.fn((event, data, callback) => {
+    mockSocket.emit = vi.fn((event, data, callback) => {
       if (event === '/create') callback(mockResponse);
     });
 
     createDocumentInRoom(mockSocket, documentName, (response) => {
       expect(console.log).toHaveBeenCalledWith('Document created successfully!');
-      done();
     });
 
     expect(mockSocket.emit).toHaveBeenCalledWith(
@@ -79,19 +76,18 @@ describe('createDocumentInRoom', () => {
     );
   });
 
-  test('should log error message to console on failure', (done) => {
+  test('should log error message to console on failure', () => {
     const documentName = 'Test Document';
     const mockResponse = { status: 'FAILURE', message: 'Error creating document' };
 
-    console.error = jest.fn(); 
+    console.error = vi.fn(); 
 
-    mockSocket.emit = jest.fn((event, data, callback) => {
+    mockSocket.emit = vi.fn((event, data, callback) => {
       if (event === '/create') callback(mockResponse);
     });
 
     createDocumentInRoom(mockSocket, documentName, (response) => {
       expect(console.error).toHaveBeenCalledWith('Failed to create document: Error creating document');
-      done();
     });
 
     expect(mockSocket.emit).toHaveBeenCalledWith(
