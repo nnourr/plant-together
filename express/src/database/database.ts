@@ -31,7 +31,7 @@ if (process.env.NODE_ENV === 'test') {
 // TODO: Replace with db migrations
 await sql`
 CREATE TABLE IF NOT EXISTS room (
-  id SERIAL PRIMARY KEY,
+  id TEXT PRIMARY KEY,
   name TEXT NOT NULL
 );
 `
@@ -40,7 +40,7 @@ await sql`
 CREATE TABLE IF NOT EXISTS document (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
-  room_id INTEGER NOT NULL REFERENCES room(id)
+  room_id TEXT NOT NULL REFERENCES room(id)
 );
 `
 

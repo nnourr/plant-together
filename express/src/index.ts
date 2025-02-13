@@ -64,5 +64,7 @@ server.listen(PORT, "0.0.0.0", () => {
 });
 
 // Setup document service SocketIO connection
-const socketIO = new SocketIOServer(server);
+const socketIO = new SocketIOServer(server, { cors: {
+  origin: "*"
+} });
 socketIO.of('/documents').on("connection", (socket) => documentSocketRouter(socketIO, socket));

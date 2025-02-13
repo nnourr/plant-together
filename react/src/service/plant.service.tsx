@@ -1,5 +1,6 @@
-const serverHttpUrl = import.meta.env.VITE_SERVER_HTTP_URL;
+import { Socket } from "socket.io-client";
 
+const serverHttpUrl = (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000");
 
 export const createRoomWithDocument = async (roomId: string, roomName: string, documentName: string) => {
   const response = await fetch(`${serverHttpUrl}/room/${roomId}`, {
@@ -16,15 +17,27 @@ export const createRoomWithDocument = async (roomId: string, roomName: string, d
     throw new Error(`Response status: ${response.status}`)
   }
 }
-export const createDocumentInRoom = async (roomId: string, documentName: string) => {
-  const response = await fetch(`${serverHttpUrl}/room/${roomId}/document/${documentName}`, {
-    method:"POST",
-  })
 
-  if (!response.ok) {
-    throw new Error(`Response status: ${response.status}`)
-  }
-}
+export const createDocumentInRoom = (
+  socket: Socket,
+  documentName: string,
+  callback: (response: any) => void
+) => {
+  socket.emit(
+    "/create", 
+    {documentName: documentName},
+    (response: any) => {
+      if (response.status === "SUCCESS") {
+        console.log("Document created successfully!");
+      } else {
+        console.error(`Failed to create document: ${response.message}`);
+      }
+
+      if (callback) callback(response);
+    }
+  );
+};
+
 export const getRoomWithDocuments = async (roomId: string) => {
   const response = await fetch(`${serverHttpUrl}/room/${roomId}`)
   if (!response.ok) {
@@ -34,4 +47,4 @@ export const getRoomWithDocuments = async (roomId: string) => {
   const room = await response.json()
   return room
 }
-  
+
