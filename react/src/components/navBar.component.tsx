@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Button, ButtonSize } from "./button.component";
 
 export const NavBar: React.FC = () => {
   const navigate = useNavigate();
@@ -9,12 +10,9 @@ export const NavBar: React.FC = () => {
           Plant Together
         </h1>
       </a>
-      <button
-        className="text-white font-bold border-white/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-white/60"
-        onClick={() => navigate("/")}
-      >
+      <Button size={ButtonSize.sm} onClick={() => navigate("/")}>
         new room
-      </button>
+      </Button>
     </div>
   );
 };

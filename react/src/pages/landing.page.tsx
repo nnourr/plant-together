@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer.component";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSeedling } from "@fortawesome/free-solid-svg-icons";
+import { Button, ButtonSize } from "../components/button.component";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
@@ -61,12 +62,9 @@ export const Landing: React.FC = () => {
             placeholder="enter a room name"
             onKeyDown={handleKeyDown}
           ></input>
-          <button
-            className="text-2xl border-white/20 border-2 rounded-xl w-[80vw] lg:w-auto px-4 py-2 transition-all hover:border-white/60"
-            onClick={goToRoom}
-          >
+          <Button size={ButtonSize.lg} onClick={goToRoom}>
             Submit
-          </button>
+          </Button>
         </div>
       </div>
       <Footer className="w-full" />
