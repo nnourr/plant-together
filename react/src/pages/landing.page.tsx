@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer.component";
+import { InputField } from "../components/inputField.component";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSeedling } from "@fortawesome/free-solid-svg-icons";
+import { Button, ButtonSize } from "../components/button.component";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
@@ -54,19 +56,15 @@ export const Landing: React.FC = () => {
           .
         </h2>
         <div className="flex gap-4 flex-col md:flex-row box-border mt-8">
-          <input
-            onChange={(event) => setRoomName(event.target.value)}
-            className="rounded-xl bg-transparent border-2 border-white/20 text-2xl w-[80vw] lg:w-auto px-4 py-2"
+          <InputField 
+            onChange= {(e) => setRoomName(e.target.value)}
             type="text"
             placeholder="enter a room name"
             onKeyDown={handleKeyDown}
-          ></input>
-          <button
-            className="text-2xl border-white/20 border-2 rounded-xl w-[80vw] lg:w-auto px-4 py-2 transition-all hover:border-white/60"
-            onClick={goToRoom}
-          >
+          />
+          <Button size={ButtonSize.lg} onClick={goToRoom}>
             Submit
-          </button>
+          </Button>
         </div>
       </div>
       <Footer className="w-full" />
