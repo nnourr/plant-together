@@ -6,7 +6,7 @@ import { DocumentData, DocumentCallback, DocumentResponse } from './document.typ
 import { validateDocumentData, notifyClientsDocChange } from './document.helpers.js';
 
 const onConnect = (socket: Socket) => {
-    const roomId: string = socket.handshake.headers?.room_id as string;
+    const roomId: string = socket.handshake.headers?.['room-id'] as string;
 
     if (!roomId) {
         const errorMessage: string = 'Room ID not provided';
