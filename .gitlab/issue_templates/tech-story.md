@@ -25,6 +25,9 @@
 ## Estimation
 - Story Points: [Effort estimate in story points.]
 
+## Updates to Tasks and Related MRs with Proof of Work
+- Task Name #[issue number(s)] | ![MR number(s)]: [Provide any updates as to what the task accomplished, any changes that were made, and a link to said task with proof of work]
+
 ## Definition of Ready (DoR) Checklist
 - [ ] Clear description and purpose.
 - [ ] Acceptance criteria defined.
