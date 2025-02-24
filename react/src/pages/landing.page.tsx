@@ -8,15 +8,19 @@ import { Button, ButtonSize } from "../components/button.component";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
 
   const goToRoom = () => {
     if (roomName.includes(" ")) {
-      alert("no spaces allowed x(");
+      setError(true);
+      setErrorMessage("no spaces allowed x(");
       return;
     }
     if (roomName.includes("/")) {
-      alert("no dash allowed x(");
+      setError(true);
+      setErrorMessage("no dash allowed x(");
       return;
     }
     navigate(`room/${roomName}`);
@@ -65,6 +69,11 @@ export const Landing: React.FC = () => {
           <Button size={ButtonSize.lg} onClick={goToRoom}>
             Submit
           </Button>
+          {error && (
+            <p role="alert" style={{ color: "rgb(255, 0, 0)" }}>
+              {errorMessage}
+            </p>
+          )}
         </div>
       </div>
       <Footer className="w-full" />
