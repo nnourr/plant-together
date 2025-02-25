@@ -10,7 +10,7 @@ services:
       - VITE_SERVER_HTTP_URL=${VITE_SERVER_HTTP_URL:-http://plant-together-express}
       - VITE_SERVER_WS_URL=${VITE_SERVER_WS_URL:-ws://plant-together-yredis}
     ports:
-      - ${REACT_PORT:-4173}:4173
+      - ${VITE_PORT:-4173}:4173
     networks:
       - plant-together-network
       - yredis-network

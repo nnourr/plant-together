@@ -35,7 +35,7 @@ cd plant-together
 Use Docker Compose to build and run the containers:
 
 ```sh
-docker-compose up --build
+docker compose up --build
 ```
 
 This command will build the Docker images and start the containers defined in the docker-compose.yaml file.
@@ -48,28 +48,31 @@ This command will build the Docker images and start the containers defined in th
 ### Environment Variables
 You can [optionally change](#create-a-env-file-optional) the following environment variables in the .env file to customize the setup:
 
-- `REACT_PORT`: Port for the React application (default: 4173)
-- `VITE_SERVER_HTTP_URL`: URL for the Vite server HTTP (default: http://plant-together-express)
-- `VITE_SERVER_WS_URL`: URL for the Vite server WebSocket (default: ws://plant-together-yredis)
+- `VITE_PORT`: Port for the React application (default: 4173)
+- `VITE_SERVER_HTTP_URL`: React app's URL to the express server (default: http://plant-together-express)
+- `VITE_SERVER_WS_URL`: React app's URL to the Y-Redis server (default: ws://plant-together-yredis)
 - `PORT`: Port for the Express server (default: 3000)
 - `DB_NAME`: Connection database name used by express and y-redis (default: postgres)
-- `DB_HOST`: Connection database host used by express and y-redis (default: database-psql)
-- `DB_PORT`: Connection database port used by express and y-redis (default: 5432)
-- `DB_USER`: Connection database user used by express and y-redis (default: postgres)
-- `DB_PASS`: Connection database password used by express and y-redis (default: 1234)
+- `DB_HOST`: Connection database host used by express and y-redis (if POSTGRES not specified) (default: database-psql)
+- `DB_PORT`: Connection database port used by express and y-redis (if POSTGRES not specified) (default: 5432)
+- `DB_USER`: Connection database user used by express and y-redis (if POSTGRES not specified) (default: postgres)
+- `DB_PASS`: Connection database password used by express and y-redis (if POSTGRES not specified) (default: 1234)
 - `YREDIS_PORT`: Port for the YRedis server (default: 3003)
 - `REDIS_PORT`: Port for the Redis instance (default: 6379)
 - `PSQL_PORT`: Port for the PostgreSQL instance (default: 5432)
 - `ADMIN_EMAIL`: Email for PgAdmin login (default: developer@plant-together.com)
 - `ADMIN_PASS`: Password for PgAdmin login (default: 1234)
 - `PGADMIN_PORT`: Port for PgAdmin (default: 1007)
+- `LOG`: Log level for y-redis (default: *)
+- `REDIS`: Redis instance URL (default: 1007)
+- `POSTGRES`: Postgres connection string used by y-redis (default: postgres://${DB_USER:}:${DB_PASS}@${DB_HOST}/${DB_NAME})
 
 #### Create a .env File [Optional]
 Create a .env file in the root directory of the project to set environment variables. Here is an example of the .env file:
 
 ```env
 # React Env Variables
-REACT_PORT=4173
+VITE_PORT=4173
 VITE_SERVER_HTTP_URL=http://plant-together-express
 VITE_SERVER_WS_URL=ws://plant-together-yredis
 
