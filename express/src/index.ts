@@ -4,7 +4,7 @@ import { Server as SocketIOServer } from "socket.io";
 
 import cors from "cors";
 
-import { PORT } from "./config.js";
+import { PORT, CORS_ALLOWED_ORIGIN } from "./config.js";
 import * as roomRepo from "./room/room.repo.js";
 import { documentRepo } from "./document/document.repo.js";
 import { documentSocketRouter } from "./document/document.service.js";
@@ -13,7 +13,7 @@ const app = express();
 
 app.use(express.json());
 
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: CORS_ALLOWED_ORIGIN }));
 
 app.get("/", (_, res) => {
   res.json({ hello: "world" });
@@ -66,10 +66,9 @@ server.listen(PORT, "0.0.0.0", () => {
 // Setup document service SocketIO connection
 const socketIO = new SocketIOServer(server, {
   cors: {
-    origin: "*",
+    origin: CORS_ALLOWED_ORIGIN,
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["room-id"],
-    credentials: true,
   },
 });
 socketIO
