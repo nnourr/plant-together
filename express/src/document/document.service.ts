@@ -28,8 +28,7 @@ const createEventHandler = async (socket: Socket, data: DocumentData, callback: 
     if (!validateDocumentData(data, callback)) return;
     let id;
     const { documentName } = data;
-    const roomId = socket.handshake.headers?.room_id as string;
-
+    const roomId = socket.handshake.headers?.['room-id'] as string;
     try {
         id = await documentRepo.createDocument(roomId, documentName);
     } catch (error) {
