@@ -43,7 +43,7 @@ services:
     restart: always
     environment:
       - PORT=${YREDIS_PORT:-3003}
-      - LOG=${LOG:-*}
+      - LOG=${LOG:-"^(?!No tasks available).*$"}
       - REDIS=${REDIS:-redis://redis-together}
       - POSTGRES=${POSTGRES:-postgres://${DB_USER:-postgres}:${DB_PASS:-1234}@${DB_HOST:-database-psql}/${DB_NAME:-postgres}}
     depends_on:
