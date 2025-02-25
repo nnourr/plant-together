@@ -4,11 +4,11 @@ services:
   plant-together-react:
     build:
       context: ./react
+      args:
+        VITE_SERVER_HTTP_URL: ${VITE_SERVER_HTTP_URL:-http://localhost:${PORT:-3000}}
+        VITE_SERVER_WS_URL: ${VITE_SERVER_WS_URL:-ws://localhost:${YREDIS_PORT:-3003}}
     container_name: plant-together-react
     restart: always
-    environment:
-      - VITE_SERVER_HTTP_URL=${VITE_SERVER_HTTP_URL:-http://plant-together-express}
-      - VITE_SERVER_WS_URL=${VITE_SERVER_WS_URL:-ws://plant-together-yredis}
     ports:
       - ${VITE_PORT:-4173}:4173
     networks:
