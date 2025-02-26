@@ -13,6 +13,11 @@ export const Landing: React.FC = () => {
   const navigate = useNavigate();
 
   const goToRoom = () => {
+    if (!roomName.trim()){
+      setError(true);
+      setErrorMessage("room name cannot be empty x(");
+      return;
+    }
     if (roomName.includes(" ")) {
       setError(true);
       setErrorMessage("no spaces allowed x(");
