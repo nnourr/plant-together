@@ -51,7 +51,7 @@ export const CollabRoom: React.FC = () => {
   }
 
   useEffect(() => {
-    const newSocket = io(serverHttpUrl, { extraHeaders: { room_id: roomId } });
+    const newSocket = io(serverHttpUrl, { extraHeaders: { "room-id": roomId } });
     setSocket(newSocket);
 
     newSocket.on("/document", ({ code, documentName, id }: any) => {

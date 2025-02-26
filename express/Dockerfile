@@ -13,6 +13,8 @@ ENV DB_PORT=''
 ENV DB_USER=''
 ENV DB_PASS=''
 
+ENV CORS_ALLOWED_ORIGIN='*'
+
 EXPOSE $PORT
 
 RUN npm run build
