@@ -115,7 +115,7 @@ describe('Socket.IO Connections', () => {
       done();
     };
 
-    clientSocket = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { room_id: '55' } });
+    clientSocket = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { 'room-id': '55' } });
     clientSocket.on('/connection', callback);
   });
 });
@@ -148,7 +148,7 @@ describe('Socket.IO Documents Namespace', () => {
   });
 
   beforeEach(async () => {
-    clientSocket = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { room_id: DEFAULT_ROOM_ID } });
+    clientSocket = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { 'room-id': DEFAULT_ROOM_ID } });
     clientSocket.on('connect', () => expect(clientSocket.connected).toBe(true));
 
     await createRoomWithDocument(DEFAULT_ROOM_ID, DEFAULT_ROOM_NAME, DEFAULT_DOCUMENT_NAME);
@@ -165,7 +165,7 @@ describe('Socket.IO Documents Namespace', () => {
       done();
     };
 
-    clientSocket = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { room_id: DEFAULT_ROOM_ID } });
+    clientSocket = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { 'room-id': DEFAULT_ROOM_ID } });
     clientSocket.on('/connection', callback);
   });
 
@@ -189,7 +189,7 @@ describe('Socket.IO Documents Namespace', () => {
     const documentData = { documentName: DEFAULT_DOCUMENT_NAME };
     const logSpy = jest.spyOn(logger, 'info');
 
-    const clientSocket2 = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { room_id: DEFAULT_ROOM_ID } });
+    const clientSocket2 = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { 'room-id': DEFAULT_ROOM_ID } });
 
     clientSocket2.on('connect', () => {
       clientSocket.emit('/create', documentData, async (response: DocumentResponse) => {
