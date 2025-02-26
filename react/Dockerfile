@@ -1,0 +1,15 @@
+FROM node:20-alpine
+
+ARG VITE_SERVER_HTTP_URL
+ARG VITE_SERVER_WS_URL
+
+ENV VITE_SERVER_HTTP_URL=$VITE_SERVER_HTTP_URL
+ENV VITE_SERVER_WS_URL=$VITE_SERVER_WS_URL
+
+COPY . .
+
+RUN npm install
+
+RUN npm run build
+
+CMD ["npm", "run", "preview:network"]
