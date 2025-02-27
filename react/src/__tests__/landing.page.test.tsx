@@ -70,7 +70,7 @@ describe("Landing Component - Inline Validation", () => {
     fireEvent.click(button);
 
     expect(mockNavigate).toHaveBeenCalledWith("room/validRoomName");
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toHaveClass("opacity-0");
   });
 
   test("triggers validation on Enter key press", () => {
@@ -102,7 +102,7 @@ describe("Landing Component - Inline Validation", () => {
     fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
 
     expect(mockNavigate).toHaveBeenCalledWith("room/validRoom");
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toHaveClass("opacity-0");
   });
 
   test("does not allow empty input and shows an error message", () => {
