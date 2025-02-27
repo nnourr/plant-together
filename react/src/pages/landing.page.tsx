@@ -8,15 +8,24 @@ import { Button, ButtonSize } from "../components/button.component";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
 
   const goToRoom = () => {
+    if (!roomName.trim()) {
+      setError(true);
+      setErrorMessage("room name cannot be empty x(");
+      return;
+    }
     if (roomName.includes(" ")) {
-      alert("no spaces allowed x(");
+      setError(true);
+      setErrorMessage("no spaces allowed x(");
       return;
     }
     if (roomName.includes("/")) {
-      alert("no dash allowed x(");
+      setError(true);
+      setErrorMessage("no slash allowed x(");
       return;
     }
     navigate(`room/${roomName}`);
@@ -26,6 +35,26 @@ export const Landing: React.FC = () => {
     if (event.key === "Enter") {
       goToRoom();
     }
+  };
+
+  const checkOnBlur = () => {
+    if (!roomName.trim()) {
+      setError(false);
+      setErrorMessage("");
+      return;
+    }
+    if (roomName.includes(" ")) {
+      setError(true);
+      setErrorMessage("no spaces allowed x(");
+      return;
+    }
+    if (roomName.includes("/")) {
+      setError(true);
+      setErrorMessage("no slash allowed x(");
+      return;
+    }
+    
+    return;
   };
 
   return (
@@ -55,12 +84,21 @@ export const Landing: React.FC = () => {
           </a>
           .
         </h2>
-        <div className="flex gap-4 flex-col md:flex-row box-border mt-8">
-          <InputField 
-            onChange= {(e) => setRoomName(e.target.value)}
+        <div className="flex gap-4 flex-col md:flex-row box-border mt-8 relative">
+          <p
+            role="alert"
+            className={`${
+              !error ? "opacity-0" : "opacity-100"
+            } text-red-500 absolute -bottom-8 text-lg transition-opacity`}
+          >
+            {errorMessage}
+          </p>
+          <InputField
+            onChange={(e) => setRoomName(e.target.value)}
             type="text"
             placeholder="enter a room name"
             onKeyDown={handleKeyDown}
+            onBlur={checkOnBlur}
           />
           <Button size={ButtonSize.lg} onClick={goToRoom}>
             Submit
