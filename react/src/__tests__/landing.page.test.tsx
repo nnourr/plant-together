@@ -1,11 +1,13 @@
-import { describe, test, expect, vi, beforeEach } from "vitest"; 
+import { describe, test, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Landing } from "../pages/landing.page";
 import { useNavigate } from "react-router-dom";
 
 vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
+  const actual = await vi.importActual<typeof import("react-router-dom")>(
+    "react-router-dom"
+  );
   return {
     ...actual,
     useNavigate: vi.fn(),
@@ -50,7 +52,7 @@ describe("Landing Component - Inline Validation", () => {
     fireEvent.change(input, { target: { value: "room/name" } });
     fireEvent.click(button);
 
-    expect(screen.getByRole("alert")).toHaveTextContent("no dash allowed x(");
+    expect(screen.getByRole("alert")).toHaveTextContent("no slash allowed x(");
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -116,7 +118,9 @@ describe("Landing Component - Inline Validation", () => {
     fireEvent.change(input, { target: { value: "" } });
     fireEvent.click(button);
 
-    expect(screen.getByRole("alert")).toHaveTextContent("room name cannot be empty x(");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "room name cannot be empty x("
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
