@@ -13,7 +13,7 @@ export const Landing: React.FC = () => {
   const navigate = useNavigate();
 
   const goToRoom = () => {
-    if (!roomName.trim()){
+    if (!roomName.trim()) {
       setError(true);
       setErrorMessage("room name cannot be empty x(");
       return;
@@ -25,7 +25,7 @@ export const Landing: React.FC = () => {
     }
     if (roomName.includes("/")) {
       setError(true);
-      setErrorMessage("no dash allowed x(");
+      setErrorMessage("no slash allowed x(");
       return;
     }
     navigate(`room/${roomName}`);
@@ -64,9 +64,17 @@ export const Landing: React.FC = () => {
           </a>
           .
         </h2>
-        <div className="flex gap-4 flex-col md:flex-row box-border mt-8">
-          <InputField 
-            onChange= {(e) => setRoomName(e.target.value)}
+        <div className="flex gap-4 flex-col md:flex-row box-border mt-8 relative">
+          <p
+            role="alert"
+            className={`${
+              !error ? "opacity-0" : "opacity-100"
+            } text-red-500 absolute -bottom-8 text-lg transition-opacity`}
+          >
+            {errorMessage}
+          </p>
+          <InputField
+            onChange={(e) => setRoomName(e.target.value)}
             type="text"
             placeholder="enter a room name"
             onKeyDown={handleKeyDown}
@@ -74,16 +82,6 @@ export const Landing: React.FC = () => {
           <Button size={ButtonSize.lg} onClick={goToRoom}>
             Submit
           </Button>
-        </div>
-        <div>
-          {error && (
-            <p role="alert" style={
-              { color: "rgb(255, 0, 0)" ,
-                fontFamily: "Helvetica" }
-            }>
-              {errorMessage}
-            </p>
-          )}
         </div>
       </div>
       <Footer className="w-full" />
