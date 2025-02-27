@@ -37,6 +37,26 @@ export const Landing: React.FC = () => {
     }
   };
 
+  const checkOnBlur = () => {
+    if (!roomName.trim()) {
+      setError(false);
+      setErrorMessage("");
+      return;
+    }
+    if (roomName.includes(" ")) {
+      setError(true);
+      setErrorMessage("no spaces allowed x(");
+      return;
+    }
+    if (roomName.includes("/")) {
+      setError(true);
+      setErrorMessage("no slash allowed x(");
+      return;
+    }
+    
+    return;
+  };
+
   return (
     <div>
       <div className="w-full h-[100dvh] bg-slate-900 text-white flex justify-center items-center flex-col gap-12">
@@ -78,6 +98,7 @@ export const Landing: React.FC = () => {
             type="text"
             placeholder="enter a room name"
             onKeyDown={handleKeyDown}
+            onBlur={checkOnBlur}
           />
           <Button size={ButtonSize.lg} onClick={goToRoom}>
             Submit
