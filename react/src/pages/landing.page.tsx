@@ -74,8 +74,13 @@ export const Landing: React.FC = () => {
           <Button size={ButtonSize.lg} onClick={goToRoom}>
             Submit
           </Button>
+        </div>
+        <div>
           {error && (
-            <p role="alert" style={{ color: "rgb(255, 0, 0)" }}>
+            <p role="alert" style={
+              { color: "rgb(255, 0, 0)" ,
+                fontFamily: "Helvetica" }
+            }>
               {errorMessage}
             </p>
           )}
