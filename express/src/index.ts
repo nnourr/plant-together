@@ -77,19 +77,35 @@ socketIO
 
 
 import { initializeApp } from "firebase/app";
+import admin from "firebase-admin";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { FIREBASE_CONFIG, FIREBASE_BAD_REQUEST_ERRRORS, FIREBASE_SERVER_ERRRORS } from "./firebase/firebase.config.js";
+import { logger } from "./logger.js";
 
 // Initialize Firebase
 const fireapp = initializeApp(FIREBASE_CONFIG);
-const auth = getAuth(fireapp);
+const clientAuth = getAuth(fireapp);
+const adminAuth = admin.initializeApp(FIREBASE_CONFIG).auth();
+
+const verifyFirebaseIdToken = async (token: string) => {
+  try {
+    if ('Bearer ' === token.substring(0, 7)) token = token.substring(7);
+    const decodedToken = await adminAuth.verifyIdToken(token);
+
+    logger.log('Provided token is valid', JSON.stringify(decodedToken));
+    return true;
+  } catch (error) {
+    logger.error(error);
+    return false;
+  }
+};
 
 app.post("/auth/signup", async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(clientAuth, email, password);
     const user = userCredential.user;
 
     return res.status(200).json({ uid: user.uid });
@@ -107,7 +123,7 @@ app.post("/auth/login", async (req, res) => {
   const password = req.body.password;
 
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
     const token = await userCredential.user.getIdToken();
 
     return res.status(200).json({ token });
@@ -120,3 +136,15 @@ app.post("/auth/login", async (req, res) => {
   }
 });
 
+app.get("/auth/verify", async (req, res) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized: No token provided' });
+  }
+
+  const isValid = await verifyFirebaseIdToken(token);
+
+  if (isValid) return res.sendStatus(200);
+  return res.sendStatus(403);
+});
