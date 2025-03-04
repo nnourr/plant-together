@@ -74,3 +74,49 @@ const socketIO = new SocketIOServer(server, {
 socketIO
   .of("/documents")
   .on("connection", (socket) => documentSocketRouter(socketIO, socket));
+
+
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { FIREBASE_CONFIG, FIREBASE_BAD_REQUEST_ERRRORS, FIREBASE_SERVER_ERRRORS } from "./firebase/firebase.config.js";
+
+// Initialize Firebase
+const fireapp = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(fireapp);
+
+app.post("/auth/signup", async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    return res.status(200).json({ uid: user.uid });
+  } catch (error: any) {
+    let message = FIREBASE_BAD_REQUEST_ERRRORS[error.code];
+    const status = message ? 400 : 500;
+
+    message = message || FIREBASE_SERVER_ERRRORS[error.code] || FIREBASE_SERVER_ERRRORS['auth/internal-error'];
+    return res.status(status).json({ error: message });
+  }
+});
+
+app.post("/auth/login", async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const token = await userCredential.user.getIdToken();
+
+    return res.status(200).json({ token });
+  } catch (error: any) {
+    let message = FIREBASE_BAD_REQUEST_ERRRORS[error.code];
+    const status = message ? 400 : 500;
+
+    message = message || FIREBASE_SERVER_ERRRORS[error.code] || FIREBASE_SERVER_ERRRORS['auth/internal-error'];
+    return res.status(status).json({ error: message });
+  }
+});
+

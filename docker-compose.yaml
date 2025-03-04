@@ -23,6 +23,11 @@ services:
     environment:
       - PORT=${PORT:-3000}
 
+      # Adjust Firebase credentials locally in .env, do not commit!
+      - FIREBASE_API_KEY=${FIREBASE_API_KEY}
+      - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+
       # Adjust database credentials locally in .env, do not commit!
       - DB_NAME=${DB_NAME:-postgres}
       - DB_HOST=${DB_HOST:-database-psql}
