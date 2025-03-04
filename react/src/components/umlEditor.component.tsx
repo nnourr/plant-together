@@ -6,7 +6,6 @@ import { MonacoBinding } from "y-monaco";
 import { editor } from "monaco-editor";
 import { DocumentModel } from "../models/document.model";
 import { IError } from "../models/error.model";
-import "./css/umlEditor.component.css";
 
 const serverWsUrl =
   import.meta.env.VITE_SERVER_WS_URL || "http://localhost:3002";
@@ -49,7 +48,7 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
           range: new monaco.Range(error.line, 1, error.line, 1),
           options: {
             isWholeLine: true,
-            inlineClassName: "error-line",
+            inlineClassName: "underline decoration-red-700 decoration-wavy",
           },
         },
       ]);
