@@ -13,6 +13,7 @@ const createDecorationsCollectionMock = vi.fn().mockReturnValue({
 let capturedOnChange: ((value: string | undefined) => void) | undefined =
   undefined;
 
+const rangeMock = vi.fn();
 vi.mock("@monaco-editor/react", () => ({
   Editor: vi.fn(({ onMount, onChange }) => {
     capturedOnChange = onChange;
@@ -25,7 +26,7 @@ vi.mock("@monaco-editor/react", () => ({
     };
 
     const mockMonacoInstance = {
-      Range: vi.fn(),
+      Range: rangeMock,
     };
     onMount(mockEditorInstance, mockMonacoInstance);
     return <div>Monaco Editor</div>;
@@ -91,6 +92,12 @@ describe("UmlEditor", () => {
 
     await waitFor(() => {
       expect(setMock).toHaveBeenCalled();
+      expect(rangeMock).toHaveBeenCalledWith(
+        newError.line,
+        1,
+        newError.line,
+        1
+      );
     });
 
     rerender(
