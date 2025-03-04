@@ -2,6 +2,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DocumentModel } from "../models/document.model";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { Button, ButtonSize } from "./button.component";
+import { useState, useEffect, useRef } from "react";
+import { faEdit } from "@fortawesome/free-solid-svg-icons";
 
 interface SideBarProps {
   currDocument?: DocumentModel;
@@ -23,17 +25,75 @@ export const SideBar: React.FC<SideBarProps> = ({
     return <div className={className}>Loading...</div>;
   }
 
+  const [edit, setEdit] = useState(false);
+  const editableRef = useRef(null)
+
+  useEffect(() => {
+    if(edit) {
+      if(editableRef.current != null){
+        (editableRef.current as HTMLInputElement).style.width = 'auto';
+        (editableRef.current as HTMLInputElement).focus();
+      }
+    }
+  }, [edit])
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      setEdit(false)
+    }
+  };
+
   const documentButtons = documents.map((document) => {
-    return (
-      <Button
-        key={document.id}
-        size={ButtonSize.md}
-        onClick={() => setCurrDocument(document)}
-        primary={document.id === currDocument.id}
-      >
-        {document.name}
-      </Button>
-    );
+    if (document.id === currDocument.id) {
+      return (
+        <Button
+          key={document.id}
+          size={ButtonSize.md}
+          onClick={() => setCurrDocument(document)}
+          primary={true}
+        >
+          <div className={`flex`}>
+            {(edit && document.id === currDocument.id) && 
+              <input
+                className={`w-40 text-centre text-white bg-transparent`}
+                type="text"
+                ref={editableRef}
+                value={document.name}
+                onFocus={(e) => {e.currentTarget.select()}}
+                onKeyDown={handleKeyDown}
+                onBlur={() => setEdit(false)}
+              />
+            }
+            {!edit &&
+              <div className={`${className} text-left`}>
+                {document.name}
+              </div> 
+            }
+            {!edit &&
+              <button
+                className={`text-left px-2 py-1 left-0 transition-all`}
+                key={document.id}
+                onClick={() => setEdit(true)}
+              >
+                <FontAwesomeIcon icon={faEdit} />
+              </button>
+            }
+          </div>
+        </Button>
+      )
+    } else {
+      return (
+        <Button
+          key={document.id}
+          size={ButtonSize.md}
+          className={`text-left`}
+          onClick={() => setCurrDocument(document)}
+          primary={false}
+        >
+          {document.name}
+        </Button>
+      )
+    }
   });
 
   return (
