@@ -1,0 +1,4 @@
+.error-line {
+  text-decoration: underline wavy red;
+  text-decoration-thickness: 1px;
+}
