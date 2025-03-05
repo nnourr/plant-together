@@ -31,11 +31,11 @@ describe('UmlDisplay', () => {
     (plantuml.renderPng as Mock).mockResolvedValue({ blob: mockPngBlob });
 
     // Mock URL.createObjectURL and URL.revokeObjectURL
-    global.URL.createObjectURL = vi.fn().mockReturnValue('mock-url');
-    global.URL.revokeObjectURL = vi.fn();
+    globalThis.URL.createObjectURL = vi.fn().mockReturnValue('mock-url');
+    globalThis.URL.revokeObjectURL = vi.fn();
 
     // Mock ResizeObserver
-    global.ResizeObserver = ResizeObserverMock;
+    globalThis.ResizeObserver = ResizeObserverMock;
   });
 
   it('should initialize PlantUML and show loading state', () => {

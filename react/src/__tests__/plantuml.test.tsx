@@ -17,7 +17,7 @@ interface MockTransaction {
 
 describe('plantuml', () => {
   beforeEach(() => {
-    // Setup global mocks
+    // Setup globalThis mocks
     vi.stubGlobal('cheerpjInit', vi.fn().mockResolvedValue(undefined));
     vi.stubGlobal('cheerpjRunMain', vi.fn().mockResolvedValue(undefined));
     vi.stubGlobal('cjCall', vi.fn());
@@ -36,31 +36,31 @@ describe('plantuml', () => {
     it('should initialize PlantUML with default path', async () => {
       await plantuml.initialize();
       
-      expect(global.cheerpjInit).toHaveBeenCalled();
-      expect(global.cheerpjRunMain).toHaveBeenCalledWith(
+      expect(globalThis.cheerpjInit).toHaveBeenCalled();
+      expect(globalThis.cheerpjRunMain).toHaveBeenCalledWith(
         'com.plantuml.api.cheerpj.v1.RunInit',
         '/app/plantuml-wasm/plantuml-core.jar',
         '/app/plantuml-wasm/'
       );
 
       // Verify fetch calls
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('plantuml-core.jar.js'));
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('plantuml-core.jar'));
+      expect(globalThis.fetch).toHaveBeenCalledWith(expect.stringContaining('plantuml-core.jar.js'));
+      expect(globalThis.fetch).toHaveBeenCalledWith(expect.stringContaining('plantuml-core.jar'));
     });
 
     it('should initialize PlantUML with custom path', async () => {
       await plantuml.initialize('/custom/path');
       
-      expect(global.cheerpjInit).toHaveBeenCalled();
-      expect(global.cheerpjRunMain).toHaveBeenCalledWith(
+      expect(globalThis.cheerpjInit).toHaveBeenCalled();
+      expect(globalThis.cheerpjRunMain).toHaveBeenCalledWith(
         'com.plantuml.api.cheerpj.v1.RunInit',
         '/custom/path/plantuml-core.jar',
         '/custom/path/'
       );
 
       // Verify fetch calls
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/custom/path/plantuml-core.jar.js'));
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/custom/path/plantuml-core.jar'));
+      expect(globalThis.fetch).toHaveBeenCalledWith(expect.stringContaining('/custom/path/plantuml-core.jar.js'));
+      expect(globalThis.fetch).toHaveBeenCalledWith(expect.stringContaining('/custom/path/plantuml-core.jar'));
     });
   });
 
@@ -86,10 +86,10 @@ describe('plantuml', () => {
         oncomplete: null
       };
 
-      global.cjCall.mockResolvedValue(JSON.stringify({ status: 'ok' }));   
-      global.cjFileBlob.mockResolvedValue(mockBlob);
+      globalThis.cjCall.mockResolvedValue(JSON.stringify({ status: 'ok' }));   
+      globalThis.cjFileBlob.mockResolvedValue(mockBlob);
 
-      global.cheerpjGetFSMountForPath.mockReturnValue({
+      globalThis.cheerpjGetFSMountForPath.mockReturnValue({
         dbConnection: {
           transaction: vi.fn().mockImplementation(() => {
             // Simulate the async transaction completion
@@ -108,7 +108,7 @@ describe('plantuml', () => {
       await vi.runAllTimersAsync();
       const result = await resultPromise;
 
-      expect(global.cjCall).toHaveBeenCalledWith(
+      expect(globalThis.cjCall).toHaveBeenCalledWith(
         'com.plantuml.api.cheerpj.v1.Png',
         'convertToBlob',
         'light',
@@ -126,7 +126,7 @@ describe('plantuml', () => {
         error: 'Syntax error'
       };
 
-      global.cjCall.mockResolvedValue(JSON.stringify(mockError));
+      globalThis.cjCall.mockResolvedValue(JSON.stringify(mockError));
 
       const result = await plantuml.renderPng(mockPumlContent);
 
@@ -146,11 +146,11 @@ describe('plantuml', () => {
 
     it('should render SVG successfully', async () => {
       const mockSvg = '<svg>mock content</svg>';
-      global.cjCall.mockResolvedValue(mockSvg);
+      globalThis.cjCall.mockResolvedValue(mockSvg);
 
       const result = await plantuml.renderSvg(mockPumlContent);
 
-      expect(global.cjCall).toHaveBeenCalledWith(
+      expect(globalThis.cjCall).toHaveBeenCalledWith(
         'com.plantuml.api.cheerpj.v1.Svg',
         'convert',
         'light',
