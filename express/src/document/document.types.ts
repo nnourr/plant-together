@@ -11,3 +11,8 @@ export interface DocumentResponse {
 }
 
 export type DocumentCallback = (response: DocumentResponse) => any;
+
+export interface RenameDocumentData {
+    documentId: string;
+    newDocumentName: string;
+}

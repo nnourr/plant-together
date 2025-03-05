@@ -63,7 +63,36 @@ export const documentSocketRouter = (io: SocketIOServer, socket: Socket) => {
         createEventHandler(socket, data, callback);
     });
 
+    socket.on('/rename', async (data: RenameDocumentData, callback: DocumentCallback) => {
+        logger.info(`${socket.nsp.name}: Received rename event with data: ${JSON.stringify(data)}`);
+        renameEventHandler(socket, data, callback);
+    });    
+
     socket.on("disconnect", () => {
         logger.info(`Socket ${socket.id} disconnected`);
     });
 }
+
+const renameEventHandler = async (socket: Socket, data: RenameDocumentData, callback: DocumentCallback) => {
+    if (typeof callback !== 'function') callback = (response: DocumentResponse) => { };
+    
+    const { documentId, newDocumentName } = data;
+    const roomId = socket.handshake.headers?.['room-id'] as string;
+
+    if (!documentId || !newDocumentName) {
+        callback({ status: 'ERROR', code: 400, message: 'Invalid rename request' });
+        return;
+    }
+
+    try {
+        await documentRepo.renameDocument(documentId, newDocumentName);
+    } catch (error) {
+        logger.error(`Error renaming document: ${error}`);
+        callback({ status: 'ERROR', code: 500, message: 'Internal server error' });
+        return;
+    }
+
+    notifyClientsDocRename(socket, roomId, documentId, newDocumentName);
+    callback({ status: 'SUCCESS', code: 200, documentId, newDocumentName });
+};
+
