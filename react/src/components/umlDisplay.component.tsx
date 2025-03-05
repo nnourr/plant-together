@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, type MouseEvent } from "react";
 import { plantuml } from "../plantuml";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
@@ -32,6 +32,27 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
     }
     setIsLoading(false);
   }, [umlStr]);
+
+  const getPng = useCallback(async (umlString: string) => {
+    const pngResult = await plantuml.renderPng(umlString);
+    if (!pngResult.blob || pngResult.error) {
+      setSyntaxError(pngResult.error!.message); // if blob exists, error is defined
+      return;
+    }
+    
+    const png = URL.createObjectURL(pngResult.blob);
+    const pngAnchorRef = document.createElement("a");
+    pngAnchorRef.href = png;
+    pngAnchorRef.download = "plantTogether";
+    pngAnchorRef.click();
+
+    URL.revokeObjectURL(png);
+  }, [])
+
+  const handleDownloadingPng = useCallback(async (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    await getPng(umlStr);
+  }, [getPng, umlStr]);
 
   useEffect(() => {
     if (isPlantUmlInitiated) {
@@ -68,13 +89,21 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
           {syntaxError}!
         </div>
       )}
-      <a
-        className="absolute cursor-pointer z-50 bottom-4 right-4 border-slate-900/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-slate-900/60"
-        download={"plantTogether"}
-        href={imgSource}
-      >
-        Download SVG
-      </a>
+      <div className="absolute z-50 right-4 bottom-4 flex flex-col gap-2">
+        <a
+          className=" cursor-pointer z-50 border-slate-900/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-slate-900/60"
+          onClick={handleDownloadingPng}
+        >
+          Download PNG
+        </a>
+        <a
+          className="cursor-pointer z-50 border-slate-900/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-slate-900/60"
+          download={"plantTogether"}
+          href={imgSource}
+        >
+          Download SVG
+        </a>
+      </div>
     </div>
   );
 };
