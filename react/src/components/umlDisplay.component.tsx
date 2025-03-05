@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, type MouseEvent } from "react";
+import { useState, useCallback, useEffect, type MouseEvent } from "react";
 import { plantuml } from "../plantuml";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
@@ -14,8 +14,6 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
   className,
 }) => {
   const [imgSource, setImgSource] = useState<string>("");
-  const pngAnchorRef = useRef<HTMLAnchorElement>(null);
-  const [isDownloadingPng, setIsDownloadingPng] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [syntaxError, setSyntaxError] = useState<string>();
   const [isPlantUmlInitiated, setIsPlantUmlInitiated] =
@@ -43,21 +41,18 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
     }
     
     const png = URL.createObjectURL(pngResult.blob);
-    pngAnchorRef.current!.href = png;
-    pngAnchorRef.current!.download = "plantTogether";
-    pngAnchorRef.current!.click();
+    const pngAnchorRef = document.createElement("a");
+    pngAnchorRef.href = png;
+    pngAnchorRef.download = "plantTogether";
+    pngAnchorRef.click();
 
     URL.revokeObjectURL(png);
-  }, [pngAnchorRef])
+  }, [])
 
   const handleDownloadingPng = useCallback(async (e: MouseEvent<HTMLAnchorElement>) => {
-    if (isDownloadingPng) return;
     e.preventDefault();
-
-    setIsDownloadingPng(true);
     await getPng(umlStr);
-    setIsDownloadingPng(false);
-  }, [getPng, isDownloadingPng, umlStr]);
+  }, [getPng, umlStr]);
 
   useEffect(() => {
     if (isPlantUmlInitiated) {
@@ -96,7 +91,6 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
       )}
       <div className="absolute z-50 right-4 bottom-4 flex flex-col gap-2">
         <a
-          ref={pngAnchorRef}
           className=" cursor-pointer z-50 border-slate-900/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-slate-900/60"
           onClick={handleDownloadingPng}
         >

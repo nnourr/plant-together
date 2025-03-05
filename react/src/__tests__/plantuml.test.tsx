@@ -2,7 +2,6 @@ import { plantuml } from '../plantuml';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
-// Mock the global cheerpj functions that would be injected by the PlantUML WASM
 declare global {
   var cheerpjInit: Mock;
   var cheerpjRunMain: Mock;
@@ -19,18 +18,18 @@ interface MockTransaction {
 describe('plantuml', () => {
   beforeEach(() => {
     // Setup global mocks
-    global.cheerpjInit = vi.fn().mockResolvedValue(undefined);
-    global.cheerpjRunMain = vi.fn().mockResolvedValue(undefined);
-    global.cjCall = vi.fn();
-    global.cjFileBlob = vi.fn();
-    global.cheerpjGetFSMountForPath = vi.fn();
+    vi.stubGlobal('cheerpjInit', vi.fn().mockResolvedValue(undefined));
+    vi.stubGlobal('cheerpjRunMain', vi.fn().mockResolvedValue(undefined));
+    vi.stubGlobal('cjCall', vi.fn());
+    vi.stubGlobal('cjFileBlob', vi.fn());
+    vi.stubGlobal('cheerpjGetFSMountForPath', vi.fn());
 
     // Mock fetch globally
-    global.fetch = vi.fn().mockResolvedValue({
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: () => Promise.resolve({}),
-    });
+    }));
   });
 
   describe('initialize', () => {
