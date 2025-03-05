@@ -93,6 +93,6 @@ const renameEventHandler = async (socket: Socket, data: RenameDocumentData, call
     }
 
     notifyClientsDocRename(socket, roomId, documentId, newDocumentName);
-    callback({ status: 'SUCCESS', code: 200, roomId: roomId, documentName: newDocumentName });
+    callback({ status: 'SUCCESS', code: 200, documentName: newDocumentName });
 };
 

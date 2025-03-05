@@ -9,6 +9,7 @@ import { logger } from "../logger.js";
 import { DocumentResponse } from "../document/document.types.js";
 import { documentRepo } from "../document/document.repo.js";
 import { createRoomWithDocument } from "../room/room.repo.js";
+import { Console } from "console";
 
 const PORT = 7570;
 
@@ -74,7 +75,8 @@ describe("Socket.IO Documents Rename Functionality", () => {
       expect(updatedDocuments.documents).toEqual(
         expect.arrayContaining([expect.objectContaining({ id: documentId, name: newDocumentName })])
       );
-
+      console.log();
+      
       done();
     });
   });
@@ -100,7 +102,7 @@ describe("Socket.IO Documents Rename Functionality", () => {
   test("should notify other clients when a document is renamed", (done) => {
     const newDocumentName = "Updated Name";
 
-    const clientSocket2 = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { room_id: DEFAULT_ROOM_ID } });
+    const clientSocket2 = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { 'room-id': DEFAULT_ROOM_ID } });
 
     clientSocket2.on("connect", () => {
       clientSocket.emit("/rename", { documentId, newDocumentName }, (response: DocumentResponse) => {
