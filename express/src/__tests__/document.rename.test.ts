@@ -1,7 +1,7 @@
 import { createServer as createHttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { io as ClientSocket, Socket as ClientSocketType } from "socket.io-client";
-
+import sql from "../database/database.js";
 import express from "express";
 
 import { documentSocketRouter } from "../document/document.service.js";
@@ -41,12 +41,19 @@ describe("Socket.IO Documents Rename Functionality", () => {
   });
 
   beforeEach(async () => {
-    clientSocket = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { room_id: DEFAULT_ROOM_ID } });
+    clientSocket = ClientSocket(`http://localhost:${PORT}/documents`, { extraHeaders: { 'room-id': DEFAULT_ROOM_ID } });
     clientSocket.on("connect", () => expect(clientSocket.connected).toBe(true));
 
     await createRoomWithDocument(DEFAULT_ROOM_ID, DEFAULT_ROOM_NAME, DEFAULT_DOCUMENT_NAME);
     const documents = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
-    documentId = documents.documents.find((doc) => doc.name === DEFAULT_DOCUMENT_NAME).id;
+    const foundDocument = documents.documents.find((doc) => doc.name === DEFAULT_DOCUMENT_NAME);
+
+    if (!foundDocument) {
+    throw new Error(`Document with name "${DEFAULT_DOCUMENT_NAME}" not found in room ${DEFAULT_ROOM_ID}`);
+    }
+
+    documentId = foundDocument.id;
+
   });
 
   afterEach(async () => {
@@ -61,7 +68,7 @@ describe("Socket.IO Documents Rename Functionality", () => {
       expect(response.status).toBe("SUCCESS");
       expect(response.code).toBe(200);
       expect(response.documentId).toBe(documentId);
-      expect(response.newDocumentName).toBe(newDocumentName);
+      expect(response.documentName).toBe(newDocumentName);
 
       const updatedDocuments = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
       expect(updatedDocuments.documents).toEqual(

@@ -1,5 +1,4 @@
-import { sql } from '../database/database.js';
-
+import sql from '../database/database.js';
 const createDocument = async (roomId: string, documentName: string) => {
   await sql`INSERT INTO document (name, room_id) VALUES (${documentName}, ${roomId})`;
   const id_res = await sql `SELECT id FROM document WHERE room_id = ${roomId} AND name = ${documentName}`;

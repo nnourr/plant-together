@@ -2,8 +2,8 @@ import { Socket, Server as SocketIOServer } from "socket.io";
 import { documentRepo } from "./document.repo.js";
 import { logger } from "../logger.js";
 
-import { DocumentData, DocumentCallback, DocumentResponse } from './document.types.js';
-import { validateDocumentData, notifyClientsDocChange } from './document.helpers.js';
+import { DocumentData, DocumentCallback, DocumentResponse, RenameDocumentData } from './document.types.js';
+import { validateDocumentData, notifyClientsDocChange, notifyClientsDocRename } from './document.helpers.js';
 
 const onConnect = (socket: Socket) => {
     const roomId: string = socket.handshake.headers?.['room-id'] as string;
@@ -93,6 +93,6 @@ const renameEventHandler = async (socket: Socket, data: RenameDocumentData, call
     }
 
     notifyClientsDocRename(socket, roomId, documentId, newDocumentName);
-    callback({ status: 'SUCCESS', code: 200, documentId, newDocumentName });
+    callback({ status: 'SUCCESS', code: 200, roomId: roomId, documentName: newDocumentName });
 };
 
