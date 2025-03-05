@@ -39,12 +39,6 @@ vi.mock("y-websocket", () => ({
   }),
 }));
 
-vi.mock("y-monaco", () => ({
-  MonacoBinding: vi.fn().mockReturnValue({
-    destroy: vi.fn(),
-  }),
-}));
-
 describe("UmlEditor", () => {
   const mockDocument: DocumentModel = { id: 34, name: "Test Document" };
   const mockSetEditorValue = vi.fn();
