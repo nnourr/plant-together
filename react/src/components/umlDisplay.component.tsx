@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, type MouseEvent } from "react";
 import { plantuml } from "../plantuml";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
@@ -36,8 +36,6 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
   }, [umlStr]);
 
   const getPng = useCallback(async (umlString: string) => {
-    if (isDownloadingPng) return;
-
     const pngResult = await plantuml.renderPng(umlString);
     if (!pngResult.blob || pngResult.error) {
       setSyntaxError(pngResult.error!.message); // if blob exists, error is defined
@@ -46,15 +44,20 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
     
     const png = URL.createObjectURL(pngResult.blob);
     pngAnchorRef.current!.href = png;
+    pngAnchorRef.current!.download = "plantTogether";
     pngAnchorRef.current!.click();
-    URL.revokeObjectURL(png);
-  }, [pngAnchorRef, isDownloadingPng])
 
-  const handleDownloadingPng = useCallback(async () => {
+    URL.revokeObjectURL(png);
+  }, [pngAnchorRef])
+
+  const handleDownloadingPng = useCallback(async (e: MouseEvent<HTMLAnchorElement>) => {
+    if (isDownloadingPng) return;
+    e.preventDefault();
+
     setIsDownloadingPng(true);
     await getPng(umlStr);
     setIsDownloadingPng(false);
-  }, [getPng, setIsDownloadingPng, umlStr]);
+  }, [getPng, isDownloadingPng, umlStr]);
 
   useEffect(() => {
     if (isPlantUmlInitiated) {
@@ -96,7 +99,6 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
           ref={pngAnchorRef}
           className=" cursor-pointer z-50 border-slate-900/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-slate-900/60"
           onClick={handleDownloadingPng}
-          download={"plantTogether"}
         >
           Download PNG
         </a>
