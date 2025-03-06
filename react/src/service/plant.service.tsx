@@ -38,6 +38,27 @@ export const createDocumentInRoom = (
   );
 };
 
+export const updateDocumentInRoom = (
+  socket: Socket,
+  documentId: string,
+  newDocumentName: string,
+  callback: (response: any) => void
+) => {
+  socket.emit(
+    "/rename", 
+    {documentId: documentId, newDocumentName: newDocumentName},
+    (response: any) => {
+      if (response.status === "SUCCESS") {
+        console.log("Document renamed successfully!");
+      } else {
+        console.error(`Failed to rename document: ${response.message}`);
+      }
+
+      if (callback) callback(response);
+    }
+  );
+};
+
 export const getRoomWithDocuments = async (roomId: string) => {
   const response = await fetch(`${serverHttpUrl}/room/${roomId}`)
   if (!response.ok) {

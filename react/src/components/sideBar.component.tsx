@@ -11,6 +11,7 @@ interface SideBarProps {
   setCurrDocument: (newVal: DocumentModel) => void;
   className?: string;
   newDocument: () => void;
+  updateDocument: (documentId: any, documentNewName: string) => void;
 }
 
 export const SideBar: React.FC<SideBarProps> = ({
@@ -18,6 +19,7 @@ export const SideBar: React.FC<SideBarProps> = ({
   documents,
   setCurrDocument,
   newDocument,
+  updateDocument,
   className,
 }) => {
   // const [showSideBar, setShowSideBar] = useState<boolean>(false)
@@ -25,6 +27,7 @@ export const SideBar: React.FC<SideBarProps> = ({
     return <div className={className}>Loading...</div>;
   }
 
+  const [docName, setDocName] = useState<string>("");
   const [edit, setEdit] = useState(false);
   const editableRef = useRef(null)
 
@@ -39,7 +42,8 @@ export const SideBar: React.FC<SideBarProps> = ({
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      setEdit(false)
+      updateDocument(currDocument.id, docName);
+      setEdit(false);
     }
   };
 
@@ -53,13 +57,14 @@ export const SideBar: React.FC<SideBarProps> = ({
           primary={true}
         >
           <div className={`flex`}>
-            {(edit && document.id === currDocument.id) && 
+            {edit && 
               <input
                 className={`w-40 text-centre text-white bg-transparent`}
                 type="text"
                 ref={editableRef}
-                value={document.name}
+                value={docName}
                 onFocus={(e) => {e.currentTarget.select()}}
+                onChange={(e) => {setDocName(e.target.value)}}
                 onKeyDown={handleKeyDown}
                 onBlur={() => setEdit(false)}
               />
@@ -71,9 +76,13 @@ export const SideBar: React.FC<SideBarProps> = ({
             }
             {!edit &&
               <button
+                aria-label="edit"
                 className={`text-left px-2 py-1 left-0 transition-all`}
                 key={document.id}
-                onClick={() => setEdit(true)}
+                onClick={() => {
+                  setEdit(true);
+                  setDocName(document.name)
+                }}
               >
                 <FontAwesomeIcon icon={faEdit} />
               </button>

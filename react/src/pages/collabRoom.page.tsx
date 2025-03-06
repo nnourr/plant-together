@@ -50,6 +50,15 @@ export const CollabRoom: React.FC = () => {
 
   }
 
+  const updateDocument = async (documentId: any, documentNewName: string) => {
+    await plantService.updateDocumentInRoom(socket!, documentId, documentNewName, ({ documentName }) => {
+      const updatedRoomDocuments = [...roomDocuments];
+      const updatedDoc = updatedRoomDocuments.find(doc => doc.id === documentId);
+      updatedDoc!.name = documentName;
+      setRoomDocuments(updatedRoomDocuments);
+    })
+  }
+
   useEffect(() => {
     const newSocket = io(serverHttpUrl, { extraHeaders: { "room-id": roomId } });
     setSocket(newSocket);
@@ -76,6 +85,7 @@ export const CollabRoom: React.FC = () => {
           documents={roomDocuments}
           setCurrDocument={setCurrDocument}
           newDocument={() => createNewDocument(roomId, `Document${roomDocuments.length + 1}`)}
+          updateDocument={updateDocument}
           className="w-80"
         />
         {currDocument &&
