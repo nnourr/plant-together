@@ -53,6 +53,15 @@ export const CollabRoom: React.FC = () => {
     });
   };
 
+  const updateDocument = async (documentId: any, documentNewName: string) => {
+    await plantService.updateDocumentInRoom(socket!, documentId, documentNewName, ({ documentName }) => {
+      const updatedRoomDocuments = [...roomDocuments];
+      const updatedDoc = updatedRoomDocuments.find(doc => doc.id === documentId);
+      updatedDoc!.name = documentName;
+      setRoomDocuments(updatedRoomDocuments);
+    })
+  }
+
   useEffect(() => {
     const newSocket = io(serverHttpUrl, {
       extraHeaders: { "room-id": roomId },
@@ -65,6 +74,20 @@ export const CollabRoom: React.FC = () => {
       }
 
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
+    });
+
+    newSocket.on("/document/rename", ({ code, newDocumentName, documentId }: any) => {
+      if (code != 200) {
+        alert("Unable to rename document");
+      }
+
+      const newDocs = roomDocuments.map((doc) => {
+        if (doc.id !== documentId) return doc
+        doc.name = newDocumentName  
+        return doc
+      });
+
+      setRoomDocuments(newDocs);
     });
 
     return () => {
@@ -80,9 +103,8 @@ export const CollabRoom: React.FC = () => {
           currDocument={currDocument}
           documents={roomDocuments}
           setCurrDocument={setCurrDocument}
-          newDocument={() =>
-            createNewDocument(roomId, `Document${roomDocuments.length + 1}`)
-          }
+          newDocument={() => createNewDocument(roomId, `Document${roomDocuments.length + 1}`)}
+          updateDocument={updateDocument}
           className="w-80"
         />
         {currDocument && (

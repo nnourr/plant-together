@@ -5,6 +5,7 @@ interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export const InputField: React.FC<InputFieldProps> = ({
   title,
   id = "input-field",
+  className="rounded-xl bg-transparent border-2 border-white/20 text-2xl w-[80vw] lg:w-auto px-4 py-2",
   ...props
 }) => {
   return (
@@ -13,7 +14,7 @@ export const InputField: React.FC<InputFieldProps> = ({
       <input
         {...props}
         id={id}
-        className="rounded-xl bg-transparent border-2 border-white/20 text-2xl w-[80vw] lg:w-auto px-4 py-2"
+        className={className}
       />
     </div>
   );
