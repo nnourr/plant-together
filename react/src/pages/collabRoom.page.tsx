@@ -71,6 +71,20 @@ export const CollabRoom: React.FC = () => {
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }])
     });
 
+    newSocket.on("/document/rename", ({ code, newDocumentName, documentId }: any) => {
+      if (code != 200) {
+        alert("Unable to rename document");
+      }
+
+      const newDocs = roomDocuments.map((doc) => {
+        if (doc.id !== documentId) return doc
+        doc.name = newDocumentName  
+        return doc
+      });
+
+      setRoomDocuments(newDocs);
+    });
+
     return () => {
       newSocket.disconnect();
     };
