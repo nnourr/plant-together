@@ -56,6 +56,19 @@ app.post("/room/:room_id/document/:document_name", async (req, res) => {
   }
 });
 
+app.put("/room/:room_id/document/:document_id/rename", async (req, res) => {
+  const room_id = req.params.room_id;
+  const document_id = req.params.document_id;
+  const new_document_name = req.body.new_document_name;
+
+  try {
+    await documentRepo.renameDocument(document_id, new_document_name);
+    res.sendStatus(200);
+  } catch (error) {
+    res.sendStatus(500);
+  }
+});
+
 let server;
 server = createHttpServer(app);
 
