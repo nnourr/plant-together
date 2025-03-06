@@ -8,6 +8,13 @@ export interface DocumentResponse {
     message?: string;
     roomId?: string;
     documentName?: string;
+    documentId?: string;
+    newDocumentName?: string;
 }
 
 export type DocumentCallback = (response: DocumentResponse) => any;
+
+export interface RenameDocumentData {
+    documentId: string;
+    newDocumentName: string;
+}
