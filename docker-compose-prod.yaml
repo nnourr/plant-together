@@ -1,85 +1,79 @@
-name: plant-together-dev
+name: plant-together
 
 services:
-  plant-together-react-dev:
+  plant-together-react:
     build:
       context: ./react
-      dockerfile: Dockerfile.dev
       args:
         VITE_SERVER_HTTP_URL: ${VITE_SERVER_HTTP_URL:-http://localhost:${PORT:-3000}}
         VITE_SERVER_WS_URL: ${VITE_SERVER_WS_URL:-ws://localhost:${YREDIS_PORT:-3003}}
-
-    container_name: plant-together-react-dev
-    volumes:
-      - type: bind
-        source: ./react
-        target: /app
-      - /app/node_modules
-      - /app/.vite
+        VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY:-''}
+        VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST:-''}
+        VITE_CLARITY_PROJECT_ID: ${VITE_CLARITY_PROJECT_ID:-''}
+    container_name: plant-together-react
+    restart: always
     ports:
-      - 5173:5173
+      - 4173:4173
     networks:
       - plant-together-network
       - yredis-network
 
-  plant-together-express-dev:
+  plant-together-express:
     build:
       context: ./express
-      dockerfile: Dockerfile.dev
-    container_name: plant-together-express-dev
+    container_name: plant-together-express
+    restart: always
     environment:
       - PORT=${PORT:-3000}
 
       # Adjust database credentials locally in .env, do not commit!
       - DB_NAME=${DB_NAME:-postgres}
-      - DB_HOST=${DB_HOST:-database-psql-dev}
+      - DB_HOST=${DB_HOST:-database-psql}
       - DB_PORT=${DB_PORT:-5432}
       - DB_USER=${DB_USER:-postgres}
       - DB_PASS=${DB_PASS:-1234}
     depends_on:
-      - database-psql-dev
-    volumes:
-      - type: bind
-        source: ./express
-        target: /app
-      - /app/node_modules
+      - database-psql
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
     networks:
       - plant-together-network
 
-  plant-together-yredis-dev:
+  plant-together-yredis:
     build:
       context: ./y-redis
-    container_name: plant-together-yredis-dev
+    container_name: plant-together-yredis
+    restart: always
     environment:
       - PORT=${YREDIS_PORT:-3003}
       - LOG=${LOG:-"^(?!No tasks available).*$"}
-      - REDIS=${REDIS:-redis://redis-together-dev}
-      - POSTGRES=${POSTGRES:-postgres://${DB_USER:-postgres}:${DB_PASS:-1234}@${DB_HOST:-database-psql-dev}/${DB_NAME:-postgres}}
+      - REDIS=${REDIS:-redis://redis-together}
+      - POSTGRES=${POSTGRES:-postgres://${DB_USER:-postgres}:${DB_PASS:-1234}@${DB_HOST:-database-psql}/${DB_NAME:-postgres}}
     depends_on:
-      - database-psql-dev
-      - redis-together-dev
+      - database-psql
+      - redis-together
     ports:
       - ${YREDIS_PORT:-3003}:${YREDIS_PORT:-3003}
     networks:
       - plant-together-network
       - yredis-network
 
-  redis-together-dev:
+  redis-together:
     image: redis:6.2
-    container_name: redis-together-dev
+    container_name: redis-together
+    restart: always
     ports:
       - ${REDIS_PORT:-6379}:6379
     networks:
       - yredis-network
 
-  database-psql-dev:
+  database-psql:
     image: postgres:16.2
-    container_name: database-psql-dev
+    container_name: database-psql
+    restart: always
     shm_size: 128mb
     volumes:
-      - pgdata-plant-together-dev:/var/lib/postgresql/data/
+      - pgdata-plant-together:/var/lib/postgresql/data/
     environment:
       - POSTGRES_PASSWORD=${DB_PASS:-1234}
     ports:
@@ -87,13 +81,14 @@ services:
     networks:
       - plant-together-network
 
-  pgadmin-together-dev:
+  pgadmin-together:
     image: dpage/pgadmin4:8.4
-    container_name: pgadmin-together-dev
+    container_name: pgadmin-together
+    restart: always
     depends_on:
-      - database-psql-dev
+      - database-psql
     volumes:
-      - pgadmin-together-dev:/var/lib/pgadmin
+      - pgadmin-together:/var/lib/pgadmin
     environment:
       - PGADMIN_DEFAULT_EMAIL=${ADMIN_EMAIL:-developer@plant-together.com}
       - PGADMIN_DEFAULT_PASSWORD=${ADMIN_PASS:-1234}
@@ -103,11 +98,11 @@ services:
       - plant-together-network
 
 volumes:
-  pgdata-plant-together-dev:
-    name: pgdata-plant-together-dev
+  pgdata-plant-together:
+    name: pgdata-plant-together
     driver: local
-  pgadmin-together-dev:
-    name: pgadmin-together-dev
+  pgadmin-together:
+    name: pgadmin-together
     driver: local
 
 networks:
