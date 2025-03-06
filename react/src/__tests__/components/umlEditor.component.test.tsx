@@ -73,7 +73,7 @@ describe("UmlEditor", () => {
 
     expect(setMock).not.toHaveBeenCalled();
 
-    const newError = { line: 2, error: "New Error", duration: 0, status: "" };
+    const newError = { line: 2, message: "New Error", duration: 0, status: "" };
     rerender(
       <UmlEditor
         roomId="testRoom"

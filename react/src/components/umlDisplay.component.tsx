@@ -28,7 +28,14 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
     const res = await plantuml.renderSvg(umlStr);
     if (res[0] !== "<") {
       const resBody = JSON.parse(res);
-      setSyntaxError(resBody);
+      const errorResult: IPlantUmlError = {
+        duration: resBody.duration,
+        status: resBody.status,
+        line: resBody?.line,
+        message:
+          (resBody?.error || resBody?.exception) ?? "No error was found.",
+      };
+      setSyntaxError(errorResult);
     } else {
       const blob = new Blob([res], { type: "image/svg+xml" });
       const svg = URL.createObjectURL(blob);

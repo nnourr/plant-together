@@ -61,16 +61,50 @@ describe("UmlDisplay", () => {
     expect(img).toHaveAttribute("src", "mock-url");
   });
 
-  it("should handle syntax errors in SVG rendering", async () => {
-    const errorResponse = JSON.stringify({ error: "Invalid syntax", line: 5 });
-    (plantuml.renderSvg as Mock).mockResolvedValue(errorResponse);
+  it("should render syntax errors", async () => {
+    const errorResponse = {
+      message: "Invalid syntax",
+      line: 5,
+      duration: 3,
+      status: "",
+    };
 
     render(
-      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+      <UmlDisplay
+        setSyntaxError={mockSetSyntaxError}
+        syntaxError={errorResponse}
+        umlStr={mockUmlStr}
+      />
     );
 
     await waitFor(() => {
       expect(screen.getByText("Invalid syntax!")).toBeInTheDocument();
+    });
+  });
+
+  it("should call setSyntaxError when renderSvg returns an error", async () => {
+    // Mock the response to return an error message
+    const mockErrorResponse = JSON.stringify({
+      duration: 100,
+      status: "error",
+      line: 2,
+      error: "Syntax error in line 2",
+    });
+
+    (plantuml.renderSvg as Mock).mockResolvedValue(mockErrorResponse);
+
+    render(
+      <UmlDisplay umlStr={mockUmlStr} setSyntaxError={mockSetSyntaxError} />
+    );
+
+    // Wait for the function to be called
+    await waitFor(() => {
+      expect(mockSetSyntaxError).toHaveBeenCalledWith({
+        duration: 100,
+        status: "error",
+        line: 2,
+        message: "Syntax error in line 2",
+      });
     });
   });
 
@@ -94,7 +128,12 @@ describe("UmlDisplay", () => {
 
   it("should handle PNG rendering errors", async () => {
     const errorResponse = {
-      error: { message: "PNG rendering failed", status: "error" },
+      error: {
+        message: "PNG rendering failed",
+        status: "error",
+        line: 3,
+        duration: 3,
+      },
     };
     (plantuml.renderPng as Mock).mockResolvedValue(errorResponse);
 
@@ -111,7 +150,9 @@ describe("UmlDisplay", () => {
     const downloadPngButton = await screen.findByText("Download PNG");
     fireEvent.click(downloadPngButton);
 
-    expect(mockSetSyntaxError).toHaveBeenCalledOnce();
+    await waitFor(() => {
+      expect(mockSetSyntaxError).toHaveBeenCalledOnce();
+    });
   });
 
   it("should handle SVG download", async () => {

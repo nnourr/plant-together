@@ -85,7 +85,6 @@ export const plantuml = (() => {
       "light",
       pumlContent
     );
-
     return svg;
   };
 
