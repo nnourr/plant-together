@@ -5,7 +5,7 @@ import { WebsocketProvider } from "y-websocket";
 import { MonacoBinding } from "y-monaco";
 import { editor } from "monaco-editor";
 import { DocumentModel } from "../models/document.model";
-import { IError } from "../models/error.model";
+import { IPlantUmlError } from "../models/plantUmlError.model";
 
 const serverWsUrl =
   import.meta.env.VITE_SERVER_WS_URL || "http://localhost:3002";
@@ -15,7 +15,7 @@ interface UmlEditorProps {
   currDocument: DocumentModel;
   className?: string;
   setEditorValue: (newVal: string) => void;
-  error?: IError;
+  error?: IPlantUmlError;
 }
 
 export const UmlEditor: React.FC<UmlEditorProps> = ({
@@ -41,7 +41,7 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
   useEffect(() => {
     if (!monacoRef.current || !editorRef.current) return;
 
-    if (error) {
+    if (error && error.line) {
       const monaco = monacoRef.current;
       decorations?.set([
         {

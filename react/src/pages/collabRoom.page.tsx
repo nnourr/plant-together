@@ -7,7 +7,7 @@ import * as plantService from "../service/plant.service.tsx";
 import { DocumentModel } from "../models/document.model";
 import { SideBar } from "../components/sideBar.component";
 import { io, Socket } from "socket.io-client";
-import { IError } from "../models/error.model.tsx";
+import { IPlantUmlError } from "../models/plantUmlError.model.tsx";
 
 const serverHttpUrl =
   (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000") +
@@ -21,7 +21,7 @@ export const CollabRoom: React.FC = () => {
   const [roomDocuments, setRoomDocuments] = useState<DocumentModel[]>([]);
   const [currDocument, setCurrDocument] = useState<DocumentModel>();
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [syntaxError, setSyntaxError] = useState<IError>();
+  const [syntaxError, setSyntaxError] = useState<IPlantUmlError>();
 
   useEffect(() => {
     const getRoomInfo = async (r: string) => {

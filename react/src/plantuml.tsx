@@ -1,19 +1,11 @@
-interface RenderPngErrorResponse {
-  duration: number;
-  status: string;
-  line?: number;
-  exception?: string;
-  error?: string;
-};
+import {
+  IPlantUmlError,
+  IRenderPngErrorResponse,
+} from "./models/plantUmlError.model";
 
-interface RenderPngError extends Pick<RenderPngErrorResponse, 'duration' | 'status'>{
-  line?: number;
-  message: string;
-};
-
-type RenderPngResult = {
+type IRenderPngResult = {
   blob: Blob;
-  error: RenderPngError;
+  error: IPlantUmlError;
 };
 
 export const plantuml = (() => {
@@ -32,8 +24,10 @@ export const plantuml = (() => {
   };
 
   // https://github.com/plantuml/plantuml/blob/master/src/com/plantuml/api/cheerpj/v1/Png.java#L68-L110
-  const renderPng = (pumlContent: string): Promise<Partial<RenderPngResult>> => {
-    return new Promise<Partial<RenderPngResult>>((resolve) => {
+  const renderPng = (
+    pumlContent: string
+  ): Promise<Partial<IRenderPngResult>> => {
+    return new Promise<Partial<IRenderPngResult>>((resolve) => {
       const renderingStartedAt = new Date();
       const resultFileSuffix = renderingStartedAt.getTime().toString();
       cjCall(
@@ -41,7 +35,7 @@ export const plantuml = (() => {
         "convertToBlob",
         "light",
         pumlContent,
-        `/files/result-${resultFileSuffix}.png`,
+        `/files/result-${resultFileSuffix}.png`
       ).then((result: string) => {
         const obj = JSON.parse(result);
         if (obj?.status == "ok") {
@@ -67,13 +61,15 @@ export const plantuml = (() => {
           // https://github.com/plantuml/plantuml/blob/master/src/com/plantuml/api/cheerpj/v1/Png.java#L106
           // Cheerpj for PlantUML returns JsonResult.fromCrash which returns a string of JSON.
           // No cases exist where result is NOT defined. It either returns General failure or Parsing error
-          const errorResponse = obj as RenderPngErrorResponse;
-          const errorResult: RenderPngError = {
+          const errorResponse = obj as IRenderPngErrorResponse;
+          const errorResult: IPlantUmlError = {
             duration: errorResponse.duration,
             status: errorResponse.status,
             line: errorResponse?.line,
-            message: (errorResponse?.error || errorResponse?.exception) ?? "No error was found.",
-          }
+            message:
+              (errorResponse?.error || errorResponse?.exception) ??
+              "No error was found.",
+          };
           resolve({
             error: errorResult,
           });
