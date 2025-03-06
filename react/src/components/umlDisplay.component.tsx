@@ -3,23 +3,19 @@ import { plantuml } from "../plantuml";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
-import { IError } from "../models/error.model";
 
 interface UmlDisplayProps {
   className?: string;
   umlStr: string;
-  syntaxError?: IError;
-  setSyntaxError: (error: IError | undefined) => void;
 }
 
 export const UmlDisplay: React.FC<UmlDisplayProps> = ({
   umlStr,
   className,
-  syntaxError,
-  setSyntaxError,
 }) => {
   const [imgSource, setImgSource] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [syntaxError, setSyntaxError] = useState<string>();
   const [isPlantUmlInitiated, setIsPlantUmlInitiated] =
     useState<boolean>(false);
 
@@ -28,7 +24,7 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
     const res = await plantuml.renderSvg(umlStr);
     if (res[0] !== "<") {
       const resBody = JSON.parse(res);
-      setSyntaxError(resBody);
+      setSyntaxError(resBody.error);
     } else {
       const blob = new Blob([res], { type: "image/svg+xml" });
       const svg = URL.createObjectURL(blob);
@@ -90,7 +86,7 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
       )}
       {syntaxError && (
         <div className="absolute top-6 text-center w-full text-3xl">
-          {syntaxError.error}!
+          {syntaxError}!
         </div>
       )}
       <div className="absolute z-50 right-4 bottom-4 flex flex-col gap-2">
