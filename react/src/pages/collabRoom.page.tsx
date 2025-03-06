@@ -91,14 +91,13 @@ export const CollabRoom: React.FC = () => {
             roomId={roomId}
             currDocument={currDocument}
             setEditorValue={setEditorValue}
-            error={syntaxError}
           />
         )}
         <UmlDisplay
-          className="h-1/2 md:w-1/2 md:h-full"
-          umlStr={editorValue}
           setSyntaxError={setSyntaxError}
           syntaxError={syntaxError}
+          className="h-1/2 md:w-1/2 md:h-full"
+          umlStr={editorValue}
         />
       </div>
     </div>
