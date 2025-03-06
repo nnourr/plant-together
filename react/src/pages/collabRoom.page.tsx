@@ -91,6 +91,7 @@ export const CollabRoom: React.FC = () => {
             roomId={roomId}
             currDocument={currDocument}
             setEditorValue={setEditorValue}
+            error={syntaxError}
           />
         )}
         <UmlDisplay

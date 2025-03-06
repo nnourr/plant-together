@@ -55,7 +55,7 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     } else {
       decorations?.clear();
     }
-  }, [error]);
+  }, [error?.line]);
 
   const setBinding = useCallback(() => {
     // Clean up the previous provider if it exists
