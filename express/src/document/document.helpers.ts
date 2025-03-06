@@ -18,5 +18,20 @@ export const validateDocumentData = (data: DocumentData, callback: DocumentCallb
 }
 
 export const notifyClientsDocChange = (socket: Socket, roomId: string, documentName: string, id: string) => {
-    socket.broadcast.to(roomId).emit('/document', { status: 'SUCCESS', code: 200, documentName, id } as DocumentResponse);
+    socket.broadcast.to(roomId).emit('/document', { 
+        status: 'SUCCESS', 
+        code: 200, 
+        documentName, 
+        id 
+    } as DocumentResponse);
 }
+
+export const notifyClientsDocRename = (socket: Socket, roomId: string, documentId: string, newDocumentName: string) => {
+    socket.broadcast.to(roomId).emit('/document/rename', {
+        status: 'SUCCESS',
+        code: 200,
+        documentId,
+        newDocumentName
+    } as DocumentResponse);
+};
+
