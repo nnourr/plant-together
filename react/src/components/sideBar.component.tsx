@@ -55,7 +55,7 @@ export const SideBar: React.FC<SideBarProps> = ({
           <div className={`flex`}>
             {(edit && document.id === currDocument.id) && 
               <input
-                className={`w-40 text-centre text-white bg-transparent`}
+                className={`w-40 text-centre text-white outline-none bg-transparent`}
                 type="text"
                 ref={editableRef}
                 value={document.name}
