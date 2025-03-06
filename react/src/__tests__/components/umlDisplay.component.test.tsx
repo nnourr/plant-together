@@ -1,9 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { UmlDisplay } from '../../components/umlDisplay.component';
-import { plantuml } from '../../plantuml';
-import '@testing-library/jest-dom';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { Mock } from 'vitest';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { UmlDisplay } from "../../components/umlDisplay.component";
+import { plantuml } from "../../plantuml";
+import "@testing-library/jest-dom";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { Mock } from "vitest";
 
 // Dependency utilized by react-zoom-pan-pinch
 class ResizeObserverMock {
@@ -12,18 +12,19 @@ class ResizeObserverMock {
   disconnect() {}
 }
 
-vi.mock('../../plantuml', () => ({
+vi.mock("../../plantuml", () => ({
   plantuml: {
     initialize: vi.fn().mockResolvedValue(undefined),
     renderSvg: vi.fn(),
-    renderPng: vi.fn()
-  }
+    renderPng: vi.fn(),
+  },
 }));
 
-describe('UmlDisplay', () => {
-  const mockUmlStr = 'A -> B';
-  const mockSvg = '<svg>test content</svg>';
-  const mockPngBlob = new Blob(['test-png-data'], { type: 'image/png' });
+describe("UmlDisplay", () => {
+  const mockUmlStr = "A -> B";
+  const mockSvg = "<svg>test content</svg>";
+  const mockPngBlob = new Blob(["test-png-data"], { type: "image/png" });
+  const mockSetSyntaxError = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,51 +32,93 @@ describe('UmlDisplay', () => {
     (plantuml.renderPng as Mock).mockResolvedValue({ blob: mockPngBlob });
 
     // Mock URL.createObjectURL and URL.revokeObjectURL
-    globalThis.URL.createObjectURL = vi.fn().mockReturnValue('mock-url');
+    globalThis.URL.createObjectURL = vi.fn().mockReturnValue("mock-url");
     globalThis.URL.revokeObjectURL = vi.fn();
 
     // Mock ResizeObserver
     globalThis.ResizeObserver = ResizeObserverMock;
   });
 
-  it('should initialize PlantUML and show loading state', () => {
-    render(<UmlDisplay umlStr={mockUmlStr} />);
-    
-    expect(screen.getByText('Loading plantUml...')).toBeInTheDocument();
+  it("should initialize PlantUML and show loading state", () => {
+    render(
+      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+    );
+
+    expect(screen.getByText("Loading plantUml...")).toBeInTheDocument();
     expect(plantuml.initialize).toHaveBeenCalled();
   });
 
-  it('should render SVG after initialization', async () => {
-    render(<UmlDisplay umlStr={mockUmlStr} />);
+  it("should render SVG after initialization", async () => {
+    render(
+      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+    );
 
     await waitFor(() => {
       expect(plantuml.renderSvg).toHaveBeenCalledWith(mockUmlStr);
     });
 
-    const img = await screen.findByRole('img');
-    expect(img).toHaveAttribute('src', 'mock-url');
+    const img = await screen.findByRole("img");
+    expect(img).toHaveAttribute("src", "mock-url");
   });
 
-  it('should handle syntax errors in SVG rendering', async () => {
-    const errorResponse = JSON.stringify({ error: 'Invalid syntax' });
-    (plantuml.renderSvg as Mock).mockResolvedValue(errorResponse);
+  it("should render syntax errors", async () => {
+    const errorResponse = {
+      message: "Invalid syntax",
+      line: 5,
+      duration: 3,
+      status: "",
+    };
 
-    render(<UmlDisplay umlStr={mockUmlStr} />);
+    render(
+      <UmlDisplay
+        setSyntaxError={mockSetSyntaxError}
+        syntaxError={errorResponse}
+        umlStr={mockUmlStr}
+      />
+    );
 
     await waitFor(() => {
-      expect(screen.getByText('Invalid syntax!')).toBeInTheDocument();
+      expect(screen.getByText("Invalid syntax!")).toBeInTheDocument();
     });
   });
 
-  it('should handle PNG download', async () => {
-    render(<UmlDisplay umlStr={mockUmlStr} />);
+  it("should call setSyntaxError when renderSvg returns an error", async () => {
+    // Mock the response to return an error message
+    const mockErrorResponse = JSON.stringify({
+      duration: 100,
+      status: "error",
+      line: 2,
+      error: "Syntax error in line 2",
+    });
+
+    (plantuml.renderSvg as Mock).mockResolvedValue(mockErrorResponse);
+
+    render(
+      <UmlDisplay umlStr={mockUmlStr} setSyntaxError={mockSetSyntaxError} />
+    );
+
+    // Wait for the function to be called
+    await waitFor(() => {
+      expect(mockSetSyntaxError).toHaveBeenCalledWith({
+        duration: 100,
+        status: "error",
+        line: 2,
+        message: "Syntax error in line 2",
+      });
+    });
+  });
+
+  it("should handle PNG download", async () => {
+    render(
+      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+    );
 
     await waitFor(() => {
       expect(plantuml.initialize).toHaveBeenCalled();
       expect(plantuml.renderSvg).toHaveBeenCalled();
     });
 
-    const downloadPngButton = await screen.findByText('Download PNG');
+    const downloadPngButton = await screen.findByText("Download PNG");
     fireEvent.click(downloadPngButton);
 
     await waitFor(() => {
@@ -83,11 +126,20 @@ describe('UmlDisplay', () => {
     });
   });
 
-  it('should handle PNG rendering errors', async () => {
-    const errorResponse = { error: { message: 'PNG rendering failed', status: 'error' } };
+  it("should handle PNG rendering errors", async () => {
+    const errorResponse = {
+      error: {
+        message: "PNG rendering failed",
+        status: "error",
+        line: 3,
+        duration: 3,
+      },
+    };
     (plantuml.renderPng as Mock).mockResolvedValue(errorResponse);
 
-    render(<UmlDisplay umlStr={mockUmlStr} />);
+    render(
+      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+    );
 
     await waitFor(() => {
       expect(plantuml.initialize).toHaveBeenCalled();
@@ -95,16 +147,18 @@ describe('UmlDisplay', () => {
     });
 
     // Wait for the download button to appear
-    const downloadPngButton = await screen.findByText('Download PNG');
+    const downloadPngButton = await screen.findByText("Download PNG");
     fireEvent.click(downloadPngButton);
 
     await waitFor(() => {
-      expect(screen.getByText('PNG rendering failed!')).toBeInTheDocument();
+      expect(mockSetSyntaxError).toHaveBeenCalledOnce();
     });
   });
 
-  it('should handle SVG download', async () => {
-    render(<UmlDisplay umlStr={mockUmlStr} />);
+  it("should handle SVG download", async () => {
+    render(
+      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+    );
 
     // Wait for initialization and component to be ready
     await waitFor(() => {
@@ -113,8 +167,8 @@ describe('UmlDisplay', () => {
     });
 
     // Wait for the download button to appear
-    const downloadSvgButton = await screen.findByText('Download SVG');
-    expect(downloadSvgButton).toHaveAttribute('href', 'mock-url');
-    expect(downloadSvgButton).toHaveAttribute('download', 'plantTogether');
+    const downloadSvgButton = await screen.findByText("Download SVG");
+    expect(downloadSvgButton).toHaveAttribute("href", "mock-url");
+    expect(downloadSvgButton).toHaveAttribute("download", "plantTogether");
   });
 });
