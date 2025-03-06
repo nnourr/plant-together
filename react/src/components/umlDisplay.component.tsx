@@ -3,19 +3,23 @@ import { plantuml } from "../plantuml";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { IPlantUmlError } from "../models/plantUmlError.model";
 
 interface UmlDisplayProps {
   className?: string;
   umlStr: string;
+  syntaxError?: IPlantUmlError;
+  setSyntaxError: (error: IPlantUmlError | undefined) => void;
 }
 
 export const UmlDisplay: React.FC<UmlDisplayProps> = ({
   umlStr,
   className,
+  syntaxError,
+  setSyntaxError,
 }) => {
   const [imgSource, setImgSource] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [syntaxError, setSyntaxError] = useState<string>();
   const [isPlantUmlInitiated, setIsPlantUmlInitiated] =
     useState<boolean>(false);
 
@@ -24,7 +28,14 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
     const res = await plantuml.renderSvg(umlStr);
     if (res[0] !== "<") {
       const resBody = JSON.parse(res);
-      setSyntaxError(resBody.error);
+      const errorResult: IPlantUmlError = {
+        duration: resBody.duration,
+        status: resBody.status,
+        line: resBody?.line,
+        message:
+          (resBody?.error || resBody?.exception) ?? "No error was found.",
+      };
+      setSyntaxError(errorResult);
     } else {
       const blob = new Blob([res], { type: "image/svg+xml" });
       const svg = URL.createObjectURL(blob);
@@ -36,10 +47,10 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
   const getPng = useCallback(async (umlString: string) => {
     const pngResult = await plantuml.renderPng(umlString);
     if (!pngResult.blob || pngResult.error) {
-      setSyntaxError(pngResult.error!.message); // if blob exists, error is defined
+      setSyntaxError(pngResult.error); // if blob exists, error is defined
       return;
     }
-    
+
     const png = URL.createObjectURL(pngResult.blob);
     const pngAnchorRef = document.createElement("a");
     pngAnchorRef.href = png;
@@ -47,12 +58,15 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
     pngAnchorRef.click();
 
     URL.revokeObjectURL(png);
-  }, [])
+  }, []);
 
-  const handleDownloadingPng = useCallback(async (e: MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    await getPng(umlStr);
-  }, [getPng, umlStr]);
+  const handleDownloadingPng = useCallback(
+    async (e: MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault();
+      await getPng(umlStr);
+    },
+    [getPng, umlStr]
+  );
 
   useEffect(() => {
     if (isPlantUmlInitiated) {
@@ -86,7 +100,7 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
       )}
       {syntaxError && (
         <div className="absolute top-6 text-center w-full text-3xl">
-          {syntaxError}!
+          {syntaxError.message}!
         </div>
       )}
       <div className="absolute z-50 right-4 bottom-4 flex flex-col gap-2">
