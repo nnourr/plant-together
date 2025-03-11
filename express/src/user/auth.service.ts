@@ -31,7 +31,7 @@ export const guestLogin = async (): Promise<string> => {
     }
 };
 
-export const verifyFirebaseIdToken = async (token: string): Promise<Boolean> => {
+export const verifyToken = async (token: string): Promise<Boolean> => {
     if (!token) return false;
     return fireauthRepo.verifyFirebaseIdToken(token);
 };

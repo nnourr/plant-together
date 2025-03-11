@@ -11,10 +11,9 @@ import { documentSocketRouter } from "./document/document.service.js";
 import {
   signUpWithEmailPassword,
   loginWithEmailPassword,
-  verifyFirebaseIdToken,
+  verifyToken,
   guestLogin
 } from "./user/auth.service.js";
-import { logger } from "./logger.js";
 
 const app = express();
 
@@ -110,7 +109,6 @@ app.get("/auth/guest", async (req, res) => {
     const token = await guestLogin();
     return res.status(200).json({ token });
   } catch (error: any) {
-    // logger.error(error);
     return res.status(error?.status || 500).json({ error: error?.error || 'An unexpected error occurred. Please try again later.' });
   }
 });
@@ -123,7 +121,7 @@ app.get("/auth/verify", async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized: No token provided' });
     }
 
-    const isValid = await verifyFirebaseIdToken(token);
+    const isValid = await verifyToken(token);
     if (isValid) return res.sendStatus(200);
 
     return res.sendStatus(403);
