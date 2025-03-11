@@ -1,0 +1,36 @@
+stages:
+    - test
+
+frontend_tests:
+    stage: test
+    image: node:20.18.3 
+    before_script:
+        - cd react  
+        - npm ci  
+    script:
+        - npm test -- --json --outputFile=test-results-frontend.json
+    artifacts:
+        reports:
+            junit: react/test-results-frontend.json
+        when: on_success
+        access: all
+        expire_in: 7 days
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+backend_tests:
+    stage: test
+    image: node:20.18.3
+    before_script:
+        - cd express  
+        - npm ci
+    script:
+        - npm test -- --json --outputFile=test-results-backend.json
+    artifacts:
+        reports:
+            junit: express/test-results-backend.json
+        when: on_success
+        access: all
+        expire_in: 7 days
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
