@@ -23,10 +23,10 @@ backend_tests:
         - cd express  
         - npm ci
     script:
-        - npm test -- --ci --runInBand
+        - npm test
     artifacts:
         reports:
-            junit: express/test-results/jest-junit.xml
+            junit: express/jest-junit.xml
         expire_in: 7 days
     rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
