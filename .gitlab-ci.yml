@@ -8,12 +8,10 @@ frontend_tests:
         - cd react  
         - npm ci  
     script:
-        - npm test -- --json --outputFile=test-results-frontend.json
+        - npm test -- --ci --run
     artifacts:
         reports:
             junit: react/test-results-frontend.json
-        when: on_success
-        access: all
         expire_in: 7 days
     rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -25,12 +23,10 @@ backend_tests:
         - cd express  
         - npm ci
     script:
-        - npm test -- --json --outputFile=test-results-backend.json
+        - npm test -- --ci --runInBand
     artifacts:
         reports:
-            junit: express/test-results-backend.json
-        when: on_success
-        access: all
+            junit: express/test-results/jest-junit.xml
         expire_in: 7 days
     rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
