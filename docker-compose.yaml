@@ -31,6 +31,7 @@ services:
       - PORT=${PORT:-3000}
 
       # Adjust Firebase credentials locally in .env, do not commit!
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/secrets/service_account.json
       - FIREBASE_API_KEY=${FIREBASE_API_KEY}
       - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
       - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
@@ -48,6 +49,7 @@ services:
         source: ./express
         target: /app
       - /app/node_modules
+      - ./secrets:/app/secrets
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
     networks:
