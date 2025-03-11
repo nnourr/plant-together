@@ -81,6 +81,10 @@ app.post("/auth/signup", async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'Invalid request: Missing required fields' });
+  }
+
   try {
     const userId = await signUpWithEmailPassword(username, email, password);
     return res.status(200).json({ uid: userId });
