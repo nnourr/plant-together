@@ -8,7 +8,7 @@ frontend_tests:
         - cd react  
         - npm ci  
     script:
-        - npm test -- --ci --run
+        - npm test
     artifacts:
         reports:
             junit: react/test-results-frontend.json
