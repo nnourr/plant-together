@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import admin from "firebase-admin";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithCustomToken } from "firebase/auth";
 import { FIREBASE_CONFIG } from "./firebase.config.js";
 import { logger } from "../logger.js";
 import { randomUUID } from "crypto";
@@ -46,10 +46,12 @@ class FireauthRepo {
 
     async guestToken(): Promise<string> {
         const guestId = randomUUID();
-        const token = await this.adminAuth.createCustomToken(guestId, { isGuest: true });
+        const customToken = await this.adminAuth.createCustomToken(guestId, { isGuest: true });
+        const userCredential = await signInWithCustomToken(this.clientAuth, customToken);
+
         logger.info(`Guest token created with guest ID ${guestId}`);
 
-        return token;
+        return await userCredential.user.getIdToken();;
     }
 
     static instance(): FireauthRepo {
