@@ -3,9 +3,10 @@ import admin from "firebase-admin";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { FIREBASE_CONFIG } from "./firebase.config.js";
 import { logger } from "../logger.js";
+import { randomUUID } from "crypto";
 
 class FireauthRepo {
-    static singleton: FireauthRepo;
+    private static singleton: FireauthRepo;
 
     private clientAuth;
     private adminAuth;
@@ -21,7 +22,7 @@ class FireauthRepo {
             if ('Bearer ' === token.substring(0, 7)) token = token.substring(7);
             const decodedToken = await this.adminAuth.verifyIdToken(token);
 
-            logger.log('Provided token is valid', JSON.stringify(decodedToken));
+            logger.info(`Provided token is valid ${JSON.stringify(decodedToken)}`);
             return true;
         } catch (error) {
             logger.error(error);
@@ -31,12 +32,24 @@ class FireauthRepo {
 
     async signUpWithEmailPassword(email: string, password: string): Promise<string> {
         const userCredential = await createUserWithEmailAndPassword(this.clientAuth, email, password);
+        logger.info(`User created ${JSON.stringify(userCredential.user.uid)}`);
+
         return userCredential.user.uid;
     }
 
     async loginWithEmailPassword(email: string, password: string): Promise<string> {
         const userCredential = await signInWithEmailAndPassword(this.clientAuth, email, password);
+        logger.info(`User logged in ${JSON.stringify(userCredential.user.uid)}`);
+
         return userCredential.user.getIdToken();
+    }
+
+    async guestToken(): Promise<string> {
+        const guestId = randomUUID();
+        const token = await this.adminAuth.createCustomToken(guestId, { isGuest: true });
+        logger.info(`Guest token created with guest ID ${guestId}`);
+
+        return token;
     }
 
     static instance(): FireauthRepo {

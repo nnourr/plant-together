@@ -8,8 +8,13 @@ import { PORT, CORS_ALLOWED_ORIGIN } from "./config.js";
 import * as roomRepo from "./room/room.repo.js";
 import { documentRepo } from "./document/document.repo.js";
 import { documentSocketRouter } from "./document/document.service.js";
-import { signUpWithEmailPassword, loginWithEmailPassword, verifyFirebaseIdToken } from "./user/auth.service.js";
-
+import {
+  signUpWithEmailPassword,
+  loginWithEmailPassword,
+  verifyFirebaseIdToken,
+  guestLogin
+} from "./user/auth.service.js";
+import { logger } from "./logger.js";
 
 const app = express();
 
@@ -80,7 +85,7 @@ app.post("/auth/signup", async (req, res) => {
     const userId = await signUpWithEmailPassword(username, email, password);
     return res.status(200).json({ uid: userId });
   } catch (error: any) {
-    return res.status(error?.status || 500).json({ error: error?.error || 'Internal Server Error' });
+    return res.status(error?.status || 500).json({ error: error?.error || 'An unexpected error occurred. Please try again later.' });
   }
 });
 
@@ -92,7 +97,17 @@ app.post("/auth/login", async (req, res) => {
     const token = await loginWithEmailPassword(email, password);
     return res.status(200).json({ token });
   } catch (error: any) {
-    return res.status(error?.status || 500).json({ error: error?.error || 'Internal Server Error' });
+    return res.status(error?.status || 500).json({ error: error?.error || 'An unexpected error occurred. Please try again later.' });
+  }
+});
+
+app.get("/auth/guest", async (req, res) => {
+  try {
+    const token = await guestLogin();
+    return res.status(200).json({ token });
+  } catch (error: any) {
+    // logger.error(error);
+    return res.status(error?.status || 500).json({ error: error?.error || 'An unexpected error occurred. Please try again later.' });
   }
 });
 
@@ -109,7 +124,7 @@ app.get("/auth/verify", async (req, res) => {
 
     return res.sendStatus(403);
   } catch (error: any) {
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: 'An unexpected error occurred. Please try again later.' });
   }
 });
 

@@ -1,6 +1,7 @@
 import fireauthRepo from "../firebase/fireauth.repo.js";
 import { getFirebaseError } from "../firebase/error.service.js";
 import { registerUser } from "./user.repo.js";
+import { logger } from "../logger.js";
 
 export const signUpWithEmailPassword = async (displayName: string, email: string, password: string): Promise<string> => {
     try {
@@ -9,22 +10,28 @@ export const signUpWithEmailPassword = async (displayName: string, email: string
 
         return userId;
     } catch (error: any) {
-        const firebaseError = getFirebaseError(error.code);
-        throw firebaseError;
+        throw getFirebaseError(error.code);
     }
 };
 
 export const loginWithEmailPassword = async (email: string, password: string): Promise<string> => {
     try {
-        const token = await fireauthRepo.loginWithEmailPassword(email, password);
-        return token;
+        return await fireauthRepo.loginWithEmailPassword(email, password);
     } catch (error: any) {
-        const firebaseError = getFirebaseError(error.code);
-        throw firebaseError;
+        throw getFirebaseError(error.code);
     }
-}
+};
+
+export const guestLogin = async (): Promise<string> => {
+    try {
+        return await fireauthRepo.guestToken();
+    } catch (error: any) {
+        logger.error(error);
+        throw getFirebaseError(error.code);
+    }
+};
 
 export const verifyFirebaseIdToken = async (token: string): Promise<Boolean> => {
     if (!token) return false;
     return fireauthRepo.verifyFirebaseIdToken(token);
-}
+};
