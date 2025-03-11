@@ -14,7 +14,7 @@ export default {
     suiteName: 'Jest Tests',
     classNameTemplate: '{classname}',
     titleTemplate: '{title}',
-    ancestorSeparator: ' › ',
+    ancestorSeparator: ' > ',
     usePathForSuiteName: 'true',
   },
 };
