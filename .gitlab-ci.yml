@@ -9,10 +9,6 @@ frontend_tests:
         - npm ci  
     script:
         - npm test
-    artifacts:
-        reports:
-            junit: react/test-results-frontend.json
-        expire_in: 7 days
     rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
@@ -24,9 +20,5 @@ backend_tests:
         - npm ci
     script:
         - npm test
-    artifacts:
-        reports:
-            junit: express/jest-junit.xml
-        expire_in: 7 days
     rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
