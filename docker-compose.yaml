@@ -49,7 +49,6 @@ services:
         source: ./express
         target: /app
       - /app/node_modules
-      - ./secrets:/app/secrets
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
     networks:

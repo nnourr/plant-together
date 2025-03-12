@@ -44,8 +44,6 @@ services:
       - "${PORT:-3000}:${PORT:-3000}"
     networks:
       - plant-together-network
-    volumes:
-      - ./secrets:/app/secrets
 
   plant-together-yredis:
     build:
