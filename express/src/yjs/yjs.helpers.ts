@@ -1,0 +1,93 @@
+import redisClient from "../redis/redis.js";
+import * as Y from "yjs";
+import * as decoding from "lib0/decoding";
+import * as array from "lib0/array";
+import * as map from "lib0/map";
+
+const decodeRedisRoomStreamName = (
+  rediskey: string,
+  expectedPrefix: string
+) => {
+  const match = rediskey.match(/^(.*):room:(.*):(.*)$/);
+  if (match == null || match[1] !== expectedPrefix) {
+    throw new Error(
+      `Malformed stream name! prefix="${match?.[1]}" expectedPrefix="${expectedPrefix}", rediskey="${rediskey}"`
+    );
+  }
+  return {
+    room: decodeURIComponent(match[2]),
+    docid: decodeURIComponent(match[3]),
+  };
+};
+
+const computeRedisRoomStreamName = (
+  room: string,
+  docid: string,
+  prefix: string
+) => `${prefix}:room:${encodeURIComponent(room)}:${encodeURIComponent(docid)}`;
+
+export const getDoc = async (room: string, docid = "index") => {
+  const ms = extractMessagesFromStreamReply(
+    await redisClient.xRead(
+      redisClient.commandOptions({ returnBuffers: true }),
+      {
+        key: computeRedisRoomStreamName(room, docid, "y"),
+        id: "0",
+      }
+    ),
+    "y"
+  );
+
+  const docMessages = ms.get(room)?.get(docid) || null;
+  const ydoc = new Y.Doc();
+
+  ydoc.transact(() => {
+    docMessages?.messages.forEach((m: any) => {
+      const decoder = decoding.createDecoder(m);
+
+      switch (decoding.readVarUint(decoder)) {
+        case 0: {
+          // sync message
+          if (decoding.readVarUint(decoder) === 2) {
+            // update message
+
+            Y.applyUpdate(ydoc, decoding.readVarUint8Array(decoder));
+          }
+          break;
+        }
+        case 1: {
+          break;
+        }
+      }
+    });
+  });
+
+  return ydoc;
+};
+
+const extractMessagesFromStreamReply = (streamReply: any, prefix: any) => {
+  /**
+   * @type {Map<string, Map<string, { lastId: string, messages: Array<Uint8Array> }>>}
+   */
+  const messages = new Map();
+  streamReply?.forEach((docStreamReply: any) => {
+    const { room, docid } = decodeRedisRoomStreamName(
+      docStreamReply.name.toString(),
+      prefix
+    );
+    const docMessages = map.setIfUndefined(
+      map.setIfUndefined(messages, room, map.create),
+      docid,
+      () => ({
+        lastId: array.last(docStreamReply.messages).id,
+        messages: [],
+      })
+    );
+    docStreamReply.messages.forEach((m) => {
+      if (m.message.m != null) {
+        docMessages.messages.push(/** @type {Uint8Array} */ m.message.m);
+      }
+    });
+  });
+  return messages;
+};
