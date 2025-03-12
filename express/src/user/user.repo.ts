@@ -12,8 +12,10 @@ export const registerUser = async (id: string, displayName: string, email: strin
 
 export const retrieveDisplayName = async (userId: string) : Promise<string> => {
   if (!userId) {
-    logger.error('User ID is undefined');
-    return undefined;
+    const message = 'User ID is undefined';
+
+    logger.error(message);
+    throw new Error(message);
   }
 
   logger.info(`Retrieving display name with ID ${userId}...`);
@@ -25,8 +27,10 @@ export const retrieveDisplayName = async (userId: string) : Promise<string> => {
     `;
   
   if (!records || records.length === 0) {
-    logger.error(`Display name with ID ${userId} not found.`);
-    return '';
+    const message = `Display name with ID ${userId} not found.`;
+
+    logger.error(message);
+    throw new Error(message);
   };
 
   const displayName = records.at(0)?.display_name || '' as string;
