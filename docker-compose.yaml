@@ -20,7 +20,6 @@ services:
       - 5173:5173
     networks:
       - plant-together-network
-      - yredis-network
 
   plant-together-express-dev:
     build:
@@ -64,7 +63,6 @@ services:
       - ${YREDIS_PORT:-3003}:${YREDIS_PORT:-3003}
     networks:
       - plant-together-network
-      - yredis-network
 
   redis-together-dev:
     image: redis:6.2
@@ -72,7 +70,7 @@ services:
     ports:
       - ${REDIS_PORT:-6379}:6379
     networks:
-      - yredis-network
+      - plant-together-network
 
   database-psql-dev:
     image: postgres:16.2
@@ -112,4 +110,3 @@ volumes:
 
 networks:
   plant-together-network:
-  yredis-network:
