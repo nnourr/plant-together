@@ -98,8 +98,8 @@ app.post("/auth/signup", async (req, res) => {
   }
 
   try {
-    const userId = await signUpWithEmailPassword(displayName, email, password);
-    return res.status(200).json({ uid: userId });
+    const token = await signUpWithEmailPassword(displayName, email, password);
+    return res.status(200).json({ token });
   } catch (error: any) {
     return res.status(error?.status || 500).json({ error: error?.error || 'An unexpected error occurred. Please try again later.' });
   }
