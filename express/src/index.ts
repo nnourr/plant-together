@@ -12,7 +12,8 @@ import {
   signUpWithEmailPassword,
   loginWithEmailPassword,
   verifyToken,
-  guestLogin
+  guestLogin,
+  getDisplayName
 } from "./user/auth.service.js";
 
 const app = express();
@@ -75,17 +76,29 @@ app.put("/room/:room_id/document/:document_id/rename", async (req, res) => {
   }
 });
 
+app.get("/user/displayname", async (req, res) => {
+  const token = req.headers.authorization;
+  if (!token) return res.status(400).json({ error: "No Token Provided" });
+
+  try {
+    const displayName = await getDisplayName(token);
+    return res.status(200).json({ displayName });
+  } catch (error) {
+    return res.sendStatus(500);
+  }
+});
+
 app.post("/auth/signup", async (req, res) => {
-  const username = req.body.username;
+  const displayName = req.body.displayName;
   const email = req.body.email;
   const password = req.body.password;
 
-  if (!username || !email || !password) {
+  if (!displayName || !email || !password) {
     return res.status(400).json({ error: 'Invalid request: Missing required fields' });
   }
 
   try {
-    const userId = await signUpWithEmailPassword(username, email, password);
+    const userId = await signUpWithEmailPassword(displayName, email, password);
     return res.status(200).json({ uid: userId });
   } catch (error: any) {
     return res.status(error?.status || 500).json({ error: error?.error || 'An unexpected error occurred. Please try again later.' });

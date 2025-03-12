@@ -7,21 +7,30 @@ export const registerUser = async (id: string, displayName: string, email: strin
       VALUES (${id}, ${displayName}, ${email})
     `;
 
-  logger.info(`Registered User ${id}.`, id);
+  logger.info(`Registered User ${id}.`);
 };
 
-export const getUsername = async (userId: string) => {
+export const retrieveDisplayName = async (userId: string) : Promise<string> => {
   if (!userId) {
     logger.error('User ID is undefined');
     return undefined;
   }
 
-  const username = await sql`
+  logger.info(`Retrieving display name with ID ${userId}...`);
+
+  const records = await sql`
       SELECT display_name
       FROM "user"
       WHERE id = ${userId}
     `;
+  
+  if (!records || records.length === 0) {
+    logger.error(`Display name with ID ${userId} not found.`);
+    return '';
+  };
 
-  logger.info(`User name with ID ${userId}:`, userId);
-  return username;
+  const displayName = records.at(0)?.display_name || '' as string;
+
+  logger.info(`Display name with ID ${userId}: ${displayName}`);
+  return displayName;
 };
