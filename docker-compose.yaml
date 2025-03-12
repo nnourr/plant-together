@@ -35,6 +35,8 @@ services:
       - DB_PORT=${DB_PORT:-5432}
       - DB_USER=${DB_USER:-postgres}
       - DB_PASS=${DB_PASS:-1234}
+
+      - REDIS_HOST=${REDIS_HOST:-redis-together-dev}
     depends_on:
       - database-psql-dev
     volumes:
