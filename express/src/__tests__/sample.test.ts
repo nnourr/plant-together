@@ -230,7 +230,7 @@ describe("Socket.IO Documents Rename Functionality", () => {
 
         io.of("/documents").on("connection", (socket) => documentSocketRouter(io, socket));
 
-        server.listen(PORT, () => {
+        server.listen(PORT2, () => {
             console.log(`Test server started on port ${PORT2}`);
         });
     });
