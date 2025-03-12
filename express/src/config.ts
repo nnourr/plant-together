@@ -14,4 +14,4 @@ export const DB_PASS = process.env.DB_PASS;
 export const DB_USER = process.env.DB_USER;
 
 // Redis
-export const REDIS_URL = process.env.REDIS_URL;
+export const REDIS_HOST = process.env.REDIS_HOST;
