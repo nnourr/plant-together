@@ -19,9 +19,6 @@ backend_tests:
         - cd express  
         - npm ci
     script:
-        - npm test -- --ci --runInBand
-    artifacts:
-        reports:
-            junit: backend/test-results/jest-junit.xml 
+        - npm test
     rules:
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
