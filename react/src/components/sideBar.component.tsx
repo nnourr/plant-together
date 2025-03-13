@@ -29,7 +29,8 @@ export const SideBar: React.FC<SideBarProps> = ({
 
   const [docName, setDocName] = useState<string>("");
   const [edit, setEdit] = useState(false);
-  const editableRef = useRef(null)
+  const editableRef = useRef(null);
+  const maxSize = 10;
 
   useEffect(() => {
     if(edit) {
@@ -47,6 +48,10 @@ export const SideBar: React.FC<SideBarProps> = ({
     }
   };
 
+  function truncate(str: string, n: number){
+    return (str.length > n) ? str.slice(0, n-1) + '&hellip;' : str;
+  };
+
   const documentButtons = documents.map((document) => {
     if (document.id === currDocument.id) {
       return (
@@ -59,7 +64,7 @@ export const SideBar: React.FC<SideBarProps> = ({
           <div className={`flex`}>
             {edit && 
               <input
-                className={`w-40 text-centre text-white bg-transparent`}
+                className={`w-40 text-centre text-white text-ellipsis text-clip bg-transparent`}
                 type="text"
                 ref={editableRef}
                 value={docName}
@@ -71,7 +76,7 @@ export const SideBar: React.FC<SideBarProps> = ({
             }
             {!edit &&
               <div className={`${className} text-left`}>
-                {document.name}
+                {truncate(document.name, maxSize)}
               </div> 
             }
             {!edit &&
@@ -99,7 +104,7 @@ export const SideBar: React.FC<SideBarProps> = ({
           onClick={() => setCurrDocument(document)}
           primary={false}
         >
-          {document.name}
+          {truncate(document.name, maxSize)}
         </Button>
       )
     }

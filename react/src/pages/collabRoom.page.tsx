@@ -82,13 +82,10 @@ export const CollabRoom: React.FC = () => {
         alert("Unable to rename document");
       }
 
-      const newDocs = roomDocuments.map((doc) => {
-        if (doc.id !== documentId) return doc
-        doc.name = newDocumentName  
-        return doc
-      });
-
-      setRoomDocuments(newDocs);
+      const updatedRoomDocuments = [...roomDocuments];
+      const updatedDoc = updatedRoomDocuments.find(doc => doc.id === documentId);
+      updatedDoc!.name = newDocumentName;
+      setRoomDocuments(updatedRoomDocuments);
     });
 
     return () => {
