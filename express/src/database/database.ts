@@ -43,6 +43,13 @@ CREATE TABLE IF NOT EXISTS document (
   room_id TEXT NOT NULL REFERENCES room(id)
 );
 `
+await sql`
+CREATE TABLE IF NOT EXISTS "user" (
+  id TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  email TEXT NOT NULL
+);
+`
 
 // Test the connection
 const alive = await sql`SELECT NOW()`

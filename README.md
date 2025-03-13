@@ -31,6 +31,9 @@ git clone https://github.com/yourusername/plant-together.git
 cd plant-together
 ```
 
+### Configure Environment Variables in your .env file
+Refer to [Environment Variables](#environment-variables)
+
 #### Build and Run the Containers
 Use Docker Compose to build and run the containers:
 
@@ -46,7 +49,13 @@ This command will build the Docker images and start the containers defined in th
 - **PgAdmin**: Access PgAdmin (Web DMBS) at [http://localhost:1007](http://localhost:1007) (or the port you specified in the .env file).
 
 ### Environment Variables
-You can [optionally change](#create-a-env-file-optional) the following environment variables in the .env file to customize the setup:
+The following environment variables are required to be defined in a .env file in the root directory:
+
+- `FIREBASE_API_KEY`: Firebase API Key
+- `FIREBASE_AUTH_DOMAIN`: Firebase Auth Domain
+- `FIREBASE_PROJECT_ID`: Firebase Project ID
+
+You can [optionally change](#create-a-env-file-optional) the following environment variables to customize the setup:
 
 - `VITE_PORT`: Port for the React application (default: 4173)
 - `VITE_SERVER_HTTP_URL`: React app's URL to the express server (default: http://plant-together-express)
