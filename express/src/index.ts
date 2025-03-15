@@ -9,6 +9,13 @@ import * as roomRepo from "./room/room.repo.js";
 import { documentRepo } from "./document/document.repo.js";
 import { documentSocketRouter } from "./document/document.service.js";
 import { logger } from "./logger.js";
+import {
+  signUpWithEmailPassword,
+  loginWithEmailPassword,
+  verifyToken,
+  guestLogin,
+  getDisplayName,
+} from "./user/auth.service.js";
 
 const app = express();
 
@@ -93,6 +100,95 @@ app.put("/room/:room_id/document/:document_id/rename", async (req, res) => {
     res.sendStatus(200);
   } catch (error) {
     res.sendStatus(500);
+  }
+});
+
+app.get("/user/displayname", async (req, res) => {
+  const token = req.headers.authorization;
+  if (!token) return res.status(400).json({ error: "No Token Provided" });
+
+  try {
+    const displayName = await getDisplayName(token);
+    return res.status(200).json({ displayName });
+  } catch (error) {
+    return res.sendStatus(500);
+  }
+});
+
+app.post("/auth/signup", async (req, res) => {
+  const displayName = req.body.displayName;
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!displayName || !email || !password) {
+    return res
+      .status(400)
+      .json({ error: "Invalid request: Missing required fields" });
+  }
+
+  try {
+    const token = await signUpWithEmailPassword(displayName, email, password);
+    return res.status(200).json({ token });
+  } catch (error: any) {
+    return res
+      .status(error?.status || 500)
+      .json({
+        error:
+          error?.error ||
+          "An unexpected error occurred. Please try again later.",
+      });
+  }
+});
+
+app.post("/auth/login", async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  try {
+    const token = await loginWithEmailPassword(email, password);
+    return res.status(200).json({ token });
+  } catch (error: any) {
+    return res
+      .status(error?.status || 500)
+      .json({
+        error:
+          error?.error ||
+          "An unexpected error occurred. Please try again later.",
+      });
+  }
+});
+
+app.get("/auth/guest", async (req, res) => {
+  try {
+    const token = await guestLogin();
+    return res.status(200).json({ token });
+  } catch (error: any) {
+    return res
+      .status(error?.status || 500)
+      .json({
+        error:
+          error?.error ||
+          "An unexpected error occurred. Please try again later.",
+      });
+  }
+});
+
+app.get("/auth/verify", async (req, res) => {
+  try {
+    const token = req.headers.authorization;
+
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized: No token provided" });
+    }
+
+    const isValid = await verifyToken(token);
+    if (isValid) return res.sendStatus(200);
+
+    return res.sendStatus(403);
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json({ error: "An unexpected error occurred. Please try again later." });
   }
 });
 
