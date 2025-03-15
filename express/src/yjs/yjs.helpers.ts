@@ -79,11 +79,11 @@ const extractMessagesFromStreamReply = (streamReply: any, prefix: any) => {
       map.setIfUndefined(messages, room, map.create),
       docid,
       () => ({
-        lastId: array.last(docStreamReply.messages).id,
-        messages: [],
+        lastId: array.last(docStreamReply.messages as any[]).id,
+        messages: [] as Uint8Array[],
       })
     );
-    docStreamReply.messages.forEach((m) => {
+    docStreamReply.messages.forEach((m: any) => {
       if (m.message.m != null) {
         docMessages.messages.push(/** @type {Uint8Array} */ m.message.m);
       }
