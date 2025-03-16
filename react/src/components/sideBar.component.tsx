@@ -30,7 +30,7 @@ export const SideBar: React.FC<SideBarProps> = ({
   const [docName, setDocName] = useState<string>("");
   const [edit, setEdit] = useState(false);
   const editableRef = useRef(null);
-  const maxSize = 10;
+  const maxSize = 16;
 
   useEffect(() => {
     if(edit) {
@@ -48,8 +48,13 @@ export const SideBar: React.FC<SideBarProps> = ({
     }
   };
 
+  const onBlur = () => {
+    updateDocument(currDocument.id, docName);
+    setEdit(false);
+  }
+
   function truncate(str: string, n: number){
-    return (str.length > n) ? str.slice(0, n-1) + '&hellip;' : str;
+    return (str.length > n) ? str.slice(0, n-1) + '...' : str;
   };
 
   const documentButtons = documents.map((document) => {
@@ -71,7 +76,7 @@ export const SideBar: React.FC<SideBarProps> = ({
                 onFocus={(e) => {e.currentTarget.select()}}
                 onChange={(e) => {setDocName(e.target.value)}}
                 onKeyDown={handleKeyDown}
-                onBlur={() => setEdit(false)}
+                onBlur={onBlur}
               />
             }
             {!edit &&
