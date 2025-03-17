@@ -16,7 +16,7 @@ const serverHttpUrl =
 export const CollabRoom: React.FC = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  // useSocketEvent("/document", console.log());
+  //useSocketEvent("/document", console.log());
   const [editorValue, setEditorValue] = useState<string>("");
   const [roomDocuments, setRoomDocuments] = useState<DocumentModel[]>([]);
   const [currDocument, setCurrDocument] = useState<DocumentModel>();
@@ -82,10 +82,12 @@ export const CollabRoom: React.FC = () => {
         alert("Unable to rename document");
       }
 
-      const updatedRoomDocuments = [...roomDocuments];
-      const updatedDoc = updatedRoomDocuments.find(doc => doc.id === documentId);
-      updatedDoc!.name = newDocumentName;
-      setRoomDocuments(updatedRoomDocuments);
+      setRoomDocuments((docs: any) => {
+        const updatedRoomDocuments = [...docs];
+        const updatedDoc = updatedRoomDocuments.find(doc => doc.id === documentId);
+        updatedDoc!.name = newDocumentName;
+        return updatedRoomDocuments;
+      });
     });
 
     return () => {
