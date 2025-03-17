@@ -30,7 +30,6 @@ export const SideBar: React.FC<SideBarProps> = ({
   const [docName, setDocName] = useState<string>("");
   const [edit, setEdit] = useState(false);
   const editableRef = useRef(null);
-  const maxSize = 16;
 
   useEffect(() => {
     if(edit) {
@@ -43,19 +42,23 @@ export const SideBar: React.FC<SideBarProps> = ({
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
+      if (docName.length < 1) {
+        setEdit(false);
+        return;
+      }
       updateDocument(currDocument.id, docName);
       setEdit(false);
     }
   };
 
   const onBlur = () => {
+    if (docName.length < 1) {
+      setEdit(false);
+      return;
+    }
     updateDocument(currDocument.id, docName);
     setEdit(false);
   }
-
-  function truncate(str: string, n: number){
-    return (str.length > n) ? str.slice(0, n-1) + '...' : str;
-  };
 
   const documentButtons = documents.map((document) => {
     if (document.id === currDocument.id) {
@@ -80,14 +83,14 @@ export const SideBar: React.FC<SideBarProps> = ({
               />
             }
             {!edit &&
-              <div className={`${className} text-left`}>
-                {truncate(document.name, maxSize)}
+              <div className={`${className} text-left truncate`}>
+                {document.name}
               </div> 
             }
             {!edit &&
               <button
                 aria-label="edit"
-                className={`text-left px-2 py-1 left-0 transition-all`}
+                className={`text-left left-0 transition-all`}
                 key={document.id}
                 onClick={() => {
                   setEdit(true);
@@ -105,11 +108,11 @@ export const SideBar: React.FC<SideBarProps> = ({
         <Button
           key={document.id}
           size={ButtonSize.md}
-          className={`text-left`}
+          className={`text-left truncate`}
           onClick={() => setCurrDocument(document)}
           primary={false}
         >
-          {truncate(document.name, maxSize)}
+          {document.name}
         </Button>
       )
     }

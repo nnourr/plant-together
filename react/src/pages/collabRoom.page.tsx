@@ -87,7 +87,7 @@ export const CollabRoom: React.FC = () => {
       updatedDoc!.name = newDocumentName;
       setRoomDocuments(updatedRoomDocuments);
     });
- 
+
     return () => {
       newSocket.disconnect();
     };
