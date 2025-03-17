@@ -59,6 +59,13 @@ export const Landing: React.FC = () => {
 
   return (
     <div>
+      <header className="p-4 flex justify-end bg-slate-900">
+        <div>
+          <Button size={ButtonSize.md} onClick={() => navigate("/login")}>
+            Login
+          </Button>
+        </div>
+      </header>
       <div className="w-full h-[100dvh] bg-slate-900 text-white flex justify-center items-center flex-col gap-12">
         <h1 className="max-w-[100vw] text-6xl relative text-center lg:text-9xl font-mono font-bold">
           <FontAwesomeIcon
