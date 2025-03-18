@@ -2,11 +2,6 @@ export interface DocumentData {
   documentName: string;
 }
 
-export interface sqlDocument {
-  id: number;
-  name: string;
-}
-
 export interface DocumentResponse {
   status: string;
   code: number;

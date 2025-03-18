@@ -5,6 +5,7 @@ export default {
   testMatch: ['**/dist/**/*.test.js'],
   collectCoverageFrom: ['src/**/*.ts'],
   verbose: true,
+  modulePathIgnorePatterns: ['<rootDir>/dist/__tests__/__mocks__/redis.mock.js'],
 
   reporters: ['default', ['jest-junit', {
     outputDirectory: 'test-results',

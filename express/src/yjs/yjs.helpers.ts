@@ -1,8 +1,44 @@
-import redisClient from "../redis/redis.js";
 import * as Y from "yjs";
 import * as decoding from "lib0/decoding";
 import * as array from "lib0/array";
 import * as map from "lib0/map";
+import { RedisClientType } from "redis";
+
+export const getDoc = async (room: string, redis: RedisClientType) => {
+  const docid = "index";
+
+  const ms = extractMessagesFromStreamReply(
+    await redis.xRead(redis.commandOptions({ returnBuffers: true }), {
+      key: computeRedisRoomStreamName(room, docid, "y"),
+      id: "0",
+    }),
+    "y"
+  );
+
+  const docMessages = ms.get(room)?.get(docid) || null;
+  const ydoc = new Y.Doc();
+
+  ydoc.transact(() => {
+    docMessages?.messages.forEach((m: any) => {
+      const decoder = decoding.createDecoder(m);
+      switch (decoding.readVarUint(decoder)) {
+        case 0: {
+          // sync message
+          if (decoding.readVarUint(decoder) === 2) {
+            // update message
+            Y.applyUpdate(ydoc, decoding.readVarUint8Array(decoder));
+          }
+          break;
+        }
+        case 1: {
+          break;
+        }
+      }
+    });
+  });
+
+  return ydoc;
+};
 
 const decodeRedisRoomStreamName = (
   rediskey: string,
@@ -20,55 +56,18 @@ const decodeRedisRoomStreamName = (
   };
 };
 
-const computeRedisRoomStreamName = (
+export const computeRedisRoomStreamName = (
   room: string,
   docid: string,
   prefix: string
 ) => `${prefix}:room:${encodeURIComponent(room)}:${encodeURIComponent(docid)}`;
 
-export const getDoc = async (room: string, docid = "index") => {
-  const ms = extractMessagesFromStreamReply(
-    await redisClient.xRead(
-      redisClient.commandOptions({ returnBuffers: true }),
-      {
-        key: computeRedisRoomStreamName(room, docid, "y"),
-        id: "0",
-      }
-    ),
-    "y"
-  );
-
-  const docMessages = ms.get(room)?.get(docid) || null;
-  const ydoc = new Y.Doc();
-
-  ydoc.transact(() => {
-    docMessages?.messages.forEach((m: any) => {
-      const decoder = decoding.createDecoder(m);
-
-      switch (decoding.readVarUint(decoder)) {
-        case 0: {
-          // sync message
-          if (decoding.readVarUint(decoder) === 2) {
-            // update message
-
-            Y.applyUpdate(ydoc, decoding.readVarUint8Array(decoder));
-          }
-          break;
-        }
-        case 1: {
-          break;
-        }
-      }
-    });
-  });
-
-  return ydoc;
-};
-
 const extractMessagesFromStreamReply = (streamReply: any, prefix: any) => {
   /**
    * @type {Map<string, Map<string, { lastId: string, messages: Array<Uint8Array> }>>}
    */
+  // Create a Y.Doc and insert some text into the "monaco" type.
+
   const messages = new Map();
   streamReply?.forEach((docStreamReply: any) => {
     const { room, docid } = decodeRedisRoomStreamName(
