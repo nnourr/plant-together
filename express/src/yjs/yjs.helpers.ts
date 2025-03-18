@@ -3,10 +3,10 @@ import * as decoding from "lib0/decoding";
 import * as array from "lib0/array";
 import * as map from "lib0/map";
 import { RedisClientType } from "redis";
+import * as encoding from "lib0/encoding";
 
-export const getDoc = async (room: string, redis: RedisClientType) => {
+const getDoc = async (room: string, redis: RedisClientType) => {
   const docid = "index";
-
   const ms = extractMessagesFromStreamReply(
     await redis.xRead(redis.commandOptions({ returnBuffers: true }), {
       key: computeRedisRoomStreamName(room, docid, "y"),
@@ -21,17 +21,11 @@ export const getDoc = async (room: string, redis: RedisClientType) => {
   ydoc.transact(() => {
     docMessages?.messages.forEach((m: any) => {
       const decoder = decoding.createDecoder(m);
-      switch (decoding.readVarUint(decoder)) {
-        case 0: {
-          // sync message
-          if (decoding.readVarUint(decoder) === 2) {
-            // update message
-            Y.applyUpdate(ydoc, decoding.readVarUint8Array(decoder));
-          }
-          break;
-        }
-        case 1: {
-          break;
+      if (decoding.readVarUint(decoder) === 0) {
+        // sync message
+        if (decoding.readVarUint(decoder) === 2) {
+          // update message
+          Y.applyUpdate(ydoc, decoding.readVarUint8Array(decoder));
         }
       }
     });
@@ -56,7 +50,7 @@ const decodeRedisRoomStreamName = (
   };
 };
 
-export const computeRedisRoomStreamName = (
+const computeRedisRoomStreamName = (
   room: string,
   docid: string,
   prefix: string
@@ -90,3 +84,5 @@ const extractMessagesFromStreamReply = (streamReply: any, prefix: any) => {
   });
   return messages;
 };
+
+export default { getDoc, computeRedisRoomStreamName };

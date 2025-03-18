@@ -20,8 +20,13 @@ import sql from "./database/database.js";
 import redisClient from "./redis/redis.js";
 import { RedisClientType } from "redis";
 import { RoomService } from "./room/room.service.js";
+import yjsHelpers from "./yjs/yjs.helpers.js";
 
-const documentRepo = new DocumentRepo(sql, redisClient as RedisClientType);
+const documentRepo = new DocumentRepo(
+  sql,
+  redisClient as RedisClientType,
+  yjsHelpers
+);
 const documentService = new DocumentService(documentRepo);
 const roomService = new RoomService(documentRepo);
 const app = express();
@@ -31,10 +36,12 @@ app.use(express.json());
 app.use(cors({ origin: CORS_ALLOWED_ORIGIN }));
 
 app.get("/", (_, res) => {
+  logger.info("GET /");
   res.json({ hello: "world" });
 });
 
 app.get("/room/:room_id", async (req, res) => {
+  logger.info("GET /room/:room_id");
   const roomId = req.params.room_id;
   if (!roomId) return res.status(400).json({ error: "No Room ID Specified" });
 
@@ -47,6 +54,7 @@ app.get("/room/:room_id", async (req, res) => {
 });
 
 app.post("/room/:room_id", async (req, res) => {
+  logger.info("POST /room/:room_id");
   const room_id = req.params.room_id;
   const room_name = req.body.room_name;
   const document_name = req.body.document_name;
@@ -60,11 +68,12 @@ app.post("/room/:room_id", async (req, res) => {
 });
 
 app.get("/room/:room_id/uml", async (req, res) => {
+  logger.info("GET /room/:room_id/uml");
   const roomId = req.params.room_id;
   let content: any = [];
 
   try {
-    content = roomService.getUML(roomId);
+    content = await roomService.getUML(roomId);
   } catch (error) {
     logger.error(error);
     return res.status(500).json({ error: "Error extracting uml" });
@@ -73,6 +82,7 @@ app.get("/room/:room_id/uml", async (req, res) => {
 });
 
 app.post("/room/:room_id/document/:document_name", async (req, res) => {
+  logger.info("POST /room/:room_id/document/:document_name");
   const room_id = req.params.room_id;
   const document_name = req.params.document_name;
 
@@ -85,6 +95,7 @@ app.post("/room/:room_id/document/:document_name", async (req, res) => {
 });
 
 app.put("/room/:room_id/document/:document_id/rename", async (req, res) => {
+  logger.info("PUT /room/:room_id/document/:document_id/rename");
   const room_id = req.params.room_id;
   const document_id = req.params.document_id;
   const new_document_name = req.body.new_document_name;
@@ -98,6 +109,7 @@ app.put("/room/:room_id/document/:document_id/rename", async (req, res) => {
 });
 
 app.get("/user/displayname", async (req, res) => {
+  logger.info("GET /user/displayname");
   const token = req.headers.authorization;
   if (!token) return res.status(400).json({ error: "No Token Provided" });
 
@@ -110,6 +122,7 @@ app.get("/user/displayname", async (req, res) => {
 });
 
 app.post("/auth/signup", async (req, res) => {
+  logger.info("POST /auth/signup");
   const displayName = req.body.displayName;
   const email = req.body.email;
   const password = req.body.password;
@@ -132,6 +145,7 @@ app.post("/auth/signup", async (req, res) => {
 });
 
 app.post("/auth/login", async (req, res) => {
+  logger.info("POST /auth/login");
   const email = req.body.email;
   const password = req.body.password;
 
@@ -147,6 +161,7 @@ app.post("/auth/login", async (req, res) => {
 });
 
 app.get("/auth/guest", async (req, res) => {
+  logger.info("GET /auth/guest");
   try {
     const token = await guestLogin();
     return res.status(200).json({ token });
@@ -159,6 +174,7 @@ app.get("/auth/guest", async (req, res) => {
 });
 
 app.get("/auth/verify", async (req, res) => {
+  logger.info("GET /auth/verify");
   try {
     const token = req.headers.authorization;
 

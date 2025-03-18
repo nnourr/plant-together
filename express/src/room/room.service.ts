@@ -17,7 +17,9 @@ export class RoomService {
         docName: document.name,
         uml: await this.documentRepo.getDocumentUML(roomId, document.id),
       });
+      console.log(content);
     }
+
     return content;
   }
 }

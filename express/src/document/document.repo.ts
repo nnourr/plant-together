@@ -1,15 +1,17 @@
 import { RedisClientType } from "redis";
 import { logger } from "../logger.js";
-import { getDoc } from "../yjs/yjs.helpers.js";
 import { Sql } from "postgres";
 import { Document } from "../database/models.js";
+import yjsHelpers from "../yjs/yjs.helpers.js";
 
 export class DocumentRepo {
   private sql;
   private redis;
-  constructor(sql: Sql, redis: RedisClientType) {
+  private yjsHelpers;
+  constructor(sql: Sql, redis: RedisClientType, yjshelpers: typeof yjsHelpers) {
     this.sql = sql;
     this.redis = redis;
+    this.yjsHelpers = yjshelpers;
   }
 
   createDocument = async (roomId: string, documentName: string) => {
@@ -46,7 +48,7 @@ export class DocumentRepo {
   };
 
   getDocumentUML = async (roomId: string, documentId: number) => {
-    const doc = await getDoc(roomId + documentId, this.redis);
+    const doc = await this.yjsHelpers.getDoc(roomId + documentId, this.redis);
     return doc.getText("monaco").toString();
   };
 }

@@ -18,83 +18,115 @@ import { logger } from "../logger.js";
 import { DocumentResponse } from "../document/document.types.js";
 import { DocumentRepo } from "../document/document.repo.js";
 import { createRoomWithDocument } from "../room/room.repo.js";
-import redisClient from "../redis/redis.js";
 import { RedisClientType } from "redis";
 import { mockRedis } from "./__mocks__/redis.mock.js";
-import { computeRedisRoomStreamName, getDoc } from "../yjs/yjs.helpers.js";
-
+import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
+import yjsHelpers from "../yjs/yjs.helpers.js";
 const PORT = 7565;
 
-const documentRepo = new DocumentRepo(sql, mockRedis as any as RedisClientType);
+const documentRepo = new DocumentRepo(
+  sql,
+  mockRedis as any as RedisClientType,
+  yjsHelpersMock
+);
 const documentService = new DocumentService(documentRepo);
-// describe("Repositories", () => {
-//   beforeAll(async () => {});
 
-//   it("does", () => {
-//     expect(true).toBe(true);
-//   });
+describe("Repositories", () => {
+  beforeAll(async () => {});
 
-//   describe("Rooms Repository", () => {
-//     const defaultRoomId = "1";
-//     const defaultRoomName = "Room Name Default";
-//     const defaultDocumentName = "Default Document Name";
+  it("does", () => {
+    expect(true).toBe(true);
+  });
 
-//     beforeEach(async () => {
-//       // each test has at least one room and one document
-//       await room.createRoomWithDocument(
-//         defaultRoomId,
-//         defaultRoomName,
-//         defaultDocumentName
-//       );
-//     });
+  // describe("Rooms Repository", () => {
+  //   const defaultRoomId = "1";
+  //   const defaultRoomName = "Room Name Default";
+  //   const defaultDocumentName = "Default Document Name";
 
-//     afterEach(async () => {
-//       // undo actions that occurred with the test
-//       await sql!`TRUNCATE room, document RESTART IDENTITY CASCADE`;
-//     });
+  //   beforeEach(async () => {
+  //     // each test has at least one room and one document
+  //     await room.createRoomWithDocument(
+  //       defaultRoomId,
+  //       defaultRoomName,
+  //       defaultDocumentName
+  //     );
+  //   });
 
-//     it("creates room with 1 document", async () => {
-//       const roomId = "100";
-//       const roomName = "Room 100";
-//       const documentName = "Document One";
+  //   afterEach(async () => {
+  //     // undo actions that occurred with the test
+  //     await sql!`TRUNCATE room, document RESTART IDENTITY CASCADE`;
+  //   });
 
-//       await room.createRoomWithDocument(roomId, roomName, documentName);
-//       const roomWithDocuments = await documentRepo.getDocumentsInRoom(roomId);
+  //   it("creates room with 1 document", async () => {
+  //     const roomId = "100";
+  //     const roomName = "Room 100";
+  //     const documentName = "Document One";
 
-//       expect(roomWithDocuments?.room_id).toBe(roomId);
-//       expect(roomWithDocuments?.documents).toEqual(
-//         expect.arrayContaining([
-//           expect.objectContaining({ name: documentName }),
-//         ])
-//       );
-//     });
+  //     await room.createRoomWithDocument(roomId, roomName, documentName);
+  //     const roomWithDocuments = await documentRepo.getDocumentsInRoom(roomId);
 
-//     it("adds 1 document to a room", async () => {
-//       const documentName = "Document Two";
+  //     expect(roomWithDocuments?.room_id).toBe(roomId);
+  //     expect(roomWithDocuments?.documents).toEqual(
+  //       expect.arrayContaining([
+  //         expect.objectContaining({ name: documentName }),
+  //       ])
+  //     );
+  //   });
 
-//       await documentRepo.createDocument(defaultRoomId, documentName);
-//       const roomWithDocuments = await documentRepo.getDocumentsInRoom(
-//         defaultRoomId
-//       );
+  //   it("adds 1 document to a room", async () => {
+  //     const documentName = "Document Two";
 
-//       expect(roomWithDocuments?.room_id).toBe(defaultRoomId);
-//       expect(roomWithDocuments?.documents).toEqual(
-//         expect.arrayContaining([
-//           expect.objectContaining({ name: documentName }),
-//         ])
-//       );
-//     });
+  //     await documentRepo.createDocument(defaultRoomId, documentName);
+  //     const roomWithDocuments = await documentRepo.getDocumentsInRoom(
+  //       defaultRoomId
+  //     );
 
-//     it("gets documents from a room", async () => {
-//       const roomWithDocuments = await documentRepo.getDocumentsInRoom(
-//         defaultRoomId
-//       );
+  //     expect(roomWithDocuments?.room_id).toBe(defaultRoomId);
+  //     expect(roomWithDocuments?.documents).toEqual(
+  //       expect.arrayContaining([
+  //         expect.objectContaining({ name: documentName }),
+  //       ])
+  //     );
+  //   });
 
-//       expect(roomWithDocuments?.room_id).toBe(defaultRoomId);
-//       expect(roomWithDocuments?.documents).toBeInstanceOf(Array);
-//     });
-//   });
-// });
+  //   it("gets documents from a room", async () => {
+  //     const roomWithDocuments = await documentRepo.getDocumentsInRoom(
+  //       defaultRoomId
+  //     );
+
+  //     expect(roomWithDocuments?.room_id).toBe(defaultRoomId);
+  //     expect(roomWithDocuments?.documents).toBeInstanceOf(Array);
+  //   });
+  // });
+
+  describe("Document Repository", () => {
+    const room = "testRoom";
+
+    beforeEach(() => {
+      jest.resetAllMocks();
+    });
+
+    it("should return the UML text from a Y.Doc", async () => {
+      // Create a Y.Doc with some text
+      const mockYDoc = new Y.Doc();
+      mockYDoc.getText("monaco").insert(0, "Hello, Yjs!");
+
+      // Mock getDoc to return our prepared Y.Doc
+      yjsHelpersMock.getDoc.mockResolvedValueOnce(mockYDoc);
+
+      const umlText = await documentRepo.getDocumentUML(room, 2);
+      expect(umlText).toBe("Hello, Yjs!");
+    });
+
+    it("should return an empty string when no document exists", async () => {
+      // Mock getDoc to return an empty Y.Doc
+      yjsHelpersMock.getDoc.mockResolvedValueOnce(new Y.Doc());
+
+      const umlText = await documentRepo.getDocumentUML(room, 2);
+      expect(umlText).toBe("");
+    });
+  });
+});
 
 // describe("Socket.IO Connections", () => {
 //   let io: SocketIOServer;
@@ -413,10 +445,14 @@ const documentService = new DocumentService(documentRepo);
 //   });
 // });
 
-describe("Yjs Helpers - getDoc", () => {
+describe("Yjs Helpers", () => {
   const room = "testRoom";
   const docid = "index";
-  const computeKey = computeRedisRoomStreamName(room, docid, "y");
+  const computeKey = yjsHelpers.computeRedisRoomStreamName(room, docid, "y");
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
 
   it("should return a Y.Doc with updated 'monaco' text when redis returns an update", async () => {
     const encoder = encoding.createEncoder();
@@ -431,20 +467,23 @@ describe("Yjs Helpers - getDoc", () => {
     encoding.writeVarUint8Array(encoder, update);
     const message = encoding.toUint8Array(encoder);
 
-    await mockRedis.xAdd(computeKey, "*", {
-      m: Buffer.from(message),
-    });
+    mockRedis.xRead.mockResolvedValueOnce([
+      {
+        name: Buffer.from(computeKey),
+        messages: [{ message: { m: Buffer.from(message) }, id: "0" }],
+      },
+    ]);
 
     expect(ydoc.getText("monaco").toString()).toBe("Hello, Yjs!");
 
-    const retrievedDoc = await getDoc(room, mockRedis as any);
+    const retrievedDoc = await yjsHelpers.getDoc(room, mockRedis as any);
     expect(retrievedDoc.getText("monaco").toString()).toBe("Hello, Yjs!");
   });
 
   it("should return an empty Y.Doc when redis returns null", async () => {
     // Simulate redis.xRead returning null
     mockRedis.xRead.mockResolvedValueOnce(null);
-    const retrievedDoc = await getDoc(room, mockRedis as any);
+    const retrievedDoc = await yjsHelpers.getDoc(room, mockRedis as any);
     expect(retrievedDoc.getText("monaco").toString()).toBe("");
   });
 });
