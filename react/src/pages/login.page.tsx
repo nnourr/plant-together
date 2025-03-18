@@ -2,23 +2,25 @@ import type React from "react"
 
 import * as plantService from "../service/plant.service.tsx";
 
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { Button, ButtonSize } from "../components/button.component"
 import { InputField } from "../components/inputField.component"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSeedling } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../components/user.context";
 
 import { 
     failedCreateSession, 
     loginGuestUser,
     loginUser
-} from "../utils/authHelpers.ts";
+} from "../utils/auth.helpers.ts";
 
 export const Login: React.FC = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const userContext = useContext(UserContext);
     const navigate = useNavigate();
 
     const DEFAULT_ERROR_MESSAGE = "Error occured while loggin in. Please try again later.";
@@ -30,9 +32,9 @@ export const Login: React.FC = () => {
         }
         
         try {
-            await loginUser(email, password);
+            await loginUser(email, password, userContext);
         } catch (error) {
-            await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError);
+            await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError, userContext);
             return;
         }
 
@@ -42,9 +44,9 @@ export const Login: React.FC = () => {
 
     const handleGuest = async () => {
         try {
-            await loginGuestUser();
+            await loginGuestUser(userContext);
         } catch(error) {
-            await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError);
+            await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError, userContext);
             return;
         }
 

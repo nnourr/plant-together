@@ -87,7 +87,7 @@ export const loginWithEmailPassword = async (email: string, password: string) =>
 
 export const loginGuest = async () => {
   const response = await fetch(`${serverHttpUrl}/auth/guest`, {
-    method:"POST",
+    method:"GET",
     headers: {
       "Content-Type": "application/json",
     },
@@ -106,6 +106,22 @@ export const signupWithEmailPassword = async (displayName: string, email: string
     method:"POST",
     headers: {
       "Content-Type": "application/json",
+    },
+  });
+
+  const body = await response.json();
+
+  if (!response.ok) throw new Error(body.error);
+
+  return body;
+}
+
+export const retrieveDisplayName = async (userId: string, token: string) => {
+  const response = await fetch(`${serverHttpUrl}/user/displayName`, {
+    method:"GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
     },
   });
 

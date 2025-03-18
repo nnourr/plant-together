@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer.component";
 import { InputField } from "../components/inputField.component";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSeedling } from "@fortawesome/free-solid-svg-icons";
 import { Button, ButtonSize } from "../components/button.component";
+import { UserContext } from "../components/user.context";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const userContext = useContext(UserContext);
   const navigate = useNavigate();
+
+  console.log(userContext.context as any);
 
   const goToRoom = () => {
     if (!roomName.trim()) {
