@@ -41,15 +41,21 @@ export const failedCreateSession = (error: string, setError: React.Dispatch<Reac
 
 export const loginUser = async (email: string, password: string, userContext: UserContextType) => {
     const response = await plantService.loginWithEmailPassword(email, password);
+
+    console.log('Successfully logged in user. Creating session');
     await createUserSession(response, userContext);
 };
 
 export const loginGuestUser = async (userContext: UserContextType) => {
     const response = await plantService.loginGuest();
+
+    console.log('Successfully logged in guest user. Creating session');
     await createUserSession(response, userContext);
 };
 
 export const createUser = async (displayName: string, email: string, password: string, userContext: UserContextType) => {
     const response = await plantService.signupWithEmailPassword(displayName, email, password);
+
+    console.log('Successfully created new user. Creating session');
     await createUserSession(response, userContext);
 };
