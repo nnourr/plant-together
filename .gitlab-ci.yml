@@ -1,0 +1,24 @@
+stages:
+    - test
+
+frontend_tests:
+    stage: test
+    image: node:20.18.3 
+    before_script:
+        - cd react  
+        - npm ci  
+    script:
+        - npm test
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+backend_tests:
+    stage: test
+    image: node:20.18.3
+    before_script:
+        - cd express  
+        - npm ci
+    script:
+        - npm test
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
