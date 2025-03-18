@@ -19,8 +19,6 @@ export const createUserSession = async (response: any, userContext: UserContextT
     const token = response.token;
     window.sessionStorage.setItem("jwt", token);
 
-    console.log(token);
-
     const userContextValue = parseToken(token);
     
     if (!userContextValue.isGuest) {
@@ -28,21 +26,21 @@ export const createUserSession = async (response: any, userContext: UserContextT
         userContextValue.displayName = displayName;
     }
 
-    console.log(JSON.stringify(userContext));
     userContext.set(userContextValue); 
 };
 
-export const failedCreateSession = (error: string, setError: React.Dispatch<React.SetStateAction<string>>, userContext: UserContextType) => {
+export const endSession = (userContext: UserContextType) => {
     window.sessionStorage.removeItem("jwt");
-    console.log(JSON.stringify(userContext));
     userContext.set({ sessionActive: false }); 
+};
 
+export const failedCreateSession = (error: string, setError: React.Dispatch<React.SetStateAction<string>>, userContext: UserContextType) => {
+    endSession(userContext);
     setError(error as string);
 };
 
 export const loginUser = async (email: string, password: string, userContext: UserContextType) => {
     const response = await plantService.loginWithEmailPassword(email, password);
-    console.log(JSON.stringify(response));            
     await createUserSession(response, userContext);
 };
 

@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSeedling } from "@fortawesome/free-solid-svg-icons";
 import { Button, ButtonSize } from "../components/button.component";
 import { UserContext } from "../components/user.context";
+import { endSession } from "../utils/auth.helpers";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
@@ -13,8 +14,6 @@ export const Landing: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
-
-  console.log(userContext.context as any);
 
   const goToRoom = () => {
     if (!roomName.trim()) {
@@ -61,12 +60,22 @@ export const Landing: React.FC = () => {
     return;
   };
 
+  const handleLoginOut = () => {
+    try {
+      endSession(userContext);
+      navigate("/login");
+    } catch(error) {
+      console.error(error.message);
+    }
+  };
+
   return (
     <div>
       <header className="p-4 flex justify-end bg-slate-900">
         <div>
-          <Button size={ButtonSize.md} onClick={() => navigate("/login")}>
-            Login
+          <Button size={ButtonSize.md} onClick={handleLoginOut}>
+            {!userContext?.context?.sessionActive || userContext?.context?.isGuest
+            && 'Login' || 'Logout'}
           </Button>
         </div>
       </header>

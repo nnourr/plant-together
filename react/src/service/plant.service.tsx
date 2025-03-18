@@ -82,7 +82,7 @@ export const loginWithEmailPassword = async (email: string, password: string) =>
 
   if (!response.ok) throw new Error(body.error || '');
 
-  return response.json();
+  return body;
 }
 
 export const loginGuest = async () => {
