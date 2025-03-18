@@ -42,7 +42,7 @@ export const SideBar: React.FC<SideBarProps> = ({
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      if (docName.trim.length < 1) {
+      if (docName.trim().length < 1) {
         setEdit(false);
         return;
       }
