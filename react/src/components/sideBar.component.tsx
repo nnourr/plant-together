@@ -42,21 +42,21 @@ export const SideBar: React.FC<SideBarProps> = ({
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      if (docName.length < 1) {
+      if (docName.trim.length < 1) {
         setEdit(false);
         return;
       }
-      updateDocument(currDocument.id, docName);
+      updateDocument(currDocument.id, docName.trim());
       setEdit(false);
     }
   };
 
   const onBlur = () => {
-    if (docName.length < 1) {
+    if (docName.trim.length < 1) {
       setEdit(false);
       return;
     }
-    updateDocument(currDocument.id, docName);
+    updateDocument(currDocument.id, docName.trim());
     setEdit(false);
   }
 
