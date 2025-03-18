@@ -164,7 +164,7 @@ export const retrieveToken = async (loginGuestUserCallback?: (...args: any[]) =>
   const tokenContext = parseToken(token);
   const { expiry } = tokenContext;
 
-  if (!expiry || expiry < Date.now()) token = await refreshToken(token);
+  if (!expiry || expiry < Date.now() / 1000) token = await refreshToken(token);
 
   return token;
 };
