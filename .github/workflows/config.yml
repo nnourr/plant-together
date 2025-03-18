@@ -136,7 +136,14 @@ jobs:
               docker stop plant-express
               docker rm plant-express
             fi
+            if [ $(docker ps -a -q -f name=redis) ]; then
+              docker stop redis
+              docker rm redis
+            fi
 
+            # run redis
+            docker run --name redis -p 6379:6379 -d redis
+            
             # Pull the latest image
             docker pull us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}/plant-express:latest
 
