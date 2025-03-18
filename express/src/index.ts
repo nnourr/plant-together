@@ -3,22 +3,38 @@ import { createServer as createHttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 
 import cors from "cors";
+import morgan from "morgan";
 
 import { PORT, CORS_ALLOWED_ORIGIN } from "./config.js";
 import * as roomRepo from "./room/room.repo.js";
-import { documentRepo } from "./document/document.repo.js";
-import { documentSocketRouter } from "./document/document.service.js";
+import { DocumentRepo } from "./document/document.repo.js";
+import { DocumentService } from "./document/document.service.js";
+import { logger } from "./logger.js";
 import {
   signUpWithEmailPassword,
   loginWithEmailPassword,
   verifyToken,
   guestLogin,
-  getDisplayName
+  getDisplayName,
 } from "./user/auth.service.js";
+import sql from "./database/database.js";
+import redisClient from "./redis/redis.js";
+import { RedisClientType } from "redis";
+import { RoomService } from "./room/room.service.js";
+import yjsHelpers from "./yjs/yjs.helpers.js";
 
+const documentRepo = new DocumentRepo(
+  sql,
+  redisClient as RedisClientType,
+  yjsHelpers
+);
+const documentService = new DocumentService(documentRepo);
+const roomService = new RoomService(documentRepo);
 const app = express();
 
 app.use(express.json());
+
+app.use(morgan("tiny"));
 
 app.use(cors({ origin: CORS_ALLOWED_ORIGIN }));
 
@@ -49,6 +65,19 @@ app.post("/room/:room_id", async (req, res) => {
   } catch (error) {
     res.sendStatus(500);
   }
+});
+
+app.get("/room/:room_id/uml", async (req, res) => {
+  const roomId = req.params.room_id;
+  let content: any = [];
+
+  try {
+    content = await roomService.getUML(roomId);
+  } catch (error) {
+    logger.error(error);
+    return res.status(500).json({ error: "Error extracting uml" });
+  }
+  res.status(200).json(content);
 });
 
 app.post("/room/:room_id/document/:document_name", async (req, res) => {
@@ -94,14 +123,19 @@ app.post("/auth/signup", async (req, res) => {
   const password = req.body.password;
 
   if (!displayName || !email || !password) {
-    return res.status(400).json({ error: 'Invalid request: Missing required fields' });
+    return res
+      .status(400)
+      .json({ error: "Invalid request: Missing required fields" });
   }
 
   try {
     const token = await signUpWithEmailPassword(displayName, email, password);
     return res.status(200).json({ token });
   } catch (error: any) {
-    return res.status(error?.status || 500).json({ error: error?.error || 'An unexpected error occurred. Please try again later.' });
+    return res.status(error?.status || 500).json({
+      error:
+        error?.error || "An unexpected error occurred. Please try again later.",
+    });
   }
 });
 
@@ -113,7 +147,10 @@ app.post("/auth/login", async (req, res) => {
     const token = await loginWithEmailPassword(email, password);
     return res.status(200).json({ token });
   } catch (error: any) {
-    return res.status(error?.status || 500).json({ error: error?.error || 'An unexpected error occurred. Please try again later.' });
+    return res.status(error?.status || 500).json({
+      error:
+        error?.error || "An unexpected error occurred. Please try again later.",
+    });
   }
 });
 
@@ -122,7 +159,10 @@ app.get("/auth/guest", async (req, res) => {
     const token = await guestLogin();
     return res.status(200).json({ token });
   } catch (error: any) {
-    return res.status(error?.status || 500).json({ error: error?.error || 'An unexpected error occurred. Please try again later.' });
+    return res.status(error?.status || 500).json({
+      error:
+        error?.error || "An unexpected error occurred. Please try again later.",
+    });
   }
 });
 
@@ -131,7 +171,7 @@ app.get("/auth/verify", async (req, res) => {
     const token = req.headers.authorization;
 
     if (!token) {
-      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+      return res.status(401).json({ error: "Unauthorized: No token provided" });
     }
 
     const isValid = await verifyToken(token);
@@ -139,7 +179,9 @@ app.get("/auth/verify", async (req, res) => {
 
     return res.sendStatus(403);
   } catch (error: any) {
-    return res.status(500).json({ error: 'An unexpected error occurred. Please try again later.' });
+    return res
+      .status(500)
+      .json({ error: "An unexpected error occurred. Please try again later." });
   }
 });
 
@@ -147,7 +189,7 @@ let server;
 server = createHttpServer(app);
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`express server started on ${PORT}`);
+  logger.info(`express server started on ${PORT}`);
 });
 
 // Setup document service SocketIO connection
@@ -160,4 +202,6 @@ const socketIO = new SocketIOServer(server, {
 });
 socketIO
   .of("/documents")
-  .on("connection", (socket) => documentSocketRouter(socketIO, socket));
+  .on("connection", (socket) =>
+    documentService.documentSocketRouter(socketIO, socket)
+  );
