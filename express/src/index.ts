@@ -6,8 +6,8 @@ import cors from "cors";
 
 import { PORT, CORS_ALLOWED_ORIGIN } from "./config.js";
 import * as roomRepo from "./room/room.repo.js";
-import { documentRepo } from "./document/document.repo.js";
-import { documentSocketRouter } from "./document/document.service.js";
+import { DocumentRepo } from "./document/document.repo.js";
+import { DocumentService } from "./document/document.service.js";
 import { logger } from "./logger.js";
 import {
   signUpWithEmailPassword,
@@ -16,7 +16,12 @@ import {
   guestLogin,
   getDisplayName,
 } from "./user/auth.service.js";
+import sql from "./database/database.js";
+import redisClient from "./redis/redis.js";
+import { RedisClientType } from "redis";
 
+const documentRepo = new DocumentRepo(sql, redisClient as RedisClientType);
+const documentService = new DocumentService(documentRepo);
 const app = express();
 
 app.use(express.json());
@@ -130,13 +135,10 @@ app.post("/auth/signup", async (req, res) => {
     const token = await signUpWithEmailPassword(displayName, email, password);
     return res.status(200).json({ token });
   } catch (error: any) {
-    return res
-      .status(error?.status || 500)
-      .json({
-        error:
-          error?.error ||
-          "An unexpected error occurred. Please try again later.",
-      });
+    return res.status(error?.status || 500).json({
+      error:
+        error?.error || "An unexpected error occurred. Please try again later.",
+    });
   }
 });
 
@@ -148,13 +150,10 @@ app.post("/auth/login", async (req, res) => {
     const token = await loginWithEmailPassword(email, password);
     return res.status(200).json({ token });
   } catch (error: any) {
-    return res
-      .status(error?.status || 500)
-      .json({
-        error:
-          error?.error ||
-          "An unexpected error occurred. Please try again later.",
-      });
+    return res.status(error?.status || 500).json({
+      error:
+        error?.error || "An unexpected error occurred. Please try again later.",
+    });
   }
 });
 
@@ -163,13 +162,10 @@ app.get("/auth/guest", async (req, res) => {
     const token = await guestLogin();
     return res.status(200).json({ token });
   } catch (error: any) {
-    return res
-      .status(error?.status || 500)
-      .json({
-        error:
-          error?.error ||
-          "An unexpected error occurred. Please try again later.",
-      });
+    return res.status(error?.status || 500).json({
+      error:
+        error?.error || "An unexpected error occurred. Please try again later.",
+    });
   }
 });
 
@@ -209,4 +205,6 @@ const socketIO = new SocketIOServer(server, {
 });
 socketIO
   .of("/documents")
-  .on("connection", (socket) => documentSocketRouter(socketIO, socket));
+  .on("connection", (socket) =>
+    documentService.documentSocketRouter(socketIO, socket)
+  );

@@ -1,45 +1,52 @@
-import sql from "../database/database.js";
+import { RedisClientType } from "redis";
 import { logger } from "../logger.js";
 import { getDoc } from "../yjs/yjs.helpers.js";
-import { sqlDocument } from "./document.types.js";
+import { Sql } from "postgres";
+import { Document } from "../database/models.js";
 
-const createDocument = async (roomId: string, documentName: string) => {
-  await sql`INSERT INTO document (name, room_id) VALUES (${documentName}, ${roomId})`;
-  const id_res =
-    await sql`SELECT id FROM document WHERE room_id = ${roomId} AND name = ${documentName}`;
-  logger.info(
-    `Document "${documentName}" added to room with ID ${roomId} response ${JSON.stringify(
-      id_res
-    )}`
-  );
-  return id_res[0].id;
-};
+export class DocumentRepo {
+  private sql;
+  private redis;
+  constructor(sql: Sql, redis: RedisClientType) {
+    this.sql = sql;
+    this.redis = redis;
+  }
 
-const getDocumentsInRoom = async (roomId: string) => {
-  const documents = await sql<sqlDocument[]>`
-    SELECT id, name
-    FROM document
-    WHERE room_id = ${roomId}
-  `;
+  createDocument = async (roomId: string, documentName: string) => {
+    await this
+      .sql`INSERT INTO document (name, room_id) VALUES (${documentName}, ${roomId})`;
+    const id_res = await this
+      .sql`SELECT id FROM document WHERE room_id = ${roomId} AND name = ${documentName}`;
+    logger.info(
+      `Document "${documentName}" added to room with ID ${roomId} response ${JSON.stringify(
+        id_res
+      )}`
+    );
+    return id_res[0].id;
+  };
 
-  console.info(`Documents in Room ${roomId}:`, documents);
-  return { room_id: roomId, documents: documents };
-};
+  getDocumentsInRoom = async (roomId: string) => {
+    const documents = await this.sql<Required<Pick<Document, "id" | "name">>[]>`
+      SELECT id, name
+      FROM document
+      WHERE room_id = ${roomId}
+    `;
 
-const renameDocument = async (documentId: string, newDocumentName: string) => {
-  await sql`UPDATE document SET name = ${newDocumentName} WHERE id = ${documentId}`;
-  logger.info(`Document with ID ${documentId} renamed to "${newDocumentName}"`);
-  return { documentId, newDocumentName };
-};
+    console.info(`Documents in Room ${roomId}:`, documents);
+    return { room_id: roomId, documents: documents };
+  };
 
-const getDocumentUML = async (roomId: string, documentId: number) => {
-  const doc = await getDoc(roomId + documentId);
-  return doc.getText("monaco").toString();
-};
+  renameDocument = async (documentId: string, newDocumentName: string) => {
+    await this
+      .sql`UPDATE document SET name = ${newDocumentName} WHERE id = ${documentId}`;
+    logger.info(
+      `Document with ID ${documentId} renamed to "${newDocumentName}"`
+    );
+    return { documentId, newDocumentName };
+  };
 
-export const documentRepo = {
-  createDocument,
-  getDocumentsInRoom,
-  renameDocument,
-  getDocumentUML,
-};
+  getDocumentUML = async (roomId: string, documentId: number) => {
+    const doc = await getDoc(roomId + documentId, this.redis);
+    return doc.getText("monaco").toString();
+  };
+}
