@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSeedling } from "@fortawesome/free-solid-svg-icons";
 import { Button, ButtonSize } from "../components/button.component";
 import { UserContext } from "../components/user.context";
-import { endSession } from "../utils/auth.helpers";
+import { endSession, loginGuestUser } from "../utils/auth.helpers";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
@@ -14,6 +14,8 @@ export const Landing: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
+
+  if (!userContext?.context?.sessionActive) loginGuestUser(userContext);
 
   const goToRoom = () => {
     if (!roomName.trim()) {
@@ -64,7 +66,7 @@ export const Landing: React.FC = () => {
     try {
       endSession(userContext);
       navigate("/login");
-    } catch(error) {
+    } catch(error: any) {
       console.error(error.message);
     }
   };

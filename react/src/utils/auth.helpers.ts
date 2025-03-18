@@ -1,9 +1,9 @@
 import * as plantService from "../service/plant.service.tsx";
 import { jwtDecode } from "jwt-decode";
 
-import { UserContextType, UserContextType } from "../components/user.context";
+import { UserContextType, UserContextObjectType } from "../components/user.context";
 
-const parseToken = (token: string) : UserContextObjectType => {
+export const parseToken = (token: string) : UserContextObjectType => {
     const decoded = jwtDecode(token) as any;
 
     return {
@@ -22,16 +22,16 @@ export const createUserSession = async (response: any, userContext: UserContextT
     const userContextValue = parseToken(token);
     
     if (!userContextValue.isGuest) {
-        const displayName = await plantService.retrieveDisplayName(userContextValue.userId, token);    
-        userContextValue.displayName = displayName;
+        const response = await plantService.retrieveDisplayName(token);    
+        userContextValue.displayName = response.displayName;
     }
 
-    userContext.set(userContextValue); 
+    userContext.set && userContext?.set(userContextValue); 
 };
 
 export const endSession = (userContext: UserContextType) => {
     window.sessionStorage.removeItem("jwt");
-    userContext.set({ sessionActive: false }); 
+    userContext.set && userContext.set({ sessionActive: false }); 
 };
 
 export const failedCreateSession = (error: string, setError: React.Dispatch<React.SetStateAction<string>>, userContext: UserContextType) => {

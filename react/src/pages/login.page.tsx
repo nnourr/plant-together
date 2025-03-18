@@ -1,7 +1,5 @@
 import type React from "react"
 
-import * as plantService from "../service/plant.service.tsx";
-
 import { useState, useContext } from "react"
 import { Button, ButtonSize } from "../components/button.component"
 import { InputField } from "../components/inputField.component"
@@ -33,7 +31,7 @@ export const Login: React.FC = () => {
         
         try {
             await loginUser(email, password, userContext);
-        } catch (error) {
+        } catch (error: any) {
             await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError, userContext);
             return;
         }
@@ -45,7 +43,7 @@ export const Login: React.FC = () => {
     const handleGuest = async () => {
         try {
             await loginGuestUser(userContext);
-        } catch(error) {
+        } catch(error: any) {
             await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError, userContext);
             return;
         }

@@ -1,4 +1,5 @@
 import { Socket } from "socket.io-client";
+import { parseToken } from "../utils/auth.helpers";
 
 const serverHttpUrl = (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000");
 
@@ -11,6 +12,7 @@ export const createRoomWithDocument = async (roomId: string, roomName: string, d
     method:"POST",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${await retrieveToken()}`
     },
   })
   if (!response.ok) {
@@ -60,7 +62,15 @@ export const updateDocumentInRoom = (
 };
 
 export const getRoomWithDocuments = async (roomId: string) => {
-  const response = await fetch(`${serverHttpUrl}/room/${roomId}`)
+  const response = await fetch(`${serverHttpUrl}/room/${roomId}`,
+    {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${await retrieveToken()}`
+      }
+    }
+  )
+
   if (!response.ok) {
     throw new Error(`Response status: ${response.status}`)
   }
@@ -116,12 +126,12 @@ export const signupWithEmailPassword = async (displayName: string, email: string
   return body;
 }
 
-export const retrieveDisplayName = async (userId: string, token: string) => {
+export const retrieveDisplayName = async (token: string = '') => {
   const response = await fetch(`${serverHttpUrl}/user/displayName`, {
     method:"GET",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
+      "Authorization": `Bearer ${token || await retrieveToken()}`
     },
   });
 
@@ -131,3 +141,30 @@ export const retrieveDisplayName = async (userId: string, token: string) => {
 
   return body;
 }
+
+const refreshToken = async (token: string | null) => {
+  if (!token) throw new Error("Failed to refresh user session. Provided token is empty");
+
+  // TODO: Request new token using refresh token HTTP-Only Cookie & update session storage
+  throw new Error("Failed to refresh user session");
+};
+
+export const retrieveToken = async (loginGuestUserCallback?: (...args: any[]) => Promise<void> | undefined, ...args: any[]) => {
+  let token = window.sessionStorage.getItem("jwt") as string;
+  
+  if (!token) {
+    if (!loginGuestUserCallback) throw new Error("User session was not properly initialized");
+    
+    await loginGuestUserCallback(...args);
+    token = window.sessionStorage.getItem("jwt") as string;
+
+    console.log('Guest user login success');
+  }
+  
+  const tokenContext = parseToken(token);
+  const { expiry } = tokenContext;
+
+  if (!expiry || expiry < Date.now()) token = await refreshToken(token);
+
+  return token;
+};

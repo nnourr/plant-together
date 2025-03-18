@@ -155,7 +155,7 @@ const socketIO = new SocketIOServer(server, {
   cors: {
     origin: CORS_ALLOWED_ORIGIN,
     methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["room-id"],
+    allowedHeaders: ["room-id", "Authorization"],
   },
 });
 socketIO

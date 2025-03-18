@@ -1,13 +1,15 @@
 import { UmlEditor } from "../components/umlEditor.component";
 import { UmlDisplay } from "../components/umlDisplay.component";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { NavBar } from "../components/navBar.component";
 import * as plantService from "../service/plant.service.tsx";
 import { DocumentModel } from "../models/document.model";
 import { SideBar } from "../components/sideBar.component";
 import { io, Socket } from "socket.io-client";
 import { IPlantUmlError } from "../models/plantUmlError.model.tsx";
+import { loginGuestUser } from "../utils/auth.helpers";
+import { UserContext } from "../components/user.context";
 
 const serverHttpUrl =
   (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000") +
@@ -22,6 +24,7 @@ export const CollabRoom: React.FC = () => {
   const [currDocument, setCurrDocument] = useState<DocumentModel>();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [syntaxError, setSyntaxError] = useState<IPlantUmlError>();
+  const userContext = useContext(UserContext);
 
   useEffect(() => {
     const getRoomInfo = async (r: string) => {
@@ -63,12 +66,21 @@ export const CollabRoom: React.FC = () => {
   }
 
   useEffect(() => {
-    const newSocket = io(serverHttpUrl, {
-      extraHeaders: { "room-id": roomId },
-    });
-    setSocket(newSocket);
+    (async () => {
+      const authToken = await plantService.retrieveToken(loginGuestUser, userContext);
 
-    newSocket.on("/document", ({ code, documentName, id }: any) => {
+      const newSocket = io(serverHttpUrl, {
+        extraHeaders: { 
+          "room-id": roomId,
+          "Authorization": `Bearer ${authToken}`
+        },
+      });
+      
+      setSocket(newSocket);
+    })();
+
+
+    socket?.on("/document", ({ code, documentName, id }: any) => {
       if (code != 200) {
         alert("Unable to update new document");
       }
@@ -76,7 +88,7 @@ export const CollabRoom: React.FC = () => {
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
     });
 
-    newSocket.on("/document/rename", ({ code, newDocumentName, documentId }: any) => {
+    socket?.on("/document/rename", ({ code, newDocumentName, documentId }: any) => {
       if (code != 200) {
         alert("Unable to rename document");
       }
@@ -91,7 +103,7 @@ export const CollabRoom: React.FC = () => {
     });
 
     return () => {
-      newSocket.disconnect();
+      socket?.disconnect();
     };
   }, []);
 

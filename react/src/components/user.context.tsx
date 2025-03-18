@@ -1,23 +1,24 @@
-import { createContext, useState, ReactNode } from "react";
+import { createContext, useState } from "react";
 
-type UserContextObjectType = {
+export type UserContextObjectType = {
     sessionActive: boolean;
     isGuest?: boolean;
     userId?: string;
     displayName?: string;
     email?: string;
+    expiry?: number;
 };
 
 export type UserContextType = {
     context: UserContextObjectType;
-    set: React.Dispatch<React.SetStateAction<UserContextObjectType>> | undefined;
+    set?: React.Dispatch<React.SetStateAction<UserContextObjectType>>;
 };
 
 export const UserContext = createContext<UserContextType>({ 
     context: { sessionActive: false }
 });
 
-export const UserContextProvider: React.FC = ({ children }) => {
+export const UserContextProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [userContextValue, setUserContextValue] = useState<UserContextObjectType>({ sessionActive: false });
 
   return (
