@@ -69,3 +69,49 @@ export const getRoomWithDocuments = async (roomId: string) => {
   return room
 }
 
+export const loginWithEmailPassword = async (email: string, password: string) => {
+  const response = await fetch(`${serverHttpUrl}/auth/login`, {
+    body: JSON.stringify({ email, password }),
+    method:"POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const body = await response.json();
+
+  if (!response.ok) throw new Error(body.error || '');
+
+  return response.json();
+}
+
+export const loginGuest = async () => {
+  const response = await fetch(`${serverHttpUrl}/auth/guest`, {
+    method:"POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const body = await response.json();
+
+  if (!response.ok) throw new Error(body.error || '');
+
+  return body;
+}
+
+export const signupWithEmailPassword = async (displayName: string, email: string, password: string) => {
+  const response = await fetch(`${serverHttpUrl}/auth/signup`, {
+    body: JSON.stringify({ displayName, email, password }),
+    method:"POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const body = await response.json();
+
+  if (!response.ok) throw new Error(body.error);
+
+  return body;
+}

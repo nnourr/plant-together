@@ -1,34 +1,54 @@
 import type React from "react"
 
-import { useState } from "react"
+import * as plantService from "../service/plant.service.tsx";
 
+import { useState } from "react"
 import { Button, ButtonSize } from "../components/button.component"
 import { InputField } from "../components/inputField.component"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSeedling } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
+import { 
+    failedCreateSession, 
+    loginGuestUser,
+    loginUser
+} from "../utils/authHelpers.ts";
+
 export const Login: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const navigate = useNavigate();
 
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault()
+    const DEFAULT_ERROR_MESSAGE = "Error occured while loggin in. Please try again later.";
 
+    const handleLogin = async (email: string, password: string) => {
         if (!email || !password) {
             setError("Please fill missing fields");
             return;
         }
+        
+        try {
+            await loginUser(email, password);
+        } catch (error) {
+            await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError);
+            return;
+        }
 
         setError("");
-
-        // Handle signup logic here
-        
+        navigate("/");
     };
 
-    const handleGuest = () => {
+    const handleGuest = async () => {
+        try {
+            await loginGuestUser();
+        } catch(error) {
+            await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError);
+            return;
+        }
+
+        setError("");
         navigate("/");
     };
 
@@ -51,9 +71,9 @@ export const Login: React.FC = () => {
                     </h1>
                     <div className="px-12 pb-12">
                         {error && (
-                        <div className="mb-6 p-3 bg-red-900/30 border border-red-700 rounded-md text-red-200 text-sm">
-                            {error}
-                        </div>
+                            <div className="mb-6 p-3 bg-red-900/30 border border-red-700 rounded-md text-red-200 text-sm">
+                                {error}
+                            </div>
                         )}
 
                         <form className="space-y-6">
@@ -80,7 +100,7 @@ export const Login: React.FC = () => {
                                 />
                             </div>
 
-                            <Button size={ButtonSize.lg} onClick={handleLogin} className="w-full bg-green-600 hover:bg-green-700 rounded-md" primary>
+                            <Button size={ButtonSize.lg} onClick={() => handleLogin(email, password)} className="w-full bg-green-600 hover:bg-green-700 rounded-md" primary>
                                 Log In
                             </Button>
 

@@ -1,5 +1,7 @@
 import type React from "react"
 
+import * as plantService from "../service/plant.service.tsx";
+
 import { useState } from "react"
 
 import { Button, ButtonSize } from "../components/button.component"
@@ -8,34 +10,59 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSeedling } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
+import { 
+    failedCreateSession, 
+    loginGuestUser,
+    createUser
+} from "../utils/authHelpers.ts";
+
 export const Signup: React.FC = () => {
-  const [displayName, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+    const [displayName, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [error, setError] = useState("");
+    const navigate = useNavigate();
 
-    const handleSignup = (e: React.FormEvent) => {
-        e.preventDefault()
+    const DEFAULT_ERROR_MESSAGE = "Error occured while loggin in. Please try again later.";
 
-        if (!displayName || !email || !password || !confirmPassword) {
-            setError("Please fill missing fields");
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            setError("Passwords do not match");
+    const handleGuest = async () => {
+        try {
+            await loginGuestUser();
+        } catch(error) {
+            await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError);
             return;
         }
 
         setError("");
+        navigate("/");
+    };
 
-        // Handle signup logic here
+    const validateSignupForm = () : boolean => {
+        if (!displayName || !email || !password || !confirmPassword) {
+            setError("Please fill missing fields");
+            return false;
+        }
 
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            return false;
+        }
+
+        return true;
     }
 
-    const handleGuest = () => {
+    const handleSignup = async () => {
+        if (!validateSignupForm()) return;
+
+        try {
+            await createUser(displayName, email, password);
+        } catch (error) {
+            await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError);
+            return;
+        }
+
+        setError("");
         navigate("/");
     };
 
