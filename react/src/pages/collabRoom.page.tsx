@@ -26,8 +26,15 @@ export const CollabRoom: React.FC = () => {
   const [syntaxError, setSyntaxError] = useState<IPlantUmlError>();
   const userContext = useContext(UserContext);
 
+  const userSessionInit = async () => {
+    if (userContext?.context?.sessionActive) return; 
+    await loginGuestUser(userContext);
+  };
+
   useEffect(() => {
     const getRoomInfo = async (r: string) => {
+      await userSessionInit();
+      
       const room = await plantService.getRoomWithDocuments(r);
       if (!!!room.documents || room.documents.length === 0) {
         await plantService.createRoomWithDocument(r, r, "Document1");
@@ -50,6 +57,8 @@ export const CollabRoom: React.FC = () => {
   }
 
   const createNewDocument = async (_roomId: string, documentName: any) => {
+    await userSessionInit();
+
     await plantService.createDocumentInRoom(socket!, documentName, ({ id }) => {
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
       setCurrDocument({ id: id, name: documentName });
@@ -57,6 +66,8 @@ export const CollabRoom: React.FC = () => {
   };
 
   const updateDocument = async (documentId: any, documentNewName: string) => {
+    await userSessionInit();
+
     await plantService.updateDocumentInRoom(socket!, documentId, documentNewName, ({ documentName }) => {
       const updatedRoomDocuments = [...roomDocuments];
       const updatedDoc = updatedRoomDocuments.find(doc => doc.id === documentId);
@@ -78,8 +89,9 @@ export const CollabRoom: React.FC = () => {
       
       setSocket(newSocket);
     })();
+  }, []);
 
-
+  useEffect(() => {
     socket?.on("/document", ({ code, documentName, id }: any) => {
       if (code != 200) {
         alert("Unable to update new document");
@@ -105,7 +117,7 @@ export const CollabRoom: React.FC = () => {
     return () => {
       socket?.disconnect();
     };
-  }, []);
+  }, [socket]);
 
   return (
     <div className="w-full h-full flex flex-col">
