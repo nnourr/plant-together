@@ -19,6 +19,7 @@ export class DocumentService {
   constructor(documentRepo: DocumentRepo) {
     this.documentRepo = documentRepo;
   }
+
   documentSocketRouter = (io: SocketIOServer, socket: Socket) => {
     logger.info(`New document socket connection ${socket.id}`);
 

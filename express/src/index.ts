@@ -19,9 +19,11 @@ import {
 import sql from "./database/database.js";
 import redisClient from "./redis/redis.js";
 import { RedisClientType } from "redis";
+import { RoomService } from "./room/room.service.js";
 
 const documentRepo = new DocumentRepo(sql, redisClient as RedisClientType);
 const documentService = new DocumentService(documentRepo);
+const roomService = new RoomService(documentRepo);
 const app = express();
 
 app.use(express.json());
@@ -30,32 +32,6 @@ app.use(cors({ origin: CORS_ALLOWED_ORIGIN }));
 
 app.get("/", (_, res) => {
   res.json({ hello: "world" });
-});
-
-app.get("/room/:room_id/uml", async (req, res) => {
-  const roomId = req.params.room_id;
-  let content: any = [];
-  let room_documents;
-
-  try {
-    room_documents = (await documentRepo.getDocumentsInRoom(roomId)).documents;
-  } catch (error) {
-    logger.error(error);
-    return res.status(500).json({ error: "Error fetching documents in room" });
-  }
-
-  try {
-    for (let document of room_documents) {
-      content.push({
-        docName: document.name,
-        uml: await documentRepo.getDocumentUML(roomId, document.id),
-      });
-    }
-  } catch (error) {
-    logger.error(error);
-    return res.status(500).json({ error: "Error extracting uml" });
-  }
-  res.status(200).json(content);
 });
 
 app.get("/room/:room_id", async (req, res) => {
@@ -81,6 +57,19 @@ app.post("/room/:room_id", async (req, res) => {
   } catch (error) {
     res.sendStatus(500);
   }
+});
+
+app.get("/room/:room_id/uml", async (req, res) => {
+  const roomId = req.params.room_id;
+  let content: any = [];
+
+  try {
+    content = roomService.getUML(roomId);
+  } catch (error) {
+    logger.error(error);
+    return res.status(500).json({ error: "Error extracting uml" });
+  }
+  res.status(200).json(content);
 });
 
 app.post("/room/:room_id/document/:document_name", async (req, res) => {
