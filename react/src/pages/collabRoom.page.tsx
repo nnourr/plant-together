@@ -28,7 +28,12 @@ export const CollabRoom: React.FC = () => {
 
   const userSessionInit = async () => {
     if (userContext?.context?.sessionActive) return; 
-    await loginGuestUser(userContext);
+    
+    try {
+      await loginGuestUser(userContext);
+    } catch(error: any) {
+      console.error(`Failed to initialize guest user session. ${error.message}`);
+    }
   };
 
   useEffect(() => {

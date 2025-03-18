@@ -15,7 +15,15 @@ export const Landing: React.FC = () => {
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
 
-  if (!userContext?.context?.sessionActive) loginGuestUser(userContext);
+  if (!userContext?.context?.sessionActive) {
+    (async () => {
+      try {
+        await loginGuestUser(userContext);
+      } catch(error: any) {
+        console.error(`Failed to initialize guest user session. ${error.message}`);
+      }
+    })();    
+  }
 
   const goToRoom = () => {
     if (!roomName.trim()) {
