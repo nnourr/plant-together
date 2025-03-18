@@ -52,7 +52,7 @@ export const SideBar: React.FC<SideBarProps> = ({
   };
 
   const onBlur = () => {
-    if (docName.trim.length < 1) {
+    if (docName.trim().length < 1) {
       setEdit(false);
       return;
     }
