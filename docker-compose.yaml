@@ -1,25 +1,25 @@
 name: plant-together-dev
 
 services:
-  plant-together-react-dev:
-    build:
-      context: ./react
-      dockerfile: Dockerfile.dev
-      args:
-        VITE_SERVER_HTTP_URL: ${VITE_SERVER_HTTP_URL:-http://localhost:${PORT:-3000}}
-        VITE_SERVER_WS_URL: ${VITE_SERVER_WS_URL:-ws://localhost:${YREDIS_PORT:-3003}}
+  # plant-together-react-dev:
+  #   build:
+  #     context: ./react
+  #     dockerfile: Dockerfile.dev
+  #     args:
+  #       VITE_SERVER_HTTP_URL: ${VITE_SERVER_HTTP_URL:-http://localhost:${PORT:-3000}}
+  #       VITE_SERVER_WS_URL: ${VITE_SERVER_WS_URL:-ws://localhost:${YREDIS_PORT:-3003}}
 
-    container_name: plant-together-react-dev
-    volumes:
-      - type: bind
-        source: ./react
-        target: /app
-      - /app/node_modules
-      - /app/.vite
-    ports:
-      - 5173:5173
-    networks:
-      - plant-together-network
+  #   container_name: plant-together-react-dev
+  #   volumes:
+  #     - type: bind
+  #       source: ./react
+  #       target: /app
+  #     - /app/node_modules
+  #     - /app/.vite
+  #   ports:
+  #     - 5173:5173
+  #   networks:
+  #     - plant-together-network
 
   plant-together-express-dev:
     build:
