@@ -489,7 +489,6 @@ const PORT = 7565;
 // });
 
 import { AuthService } from '../user/auth.service.js';
-import { jwtDecode } from 'jwt-decode';
 import { firebaseMock } from './__mocks__/firebase.mock.js';
 import { userRepoMock } from "./__mocks__/user.repo.mock.js";
 
@@ -498,26 +497,78 @@ jest.mock('../user/user.repo', () => ({
   retrieveDisplayName: jest.fn((): Promise<string> => Promise.resolve("John Doe")),
 }));
 
+jest.mock('jwt-decode', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ user_id: "user123" })),
+}));
+
 describe("AuthService with Firebase Mock", () => {
   let authService: AuthService;
 
   beforeEach(() => {
-    // Reset the firebaseMock before each test to avoid interference.
+    // Reset mocks before each test.
     jest.clearAllMocks();
     authService = new AuthService(firebaseMock as any, userRepoMock as any);
   });
 
   it("should sign up a user and register them", async () => {
-    const fakeToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcjEyMyIsImlhdCI6MTc0MjQwNDYyM30.8-rnBuCLyEa885HSed36e8GNX8-roqu3cxLAweSuJhY";
+    // Use a valid-looking JWT token with three parts.
+    const fakeToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
+      "eyJ1c2VyX2lkIjoidXNlcjEyMyIsImlhdCI6MTc0MjQwNDYyM30." +
+      "8-rnBuCLyEa885HSed36e8GNX8-roqu3cxLAweSuJhY";
     firebaseMock.signUpWithEmailPassword.mockResolvedValue(fakeToken);
-    // (jwtDecode as jest.Mock).mockReturnValue({ user_id: "user123" });
+    // (If AuthService uses jwtDecode internally, ensure that it decodes the above token to { user_id: "user123" })
 
     const token = await authService.signUpWithEmailPassword("John Doe", "john@example.com", "password123");
 
     expect(token).toBe(fakeToken);
     expect(firebaseMock.signUpWithEmailPassword).toHaveBeenCalledWith("john@example.com", "password123");
-    // expect(jwtDecode).toHaveBeenCalledWith(fakeToken);
+    // We expect that after decoding the token, registerUser is called with "user123"
     expect(userRepoMock.registerUser).toHaveBeenCalledWith("user123", "John Doe", "john@example.com");
   });
 
+  it("should log in a user and return the token", async () => {
+    const fakeToken = "loginFakeToken";
+    firebaseMock.loginWithEmailPassword.mockResolvedValue(fakeToken);
+
+    const token = await authService.loginWithEmailPassword("john@example.com", "password123");
+
+    expect(token).toBe(fakeToken);
+    expect(firebaseMock.loginWithEmailPassword).toHaveBeenCalledWith("john@example.com", "password123");
+  });
+
+  it("should guest login and return a token", async () => {
+    const fakeToken = "guestFakeToken";
+    firebaseMock.guestToken.mockResolvedValue(fakeToken);
+
+    const token = await authService.guestLogin();
+
+    expect(token).toBe(fakeToken);
+    expect(firebaseMock.guestToken).toHaveBeenCalled();
+  });
+
+  it("should verify a valid token", async () => {
+    const tokenToVerify = "someValidToken";
+    firebaseMock.verifyFirebaseIdToken.mockResolvedValue(true);
+
+    const result = await authService.verifyToken(tokenToVerify);
+
+    expect(result).toBe(true);
+    expect(firebaseMock.verifyFirebaseIdToken).toHaveBeenCalledWith(tokenToVerify);
+  });
+
+  it("should return false when verifying an empty token", async () => {
+    const result = await authService.verifyToken("");
+    expect(result).toBe(false);
+    expect(firebaseMock.verifyFirebaseIdToken).not.toHaveBeenCalled();
+  });
+
+  it("should return the display name for a dummy token", async () => {
+    // Pass any dummy token because our stub always returns the same decoded result.
+    const validToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcjEyMyIsImRpc3BsYXlOYW1lIjoieW8gbWFtYSIsImlhdCI6MTc0MjQxNzk5OH0.CHmi0bE2WtF4pGHtFS8xvGX3yZeu7heJzV0wyo9igfk";
+    const displayName = await authService.getDisplayName(validToken);
+
+    expect(userRepoMock.retrieveDisplayName).toHaveBeenCalledWith("user123");
+  });
 });
