@@ -3,7 +3,10 @@ import "./index.css";
 import { createHashRouter, RouterProvider } from "react-router-dom";
 import { Landing } from "./pages/landing.page";
 import { CollabRoom } from "./pages/collabRoom.page";
+import { Signup } from "./pages/signup.page";
+import { Login } from "./pages/login.page";
 
+import { UserContextProvider } from "./components/user.context";
 import { PostHogProvider } from "posthog-js/react";
 import Clarity from "@microsoft/clarity";
 
@@ -32,10 +35,18 @@ const router = createHashRouter([
     path: "/room/:roomId",
     element: <CollabRoom />,
   },
+  {
+    path: "/signup",
+    element: <Signup />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  }
 ]);
 
 createRoot(document.getElementById("root")!).render(
-  <>
+  <UserContextProvider>
     {options ? (
       <PostHogProvider apiKey={POSTHOG_API_KEY} options={options}>
         <RouterProvider router={router} />
@@ -43,5 +54,5 @@ createRoot(document.getElementById("root")!).render(
     ) : (
       <RouterProvider router={router} />
     )}
-  </>
+  </UserContextProvider>
 );
