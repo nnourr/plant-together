@@ -3,6 +3,10 @@ import { jwtDecode } from "jwt-decode";
 
 import { UserContextType, UserContextObjectType } from "../components/user.context";
 
+export const isUserSessionStored = () : boolean => {
+    return window.sessionStorage.getItem("jwt") ? true : false;
+};
+
 export const parseToken = (token: string) : UserContextObjectType => {
     const decoded = jwtDecode(token) as any;
 

@@ -8,7 +8,6 @@ import { DocumentModel } from "../models/document.model";
 import { SideBar } from "../components/sideBar.component";
 import { io, Socket } from "socket.io-client";
 import { IPlantUmlError } from "../models/plantUmlError.model.tsx";
-import { loginGuestUser } from "../utils/auth.helpers";
 import { UserContext } from "../components/user.context";
 
 const serverHttpUrl =
@@ -26,19 +25,9 @@ export const CollabRoom: React.FC = () => {
   const [syntaxError, setSyntaxError] = useState<IPlantUmlError>();
   const userContext = useContext(UserContext);
 
-  const userSessionInit = async () => {
-    if (userContext?.context?.sessionActive) return; 
-    
-    try {
-      await loginGuestUser(userContext);
-    } catch(error: any) {
-      console.error(`Failed to initialize guest user session. ${error.message}`);
-    }
-  };
-
   useEffect(() => {
     const getRoomInfo = async (r: string) => {
-      await userSessionInit();
+      if (!userContext?.context?.sessionActive) return; 
       
       const room = await plantService.getRoomWithDocuments(r);
       if (!!!room.documents || room.documents.length === 0) {
@@ -54,7 +43,7 @@ export const CollabRoom: React.FC = () => {
     if (roomId) {
       getRoomInfo(roomId);
     }
-  }, []);
+  }, [userContext]);
 
   if (roomId === undefined) {
     navigate("/");
@@ -62,7 +51,7 @@ export const CollabRoom: React.FC = () => {
   }
 
   const createNewDocument = async (_roomId: string, documentName: any) => {
-    await userSessionInit();
+    if (!userContext?.context?.sessionActive) return; 
 
     await plantService.createDocumentInRoom(socket!, documentName, ({ id }) => {
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
@@ -71,7 +60,7 @@ export const CollabRoom: React.FC = () => {
   };
 
   const updateDocument = async (documentId: any, documentNewName: string) => {
-    await userSessionInit();
+    if (!userContext?.context?.sessionActive) return; 
 
     await plantService.updateDocumentInRoom(socket!, documentId, documentNewName, ({ documentName }) => {
       const updatedRoomDocuments = [...roomDocuments];
@@ -83,7 +72,9 @@ export const CollabRoom: React.FC = () => {
 
   useEffect(() => {
     (async () => {
-      const authToken = await plantService.retrieveToken(loginGuestUser, userContext);
+      if (!userContext?.context?.sessionActive) return; 
+
+      const authToken = await plantService.retrieveToken();
 
       const newSocket = io(serverHttpUrl, {
         extraHeaders: { 
@@ -94,7 +85,7 @@ export const CollabRoom: React.FC = () => {
       
       setSocket(newSocket);
     })();
-  }, []);
+  }, [userContext]);
 
   useEffect(() => {
     socket?.on("/document", ({ code, documentName, id }: any) => {
