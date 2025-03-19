@@ -1,3 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="Jest Tests" tests="0" failures="0" errors="0" time="31.718">
+<testsuites name="Jest Tests" tests="1" failures="0" errors="0" time="0.803">
+  <testsuite name="dist\__tests__\sample.test.js" errors="0" failures="0" skipped="0" timestamp="2025-03-19T17:42:20" time="0.659" tests="1">
+    <testcase classname="AuthService with Firebase Mock" name="should sign up a user and register them" time="0.005">
+    </testcase>
+  </testsuite>
 </testsuites>

@@ -1,22 +1,22 @@
 // auth.service.ts (After Refactoring)
-import { Fireauth } from '../firebase/fireauth.repo.js';
+import { FireauthRepo } from '../firebase/fireauth.repo.js';
 import { APIError } from '../types.js';
 import { FIREBASE_ERRORS } from '../firebase/firebase.config.js';
-import { registerUser, retrieveDisplayName } from "./user.repo.js";
+import { UserRepo } from "./user.repo.js";
 import { logger } from "../logger.js";
 import { jwtDecode } from "jwt-decode";
 import { getFirebaseError } from "../firebase/error.service.js";
 
 export class AuthService {
     // The Fireauth dependency is injected via the constructor.
-    constructor(private fireauth: Fireauth) { }
+    constructor(private fireauth: FireauthRepo, private userRepo: UserRepo) { }
 
     async signUpWithEmailPassword(displayName: string, email: string, password: string): Promise<string> {
         try {
             const token = await this.fireauth.signUpWithEmailPassword(email, password);
             const decoded = jwtDecode(token) as any;
             const userId = decoded.user_id;
-            await registerUser(userId, displayName, email);
+            await this.userRepo.registerUser(userId, displayName, email);
             return token;
         } catch (error: any) {
             throw getFirebaseError(error.code);
@@ -49,6 +49,6 @@ export class AuthService {
         if (!token) return "";
         if ('Bearer ' === token.substring(0, 7)) token = token.substring(7);
         const decoded = jwtDecode(token) as any;
-        return await retrieveDisplayName(decoded.user_id);
+        return await this.userRepo.retrieveDisplayName(decoded.user_id);
     }
 }

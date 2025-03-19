@@ -5,14 +5,7 @@ import { FIREBASE_CONFIG, SERVICE_ACCOUNT_CREDENTIAL } from "./firebase.config.j
 import { logger } from "../logger.js";
 import { randomUUID } from "crypto";
 
-export interface Fireauth {
-    verifyFirebaseIdToken(token: string): Promise<Boolean>;
-    signUpWithEmailPassword(email: string, password: string): Promise<string>;
-    loginWithEmailPassword(email: string, password: string): Promise<string>;
-    guestToken(): Promise<string>;
-}
-
-export class FireauthRepo implements Fireauth {
+export class FireauthRepo{
     private static singleton: FireauthRepo;
 
     private clientAuth;
