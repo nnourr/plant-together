@@ -21,7 +21,7 @@ export const Login: React.FC = () => {
     const userContext = useContext(UserContext);
     const navigate = useNavigate();
 
-    const DEFAULT_ERROR_MESSAGE = "Error occured while loggin in. Please try again later.";
+    const DEFAULT_ERROR_MESSAGE = "Error occurred while logging in. Please try again later.";
 
     const handleLogin = async (email: string, password: string) => {
         if (!email || !password) {
@@ -53,13 +53,13 @@ export const Login: React.FC = () => {
     };
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center bg-[#0f172a] text-white p-4">
+        <main className="flex min-h-screen flex-col items-center justify-center bg-slate-900 text-white p-4">
             <div className="w-full max-w-md space-y-8">
                 <div className="flex flex-col items-center text-center">
                     <div className="flex items-center gap-2 text-4xl font-bold mb-2">
                         <FontAwesomeIcon
                             icon={faSeedling}
-                            className="mr-16 hidden lg:inline"
+                            className="hidden lg:inline"
                         />
                         <h1>Plant Together.</h1>
                     </div>
@@ -85,7 +85,7 @@ export const Login: React.FC = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="Enter your email"
-                                    className="w-full text-lg px-3 py-2 bg-[#0f172a] border-white/20 rounded-md"
+                                    className="w-full text-lg px-3 py-2 bg-slate-900 border-white/20 rounded-md"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -96,7 +96,8 @@ export const Login: React.FC = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Enter your password"
-                                    className="w-full text-lg px-3 py-2 bg-[#0f172a] border-white/20 rounded-md"
+                                    className="w-full text-lg px-3 py-2 bg-slate-900 border-white/20 rounded-md"
+                                    autoComplete="current-password"
                                 />
                             </div>
 
@@ -122,8 +123,8 @@ export const Login: React.FC = () => {
                         </form>
 
                         <div className="mt-6 text-center text-sm text-gray-400">
-                            Already have an account?{" "}
-                            <a onClick={() => navigate('/signup')} className="text-green-500 hover:underline">
+                            Don't have an account?{" "}
+                            <a onClick={() => navigate('/signup')} className="text-green-500 hover:underline cursor-pointer">
                                 Sign Up
                             </a>
                         </div>

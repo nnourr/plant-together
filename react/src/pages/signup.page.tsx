@@ -24,7 +24,7 @@ export const Signup: React.FC = () => {
     const userContext = useContext(UserContext);
     const navigate = useNavigate();
 
-    const DEFAULT_ERROR_MESSAGE = "Error occured while loggin in. Please try again later.";
+    const DEFAULT_ERROR_MESSAGE = "Error occurred while creating account. Please try again later.";
 
     const handleGuest = async () => {
         try {
@@ -67,13 +67,13 @@ export const Signup: React.FC = () => {
     };
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center bg-[#0f172a] text-white p-4">
+        <main className="flex min-h-screen flex-col items-center justify-center bg-slate-900 text-white p-4">
             <div className="w-full max-w-md space-y-8">
                 <div className="flex flex-col items-center text-center">
                     <div className="flex items-center gap-2 text-4xl font-bold mb-2">
                         <FontAwesomeIcon
                             icon={faSeedling}
-                            className="mr-16 hidden lg:inline"
+                            className="hidden lg:inline"
                         />
                         <h1>Plant Together.</h1>
                     </div>
@@ -98,7 +98,7 @@ export const Signup: React.FC = () => {
                                     value={displayName}
                                     onChange={(e) => setUsername(e.target.value)}
                                     placeholder="Choose a display name"
-                                    className="w-full text-lg px-3 py-2 bg-[#0f172a] border-white/20 rounded-md"
+                                    className="w-full text-lg px-3 py-2 bg-slate-900 border-white/20 rounded-md"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -109,7 +109,7 @@ export const Signup: React.FC = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="Enter your email"
-                                    className="w-full text-lg px-3 py-2 bg-[#0f172a] border-white/20 rounded-md"
+                                    className="w-full text-lg px-3 py-2 bg-slate-900 border-white/20 rounded-md"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -120,7 +120,8 @@ export const Signup: React.FC = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Create a password"
-                                    className="w-full text-lg px-3 py-2 bg-[#0f172a] border-white/20 rounded-md"
+                                    className="w-full text-lg px-3 py-2 bg-slate-900 border-white/20 rounded-md"
+                                    autoComplete="new-password"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -131,7 +132,8 @@ export const Signup: React.FC = () => {
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="Confirm your password"
-                                    className="w-full text-lg px-3 py-2 bg-[#0f172a] border-white/20 rounded-md"
+                                    className="w-full text-lg px-3 py-2 bg-slate-900 border-white/20 rounded-md"
+                                    autoComplete="new-password"
                                 />
                             </div>
 
@@ -158,7 +160,7 @@ export const Signup: React.FC = () => {
 
                         <div className="mt-6 text-center text-sm text-gray-400">
                             Already have an account?{" "}
-                            <a onClick={() => navigate('/login')} className="text-green-500 hover:underline">
+                            <a onClick={() => navigate('/login')} className="text-green-500 hover:underline cursor-pointer">
                                 Log in
                             </a>
                         </div>
