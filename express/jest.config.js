@@ -14,6 +14,7 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1', // Map imports ending in .js to their .ts counterparts
   },
   verbose: true,
+  modulePathIgnorePatterns: ['<rootDir>/dist/__tests__/__mocks__/*'],
   reporters: [
     'default',
     [
