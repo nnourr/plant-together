@@ -46,13 +46,17 @@ const router = createHashRouter([
 ]);
 
 createRoot(document.getElementById("root")!).render(
-  <UserContextProvider>
+  <>
     {options ? (
       <PostHogProvider apiKey={POSTHOG_API_KEY} options={options}>
-        <RouterProvider router={router} />
+        <UserContextProvider>
+          <RouterProvider router={router} />
+        </UserContextProvider>
       </PostHogProvider>
     ) : (
-      <RouterProvider router={router} />
+      <UserContextProvider>
+        <RouterProvider router={router} />
+      </UserContextProvider>
     )}
-  </UserContextProvider>
+  </>
 );
