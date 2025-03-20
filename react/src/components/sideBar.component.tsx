@@ -7,6 +7,7 @@ import {
   faChevronLeft,
   faEdit,
   faPlus,
+  faQuestionCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
 interface SideBarProps {
@@ -28,7 +29,7 @@ export const SideBar: React.FC<SideBarProps> = ({
   className,
   setClose,
 }) => {
-  // const [showSideBar, setShowSideBar] = useState<boolean>(false)
+  const [showTooltip, setShowTooltip] = useState<boolean>(false);
   if (!!!currDocument || !!!documents) {
     return <div className={className}>Loading...</div>;
   }
@@ -164,6 +165,23 @@ export const SideBar: React.FC<SideBarProps> = ({
           >
             <FontAwesomeIcon icon={faPlus} />
           </Button>
+        </div>
+        <div className="absolute bottom-4 left-4">
+          <button
+            className="text-white focus:outline-none"
+            aria-label="Help"
+            onClick={() => setShowTooltip(!showTooltip)}
+          >
+            <FontAwesomeIcon icon={faQuestionCircle} size="2x" />
+          </button>
+          {showTooltip && (
+            <div
+              className="absolute bottom-14 left-0 bg-[#1e1e1e] text-white text-lg p-3 rounded shadow-lg cursor-pointer whitespace-nowrap"
+              onClick={() => window.open("https://plantuml.com/", "_blank")}
+            >
+              About Plant UML
+            </div>
+          )}
         </div>
       </div>
     </>

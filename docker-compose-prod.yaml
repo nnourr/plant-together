@@ -32,6 +32,8 @@ services:
       - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
       - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
 
+      - REDIS_HOST=${REDIS_HOST:-redis://redis-together}
+
       # Adjust database credentials locally in .env, do not commit!
       - DB_NAME=${DB_NAME:-postgres}
       - DB_HOST=${DB_HOST:-database-psql}
@@ -44,6 +46,7 @@ services:
       - "${PORT:-3000}:${PORT:-3000}"
     networks:
       - plant-together-network
+      - yredis-network
 
   plant-together-yredis:
     build:

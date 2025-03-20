@@ -1,7 +1,7 @@
 import { UmlEditor } from "../components/umlEditor.component";
 import { UmlDisplay } from "../components/umlDisplay.component";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { NavBar } from "../components/navBar.component";
 import * as plantService from "../service/plant.service.tsx";
 import { DocumentModel } from "../models/document.model";
@@ -11,6 +11,7 @@ import { IPlantUmlError } from "../models/plantUmlError.model.tsx";
 import { Button, ButtonSize } from "../components/button.component.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { UserContext } from "../components/user.context";
 
 const serverHttpUrl =
   (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000") +
@@ -29,9 +30,12 @@ export const CollabRoom: React.FC = () => {
   const [mobile, setMobile] = useState<boolean>(false);
   const [umlClosed, setUmlClosed] = useState<boolean>(false);
   const [umlStyle, setUmlStyle] = useState<string>("h-full");
+  const userContext = useContext(UserContext);
 
   useEffect(() => {
     const getRoomInfo = async (r: string) => {
+      if (!userContext?.context?.sessionActive) return;
+
       const room = await plantService.getRoomWithDocuments(r);
       if (!!!room.documents || room.documents.length === 0) {
         await plantService.createRoomWithDocument(r, r, "Document1");
@@ -46,12 +50,7 @@ export const CollabRoom: React.FC = () => {
     if (roomId) {
       getRoomInfo(roomId);
     }
-
-    if (window.innerWidth <= 767) {
-      setSideBarOpen(false);
-      setMobile(true);
-    }
-  }, []);
+  }, [userContext]);
 
   if (roomId === undefined) {
     navigate("/");
@@ -59,13 +58,24 @@ export const CollabRoom: React.FC = () => {
   }
 
   const createNewDocument = async (_roomId: string, documentName: any) => {
+    if (!userContext?.context?.sessionActive) return;
+
     await plantService.createDocumentInRoom(socket!, documentName, ({ id }) => {
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
       setCurrDocument({ id: id, name: documentName });
     });
   };
 
+  useEffect(() => {
+    if (window.innerWidth <= 767) {
+      setSideBarOpen(false);
+      setMobile(true);
+    }
+  }, []);
+
   const updateDocument = async (documentId: any, documentNewName: string) => {
+    if (!userContext?.context?.sessionActive) return;
+
     await plantService.updateDocumentInRoom(
       socket!,
       documentId,
@@ -83,15 +93,20 @@ export const CollabRoom: React.FC = () => {
 
   useEffect(() => {
     (async () => {
+      if (!userContext?.context?.sessionActive) return;
+
+      const authToken = await plantService.retrieveToken();
+
       const newSocket = io(serverHttpUrl, {
         extraHeaders: {
           "room-id": roomId,
+          Authorization: `Bearer ${authToken}`,
         },
       });
 
       setSocket(newSocket);
     })();
-  }, []);
+  }, [userContext]);
 
   useEffect(() => {
     socket?.on("/document", ({ code, documentName, id }: any) => {
