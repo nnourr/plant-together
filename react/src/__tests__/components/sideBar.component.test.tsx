@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { SideBar } from "../../components/sideBar.component";
 import { DocumentModel } from "../../models/document.model";
 
-// Mock the updateDocument function and other necessary props
 const mockUpdateDocument = vi.fn();
 const mockSetCurrDocument = vi.fn();
 const mockNewDocument = vi.fn();
@@ -10,7 +9,7 @@ const mockNewDocument = vi.fn();
 const sampleDocuments: DocumentModel[] = [
   { id: 1, name: "Document 1" },
   { id: 2, name: "Document 2" },
-  { id: 3, name: "Document 3" }
+  { id: 3, name: "Document 3" },
 ];
 
 describe("SideBar Component", () => {
@@ -30,6 +29,7 @@ describe("SideBar Component", () => {
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
         className="test-class"
+        setClose={() => {}}
       />
     );
 
@@ -48,11 +48,12 @@ describe("SideBar Component", () => {
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
         className="test-class"
+        setClose={() => {}}
       />
     );
 
     // Click the edit button
-    const editButton = screen.getByRole('button', {name: /edit/i});
+    const editButton = screen.getByRole("button", { name: /edit/i });
     fireEvent.click(editButton);
 
     // Ensure the input field appears
@@ -75,11 +76,12 @@ describe("SideBar Component", () => {
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
         className="test-class"
+        setClose={() => {}}
       />
     );
 
     // Click the edit button
-    const editButton = screen.getByRole('button', {name: /edit/i});
+    const editButton = screen.getByRole("button", { name: /edit/i });
     fireEvent.click(editButton);
 
     const inputField = screen.getByRole("textbox");
@@ -89,7 +91,10 @@ describe("SideBar Component", () => {
     fireEvent.keyDown(inputField, { key: "Enter", code: "Enter" });
 
     // Assert that the updateDocument function was called with correct arguments
-    expect(mockUpdateDocument).toHaveBeenCalledWith(currDocument.id, "Updated Document 1");
+    expect(mockUpdateDocument).toHaveBeenCalledWith(
+      currDocument.id,
+      "Updated Document 1"
+    );
   });
 
   test("focuses on input when editing a document", () => {
@@ -101,11 +106,12 @@ describe("SideBar Component", () => {
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
         className="test-class"
+        setClose={() => {}}
       />
     );
 
     // Click the edit button
-    const editButton = screen.getByRole('button', {name: /edit/i});
+    const editButton = screen.getByRole("button", { name: /edit/i });
     fireEvent.click(editButton);
 
     const inputField = screen.getByRole("textbox");
@@ -121,11 +127,114 @@ describe("SideBar Component", () => {
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
         className="test-class"
+        setClose={() => {}}
       />
     );
 
     // Check that no document update happens
     expect(screen.getByText("Loading...")).toBeInTheDocument();
     expect(mockUpdateDocument).not.toHaveBeenCalled();
+  });
+
+  test("shows loading state when documents are not provided", () => {
+    render(
+      <SideBar
+        currDocument={undefined}
+        documents={undefined}
+        setCurrDocument={mockSetCurrDocument}
+        newDocument={mockNewDocument}
+        updateDocument={mockUpdateDocument}
+        className="test-class"
+        setClose={() => {}}
+      />
+    );
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+  });
+
+  test("handles empty document name on edit", () => {
+    render(
+      <SideBar
+        currDocument={currDocument}
+        documents={sampleDocuments}
+        setCurrDocument={mockSetCurrDocument}
+        newDocument={mockNewDocument}
+        updateDocument={mockUpdateDocument}
+        className="test-class"
+        setClose={() => {}}
+      />
+    );
+
+    const editButton = screen.getByRole("button", { name: /edit/i });
+    fireEvent.click(editButton);
+
+    const input = screen.getByRole("textbox");
+    fireEvent.change(input, { target: { value: "   " } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(mockUpdateDocument).not.toHaveBeenCalled();
+  });
+
+  test("creates new document when plus button is clicked", async () => {
+    render(
+      <SideBar
+        currDocument={currDocument}
+        documents={sampleDocuments}
+        setCurrDocument={mockSetCurrDocument}
+        newDocument={mockNewDocument}
+        updateDocument={mockUpdateDocument}
+        className="test-class"
+        setClose={() => {}}
+      />
+    );
+
+    const plusButton = await screen.findByTestId("add-button");
+    fireEvent.click(plusButton);
+
+    expect(mockNewDocument).toHaveBeenCalled();
+  });
+
+  test("switches document when another document is clicked", () => {
+    render(
+      <SideBar
+        currDocument={currDocument}
+        documents={sampleDocuments}
+        setCurrDocument={mockSetCurrDocument}
+        newDocument={mockNewDocument}
+        updateDocument={mockUpdateDocument}
+        className="test-class"
+        setClose={() => {}}
+      />
+    );
+
+    fireEvent.click(screen.getByText("Document 2"));
+
+    expect(mockSetCurrDocument).toHaveBeenCalledWith(sampleDocuments[1]);
+  });
+
+  test("handles mobile view close button", async () => {
+    const mockSetClose = vi.fn();
+
+    // Simulate mobile environment
+    Object.defineProperty(window, "innerWidth", {
+      value: 760,
+      configurable: true,
+    });
+
+    render(
+      <SideBar
+        currDocument={currDocument}
+        documents={sampleDocuments}
+        setCurrDocument={mockSetCurrDocument}
+        newDocument={mockNewDocument}
+        updateDocument={mockUpdateDocument}
+        className="test-class"
+        setClose={mockSetClose}
+      />
+    );
+
+    const closeButton = await screen.findByTestId("mobile-close-button");
+    fireEvent.click(closeButton);
+
+    expect(mockSetClose).toHaveBeenCalled();
   });
 });
