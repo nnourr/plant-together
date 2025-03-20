@@ -9,7 +9,7 @@ const mockNewDocument = vi.fn();
 
 // Mock the DownloadModal component
 vi.mock("../../components/downloadModal.component", () => ({
-  DownloadModal: ({ onClose, documents }: { onClose: () => void, documents: DocumentModel[] }) => (
+  DownloadModal: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="download-modal">
       Mock Download Modal
       <button onClick={onClose}>Close</button>
@@ -33,6 +33,7 @@ const renderSideBar = (props: Partial<Parameters<typeof SideBar>[0]> = {}) => {
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
         className="test-class"
+        setClose={() => {}}
         {...props}
       />
     </MemoryRouter>
