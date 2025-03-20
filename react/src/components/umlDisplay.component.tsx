@@ -10,6 +10,7 @@ interface UmlDisplayProps {
   umlStr: string;
   syntaxError?: IPlantUmlError;
   setSyntaxError: (error: IPlantUmlError | undefined) => void;
+  closed: boolean;
 }
 
 export const UmlDisplay: React.FC<UmlDisplayProps> = ({
@@ -17,6 +18,7 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
   className,
   syntaxError,
   setSyntaxError,
+  closed
 }) => {
   const [imgSource, setImgSource] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -103,21 +105,23 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
           {syntaxError.message}!
         </div>
       )}
-      <div className="absolute z-50 right-4 bottom-4 flex flex-col gap-2">
-        <a
-          className=" cursor-pointer z-50 border-slate-900/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-slate-900/60"
-          onClick={handleDownloadingPng}
-        >
-          Download PNG
-        </a>
-        <a
-          className="cursor-pointer z-50 border-slate-900/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-slate-900/60"
-          download={"plantTogether"}
-          href={imgSource}
-        >
-          Download SVG
-        </a>
-      </div>
+      {!closed && 
+        <div className="absolute z-50 right-4 bottom-4 flex lg:flex-col md:flex-col-reverse gap-2">
+          <a
+            className=" cursor-pointer z-50 border-slate-900/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-slate-900/60"
+            onClick={handleDownloadingPng}
+          >
+            Download PNG
+          </a>
+          <a
+            className="cursor-pointer z-50 border-slate-900/20 border-2 rounded-xl px-2 py-1 transition-all hover:border-slate-900/60"
+            download={"plantTogether"}
+            href={imgSource}
+          >
+            Download SVG
+          </a>
+        </div>
+      }
     </div>
   );
 };
