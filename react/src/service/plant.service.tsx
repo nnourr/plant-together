@@ -168,3 +168,10 @@ export const retrieveToken = async (loginGuestUserCallback?: (...args: any[]) =>
 
   return token;
 };
+
+export async function getRoomUML(roomId: string): Promise<{docName: string, uml: string}[]> {
+  const response = await fetch(`${serverHttpUrl}/room/${roomId}/uml`);
+  if (!response.ok) throw new Error('Failed to fetch UML content');
+  return response.json();
+}
+
