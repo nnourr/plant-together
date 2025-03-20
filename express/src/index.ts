@@ -12,15 +12,15 @@ import { DocumentService } from "./document/document.service.js";
 import { logger } from "./logger.js";
 import { FireauthRepo } from "./firebase/fireauth.repo.js";
 import { AuthService } from "./user/auth.service.js";
+import { UserRepo } from "./user/user.repo.js";
 
 import sql from "./database/database.js";
 import redisClient from "./redis/redis.js";
 import { RedisClientType } from "redis";
 import { RoomService } from "./room/room.service.js";
 import yjsHelpers from "./yjs/yjs.helpers.js";
-import { UserRepo } from "./user/user.repo.js";
 
-// Set up document and room services as before.
+// ----- Setup Document & Room Services -----
 const documentRepo = new DocumentRepo(
   sql,
   redisClient as RedisClientType,
@@ -34,63 +34,32 @@ app.use(express.json());
 app.use(morgan("tiny"));
 app.use(cors({ origin: CORS_ALLOWED_ORIGIN }));
 
-// dependency injection
-const fireauth = FireauthRepo.instance();
-const userRepo = new UserRepo();
-const authService = new AuthService(fireauth, userRepo);
+// ----- General Routes -----
+app.get("/", (_, res) => {
+  res.json({ hello: "world" });
+});
 
-// dependency-injected authService 
-app.post('/auth/signup', async (req, res) => {
-  const { displayName, email, password } = req.body;
-  if (!displayName || !email || !password) {
-    return res.status(400).json({ error: "Invalid request: Missing required fields" });
-  }
+// Room endpoints
+app.get("/room/:room_id", async (req, res) => {
+  const roomId = req.params.room_id;
+  if (!roomId) return res.status(400).json({ error: "No Room ID Specified" });
   try {
-    const token = await authService.signUpWithEmailPassword(displayName, email, password);
-    return res.status(200).json({ token });
-  } catch (error: any) {
-    return res.status(error?.status || 500).json({
-      error: error?.error || "An unexpected error occurred. Please try again later.",
-    });
+    const room = await documentRepo.getDocumentsInRoom(roomId);
+    res.status(200).json(room);
+  } catch (error) {
+    res.sendStatus(500);
   }
 });
 
-app.post('/auth/login', async (req, res) => {
-  const { email, password } = req.body;
+app.post("/room/:room_id", async (req, res) => {
+  const room_id = req.params.room_id;
+  const room_name = req.body.room_name;
+  const document_name = req.body.document_name;
   try {
-    const token = await authService.loginWithEmailPassword(email, password);
-    return res.status(200).json({ token });
-  } catch (error: any) {
-    return res.status(error?.status || 500).json({
-      error: error?.error || "An unexpected error occurred. Please try again later.",
-    });
-  }
-});
-
-app.get('/auth/guest', async (req, res) => {
-  try {
-    const token = await authService.guestLogin();
-    return res.status(200).json({ token });
-  } catch (error: any) {
-    return res.status(error?.status || 500).json({
-      error: error?.error || "An unexpected error occurred. Please try again later.",
-    });
-  }
-});
-
-app.get('/auth/verify', async (req, res) => {
-  try {
-    const token = req.headers.authorization;
-    if (!token) {
-      return res.status(401).json({ error: "Unauthorized: No token provided" });
-    }
-    const isValid = await authService.verifyToken(token);
-    if (isValid) return res.sendStatus(200);
-    return res.sendStatus(403);
-  } catch (error: any) {
-    return res.status(500).json({
-      error: "An unexpected error occurred. Please try again later."
-    });
+    await roomRepo.createRoomWithDocument(room_id, room_name, document_name);
+    res.sendStatus(200);
+  } catch (error) {
+    res.sendStatus(500);
   }
 });
 
@@ -129,11 +98,71 @@ app.put("/room/:room_id/document/:document_id/rename", async (req, res) => {
   }
 });
 
+// ----- Dependency Injection for Authentication -----
+// Create instances of FireauthRepo and UserRepo and inject them into AuthService.
+const fireauth = FireauthRepo.instance();
+const userRepo = new UserRepo();
+const authService = new AuthService(fireauth, userRepo);
+
+// Auth endpoints using dependency-injected authService
+app.post("/auth/signup", async (req, res) => {
+  const { displayName, email, password } = req.body;
+  if (!displayName || !email || !password) {
+    return res.status(400).json({ error: "Invalid request: Missing required fields" });
+  }
+  try {
+    const token = await authService.signUpWithEmailPassword(displayName, email, password);
+    return res.status(200).json({ token });
+  } catch (error: any) {
+    return res.status(error?.status || 500).json({
+      error: error?.error || "An unexpected error occurred. Please try again later.",
+    });
+  }
+});
+
+app.post("/auth/login", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const token = await authService.loginWithEmailPassword(email, password);
+    return res.status(200).json({ token });
+  } catch (error: any) {
+    return res.status(error?.status || 500).json({
+      error: error?.error || "An unexpected error occurred. Please try again later.",
+    });
+  }
+});
+
+app.get("/auth/guest", async (req, res) => {
+  try {
+    const token = await authService.guestLogin();
+    return res.status(200).json({ token });
+  } catch (error: any) {
+    return res.status(error?.status || 500).json({
+      error: error?.error || "An unexpected error occurred. Please try again later.",
+    });
+  }
+});
+
+app.get("/auth/verify", async (req, res) => {
+  try {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized: No token provided" });
+    }
+    const isValid = await authService.verifyToken(token);
+    if (isValid) return res.sendStatus(200);
+    return res.sendStatus(403);
+  } catch (error: any) {
+    return res.status(500).json({
+      error: "An unexpected error occurred. Please try again later."
+    });
+  }
+});
+
 app.get("/user/displayname", async (req, res) => {
   const token = req.headers.authorization;
   if (!token) return res.status(400).json({ error: "No Token Provided" });
   try {
-    // Optionally, use authService.getDisplayName if you integrated it.
     const displayName = await authService.getDisplayName(token);
     return res.status(200).json({ displayName });
   } catch (error) {
@@ -141,7 +170,7 @@ app.get("/user/displayname", async (req, res) => {
   }
 });
 
-// Set up HTTP and Socket.IO server.
+// ----- Setup HTTP & Socket.IO Server -----
 let server = createHttpServer(app);
 server.listen(PORT, "0.0.0.0", () => {
   logger.info(`Express server started on ${PORT}`);
@@ -154,8 +183,11 @@ const socketIO = new SocketIOServer(server, {
     allowedHeaders: ["room-id", "Authorization"],
   },
 });
+
 socketIO
   .of("/documents")
   .on("connection", (socket) =>
     documentService.documentSocketRouter(socketIO, socket)
   );
+
+export { app, server };

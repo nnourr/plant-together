@@ -1,4 +1,3 @@
-// auth.service.ts (After Refactoring)
 import { FireauthRepo } from '../firebase/fireauth.repo.js';
 import { APIError } from '../types.js';
 import { FIREBASE_ERRORS } from '../firebase/firebase.config.js';
