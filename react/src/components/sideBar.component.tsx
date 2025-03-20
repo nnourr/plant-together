@@ -2,7 +2,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DocumentModel } from "../models/document.model";
 import { Button, ButtonSize } from "./button.component";
 import { useState, useEffect, useRef } from "react";
-import { faChevronDown, faChevronLeft, faEdit, faPlus } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronDown,
+  faChevronLeft,
+  faEdit,
+  faPlus,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface SideBarProps {
   currDocument?: DocumentModel;
@@ -21,7 +26,7 @@ export const SideBar: React.FC<SideBarProps> = ({
   newDocument,
   updateDocument,
   className,
-  setClose
+  setClose,
 }) => {
   // const [showSideBar, setShowSideBar] = useState<boolean>(false)
   if (!!!currDocument || !!!documents) {
@@ -33,13 +38,13 @@ export const SideBar: React.FC<SideBarProps> = ({
   const editableRef = useRef(null);
 
   useEffect(() => {
-    if(edit) {
-      if(editableRef.current != null){
-        (editableRef.current as HTMLInputElement).style.width = 'auto';
+    if (edit) {
+      if (editableRef.current != null) {
+        (editableRef.current as HTMLInputElement).style.width = "auto";
         (editableRef.current as HTMLInputElement).focus();
       }
     }
-  }, [edit])
+  }, [edit]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -59,7 +64,7 @@ export const SideBar: React.FC<SideBarProps> = ({
     }
     updateDocument(currDocument.id, docName.trim());
     setEdit(false);
-  }
+  };
 
   const documentButtons = documents.map((document) => {
     if (document.id === currDocument.id) {
@@ -69,81 +74,95 @@ export const SideBar: React.FC<SideBarProps> = ({
           size={ButtonSize.md}
           onClick={() => setCurrDocument(document)}
           primary={true}
-          className="w-full"
+          className="w-full flex-shrink-0"
         >
           <div className={`flex`}>
-            {edit && 
+            {edit && (
               <input
-                className={`w-40 text-centre text-white text-ellipsis text-clip bg-transparent`}
+                className={`w-40 text-centre text-white text-ellipsis bg-transparent`}
                 type="text"
                 ref={editableRef}
                 value={docName}
-                onFocus={(e) => {e.currentTarget.select()}}
-                onChange={(e) => {setDocName(e.target.value)}}
+                onFocus={(e) => {
+                  e.currentTarget.select();
+                }}
+                onChange={(e) => {
+                  setDocName(e.target.value);
+                }}
                 onKeyDown={handleKeyDown}
                 onBlur={onBlur}
               />
-            }
-            {!edit &&
+            )}
+            {!edit && (
               <div className={`${className} text-left truncate`}>
                 {document.name}
-              </div> 
-            }
-            {!edit &&
+              </div>
+            )}
+            {!edit && (
               <button
                 aria-label="edit"
                 className={`text-left left-0 transition-all`}
                 key={document.id}
                 onClick={() => {
                   setEdit(true);
-                  setDocName(document.name)
+                  setDocName(document.name);
                 }}
               >
                 <FontAwesomeIcon icon={faEdit} />
               </button>
-            }
+            )}
           </div>
         </Button>
-      )
+      );
     } else {
       return (
         <Button
           key={document.id}
           size={ButtonSize.md}
-          className={`w-full text-left truncate`}
+          className={`w-full text-left truncate flex-shrink-0`}
           onClick={() => setCurrDocument(document)}
           primary={false}
         >
           {document.name}
         </Button>
-      )
+      );
     }
   });
 
   return (
     <>
       <div
-        className={`${className} flex-col gap-2 bg-slate-900 text-white px-8 border-t-4 border-slate-500 py-4 overflow-auto`}
+        className={`${className} flex-col flex gap-2 bg-slate-900 text-white px-8 border-t-4 border-slate-500 py-4`}
       >
-        <div className="text-right">
-          {(window.innerWidth) <= 767 && 
-            <div className="text-right"> 
-              <button onClick={() => setClose()} className={`text-2xl text-right font-bold`}>
-                {<FontAwesomeIcon icon={faChevronDown} className="p2"/>}
-              </button>
-            </div>
-          }
-          {(window.innerWidth) > 767 && 
-            <button onClick={() => setClose()} className={`border-white/0 px-2 py-0 text-2xl text-right font-bold border-2 rounded-xl transition-all hover:border-white/60`}>
-              {<FontAwesomeIcon icon={faChevronLeft} className="p2"/>}
+        <div className="flex justify-between">
+          <h2 className="text-white font-bold text-2xl">Documents:</h2>
+          {window.innerWidth <= 767 ? (
+            <button
+              onClick={() => setClose()}
+              className={`text-2xl font-bold `}
+            >
+              {<FontAwesomeIcon icon={faChevronDown} className="p2" />}
             </button>
-          }
+          ) : (
+            <button
+              onClick={() => setClose()}
+              className={`border-white/0 px-2 py-0 text-2xl font-bold border-2 rounded-xl transition-all hover:border-white/60`}
+            >
+              {<FontAwesomeIcon icon={faChevronLeft} className="p2" />}
+            </button>
+          )}
         </div>
-        <h2 className="text-white font-bold text-2xl">Documents:</h2>
-        {documentButtons}
-        <Button size={ButtonSize.md} onClick={() => newDocument()} className="w-full">
-          <FontAwesomeIcon icon={faPlus} />
-        </Button>
+        <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
+          {documentButtons}
+
+          <Button
+            size={ButtonSize.md}
+            onClick={() => newDocument()}
+            className="w-full flex-shrink-0"
+          >
+            <FontAwesomeIcon icon={faPlus} />
+          </Button>
+        </div>
       </div>
     </>
   );

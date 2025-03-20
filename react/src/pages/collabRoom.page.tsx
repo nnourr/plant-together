@@ -28,11 +28,10 @@ export const CollabRoom: React.FC = () => {
   const [sideBarOpen, setSideBarOpen] = useState<boolean>(true);
   const [mobile, setMobile] = useState<boolean>(false);
   const [umlClosed, setUmlClosed] = useState<boolean>(false);
-  const [umlStyle, setUmlStyle] = useState<string>("h-full")
+  const [umlStyle, setUmlStyle] = useState<string>("h-full");
 
   useEffect(() => {
     const getRoomInfo = async (r: string) => {
-      
       const room = await plantService.getRoomWithDocuments(r);
       if (!!!room.documents || room.documents.length === 0) {
         await plantService.createRoomWithDocument(r, r, "Document1");
@@ -60,33 +59,36 @@ export const CollabRoom: React.FC = () => {
   }
 
   const createNewDocument = async (_roomId: string, documentName: any) => {
-
     await plantService.createDocumentInRoom(socket!, documentName, ({ id }) => {
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
-      setCurrDocument({ id: id, name: documentName })
-    })
-
-  }
+      setCurrDocument({ id: id, name: documentName });
+    });
+  };
 
   const updateDocument = async (documentId: any, documentNewName: string) => {
-
-    await plantService.updateDocumentInRoom(socket!, documentId, documentNewName, ({ documentName }) => {
-      const updatedRoomDocuments = [...roomDocuments];
-      const updatedDoc = updatedRoomDocuments.find(doc => doc.id === documentId);
-      updatedDoc!.name = documentName;
-      setRoomDocuments(updatedRoomDocuments);
-    })
-  }
+    await plantService.updateDocumentInRoom(
+      socket!,
+      documentId,
+      documentNewName,
+      ({ documentName }) => {
+        const updatedRoomDocuments = [...roomDocuments];
+        const updatedDoc = updatedRoomDocuments.find(
+          (doc) => doc.id === documentId
+        );
+        updatedDoc!.name = documentName;
+        setRoomDocuments(updatedRoomDocuments);
+      }
+    );
+  };
 
   useEffect(() => {
     (async () => {
-
       const newSocket = io(serverHttpUrl, {
-        extraHeaders: { 
+        extraHeaders: {
           "room-id": roomId,
         },
       });
-      
+
       setSocket(newSocket);
     })();
   }, []);
@@ -100,18 +102,23 @@ export const CollabRoom: React.FC = () => {
       setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
     });
 
-    socket?.on("/document/rename", ({ code, newDocumentName, documentId }: any) => {
-      if (code != 200) {
-        alert("Unable to rename document");
-      }
+    socket?.on(
+      "/document/rename",
+      ({ code, newDocumentName, documentId }: any) => {
+        if (code != 200) {
+          alert("Unable to rename document");
+        }
 
-      setRoomDocuments((docs: any) => {
-        const updatedRoomDocuments = [...docs];
-        const updatedDoc = updatedRoomDocuments.find(doc => doc.id === documentId);
-        updatedDoc!.name = newDocumentName;
-        return updatedRoomDocuments;
-      });
-    });
+        setRoomDocuments((docs: any) => {
+          const updatedRoomDocuments = [...docs];
+          const updatedDoc = updatedRoomDocuments.find(
+            (doc) => doc.id === documentId
+          );
+          updatedDoc!.name = newDocumentName;
+          return updatedRoomDocuments;
+        });
+      }
+    );
 
     return () => {
       socket?.disconnect();
@@ -126,7 +133,7 @@ export const CollabRoom: React.FC = () => {
       setUmlStyle("h-full");
       setUmlClosed(false);
     }
-  }, [sideBarOpen])
+  }, [sideBarOpen]);
 
   const mobileSideBar = () => {
     if (sideBarOpen) {
@@ -135,24 +142,29 @@ export const CollabRoom: React.FC = () => {
           currDocument={currDocument}
           documents={roomDocuments}
           setCurrDocument={setCurrDocument}
-          newDocument={() => createNewDocument(roomId, `Document${roomDocuments.length + 1}`)}
+          newDocument={() =>
+            createNewDocument(roomId, `Document${roomDocuments.length + 1}`)
+          }
           updateDocument={updateDocument}
           className="w-full h-1/2"
           setClose={() => setSideBarOpen(false)}
         />
-      )
+      );
     } else {
       return (
         <div
           className={`border-white/0 flex-col gap-2 bg-slate-900 text-white px-2 border-t-4 border-slate-500 py-1`}
         >
-          <button onClick={() => setSideBarOpen(true)} className={`border-white/20 border-2 rounded-xl px-2 py-1 text-base font-bold w-full`}>
+          <button
+            onClick={() => setSideBarOpen(true)}
+            className={`border-white/20 border-2 rounded-xl px-2 py-1 text-base font-bold w-full`}
+          >
             <FontAwesomeIcon icon={faBars} />
           </button>
         </div>
-      )
+      );
     }
-  }
+  };
 
   const closableSideBar = () => {
     if (sideBarOpen) {
@@ -161,12 +173,14 @@ export const CollabRoom: React.FC = () => {
           currDocument={currDocument}
           documents={roomDocuments}
           setCurrDocument={setCurrDocument}
-          newDocument={() => createNewDocument(roomId, `Document${roomDocuments.length + 1}`)}
+          newDocument={() =>
+            createNewDocument(roomId, `Document${roomDocuments.length + 1}`)
+          }
           updateDocument={updateDocument}
           className="w-80"
           setClose={() => setSideBarOpen(false)}
         />
-      )
+      );
     } else {
       return (
         <div
@@ -176,9 +190,9 @@ export const CollabRoom: React.FC = () => {
             <FontAwesomeIcon icon={faBars} />
           </Button>
         </div>
-      )
+      );
     }
-  }
+  };
 
   const mobileToggle = () => {
     if (window.innerWidth <= 767) {
@@ -190,14 +204,14 @@ export const CollabRoom: React.FC = () => {
       setUmlClosed(false);
     }
     setUmlStyle("h-full");
-  }
+  };
 
-  window.addEventListener('resize', mobileToggle);
+  window.addEventListener("resize", mobileToggle);
 
   return (
     <div className="w-full h-full flex flex-col">
       <NavBar />
-      <div className="flex w-full h-full max-w-[100vw] flex-col-reverse md:flex-row">
+      <div className="flex w-full h-[calc(100%-4rem)] max-w-[100vw] flex-col-reverse md:flex-row">
         {!mobile && closableSideBar()}
         {mobile && mobileSideBar()}
         {currDocument && (
