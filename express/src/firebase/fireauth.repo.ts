@@ -4,9 +4,8 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { FIREBASE_CONFIG, SERVICE_ACCOUNT_CREDENTIAL } from "./firebase.config.js";
 import { logger } from "../logger.js";
 import { randomUUID } from "crypto";
-import { log } from "console";
 
-class FireauthRepo {
+export class FireauthRepo{
     private static singleton: FireauthRepo;
 
     private clientAuth;
@@ -64,4 +63,3 @@ class FireauthRepo {
     }
 }
 
-export default FireauthRepo.instance();
