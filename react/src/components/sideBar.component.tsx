@@ -9,6 +9,8 @@ import {
   faPlus,
   faQuestionCircle,
 } from "@fortawesome/free-solid-svg-icons";
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload";
+import { DownloadModal } from "./downloadModal.component";
 
 interface SideBarProps {
   currDocument?: DocumentModel;
@@ -32,6 +34,7 @@ export const SideBar: React.FC<SideBarProps> = ({
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
   const [docName, setDocName] = useState<string>("");
   const [edit, setEdit] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const editableRef = useRef(null);
 
   useEffect(() => {
@@ -135,6 +138,15 @@ export const SideBar: React.FC<SideBarProps> = ({
       <div
         className={`${className} flex-col flex gap-2 bg-slate-900 text-white px-8 border-t-4 border-slate-500 py-4`}
       >
+      <Button 
+        size={ButtonSize.md}
+        onClick={() => setIsDownloadModalOpen(true)}
+        className="flex items-center gap-2 justify-center mb-2"
+      >
+        <FontAwesomeIcon icon={faDownload} />
+        <span>Download Package</span>
+      </Button>
+
         <div className="flex justify-between">
           <h2 className="text-white font-bold text-2xl">Documents:</h2>
           {window.innerWidth <= 767 ? (
@@ -183,6 +195,15 @@ export const SideBar: React.FC<SideBarProps> = ({
             </div>
           )}
         </div>
+      
+      {
+        isDownloadModalOpen && (
+          <DownloadModal
+            onClose={() => setIsDownloadModalOpen(false)}
+            documents={documents}
+          />
+        )
+      }
       </div>
     </>
   );
