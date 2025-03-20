@@ -170,7 +170,14 @@ export const retrieveToken = async (loginGuestUserCallback?: (...args: any[]) =>
 };
 
 export async function getRoomUML(roomId: string): Promise<{docName: string, uml: string}[]> {
-  const response = await fetch(`${serverHttpUrl}/room/${roomId}/uml`);
+  const response = await fetch(`${serverHttpUrl}/room/${roomId}/uml`, 
+    {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${await retrieveToken()}`
+      }
+    }
+  );
   if (!response.ok) throw new Error('Failed to fetch UML content');
   return response.json();
 }
