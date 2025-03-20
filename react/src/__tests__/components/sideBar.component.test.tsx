@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { SideBar } from "../../components/sideBar.component";
 import { DocumentModel } from "../../models/document.model";
 
-// Mock the updateDocument function and other necessary props
 const mockUpdateDocument = vi.fn();
 const mockSetCurrDocument = vi.fn();
 const mockNewDocument = vi.fn();
@@ -175,7 +174,7 @@ describe("SideBar Component", () => {
     expect(mockUpdateDocument).not.toHaveBeenCalled();
   });
 
-  test("creates new document when plus button is clicked", () => {
+  test("creates new document when plus button is clicked", async () => {
     render(
       <SideBar
         currDocument={currDocument}
@@ -188,7 +187,7 @@ describe("SideBar Component", () => {
       />
     );
 
-    const plusButton = screen.getByRole("button", { name: /plus/i });
+    const plusButton = await screen.findByTestId("add-button");
     fireEvent.click(plusButton);
 
     expect(mockNewDocument).toHaveBeenCalled();
@@ -212,8 +211,15 @@ describe("SideBar Component", () => {
     expect(mockSetCurrDocument).toHaveBeenCalledWith(sampleDocuments[1]);
   });
 
-  test("handles mobile view close button", () => {
+  test("handles mobile view close button", async () => {
     const mockSetClose = vi.fn();
+
+    // Simulate mobile environment
+    Object.defineProperty(window, "innerWidth", {
+      value: 760,
+      configurable: true,
+    });
+
     render(
       <SideBar
         currDocument={currDocument}
@@ -226,13 +232,7 @@ describe("SideBar Component", () => {
       />
     );
 
-    // Simulate mobile environment
-    Object.defineProperty(window, "innerWidth", {
-      value: 767,
-      configurable: true,
-    });
-
-    const closeButton = screen.getByRole("button", { name: /chevron-down/i });
+    const closeButton = await screen.findByTestId("mobile-close-button");
     fireEvent.click(closeButton);
 
     expect(mockSetClose).toHaveBeenCalled();

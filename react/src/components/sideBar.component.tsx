@@ -140,6 +140,7 @@ export const SideBar: React.FC<SideBarProps> = ({
             <button
               onClick={() => setClose()}
               className={`text-2xl font-bold `}
+              data-testid="mobile-close-button"
             >
               {<FontAwesomeIcon icon={faChevronDown} className="p2" />}
             </button>
@@ -159,6 +160,7 @@ export const SideBar: React.FC<SideBarProps> = ({
             size={ButtonSize.md}
             onClick={() => newDocument()}
             className="w-full flex-shrink-0"
+            data-testid="add-button"
           >
             <FontAwesomeIcon icon={faPlus} />
           </Button>
