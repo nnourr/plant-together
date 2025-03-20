@@ -30,10 +30,6 @@ export const SideBar: React.FC<SideBarProps> = ({
   setClose,
 }) => {
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
-  if (!!!currDocument || !!!documents) {
-    return <div className={className}>Loading...</div>;
-  }
-
   const [docName, setDocName] = useState<string>("");
   const [edit, setEdit] = useState(false);
   const editableRef = useRef(null);
@@ -46,6 +42,10 @@ export const SideBar: React.FC<SideBarProps> = ({
       }
     }
   }, [edit]);
+
+  if (!!!currDocument || !!!documents) {
+    return <div className={className}>Loading...</div>;
+  }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
