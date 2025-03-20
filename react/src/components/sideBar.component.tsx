@@ -1,10 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DocumentModel } from "../models/document.model";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
-import { faEdit } from "@fortawesome/free-solid-svg-icons";
-import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import { Button, ButtonSize } from "./button.component";
 import { useState, useEffect, useRef } from "react";
+import { faEdit } from "@fortawesome/free-solid-svg-icons";
+import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 
 interface SideBarProps {
   currDocument?: DocumentModel;
@@ -21,21 +21,21 @@ export const SideBar: React.FC<SideBarProps> = ({
   setCurrDocument,
   newDocument,
   updateDocument,
-  className = "",
+  className,
 }) => {
-  if (!currDocument || !documents) {
+  if (!!!currDocument || !!!documents) {
     return <div className={className}>Loading...</div>;
   }
 
   const [docName, setDocName] = useState<string>("");
   const [edit, setEdit] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
-  const editableRef = useRef<HTMLInputElement | null>(null);
+  const editableRef = useRef(null);
 
   useEffect(() => {
-    if (edit && editableRef.current) {
-      editableRef.current.style.width = "auto";
-      editableRef.current.focus();
+    if (edit && editableRef.current != null) {
+      (editableRef.current as HTMLInputElement).style.width = "auto";
+      (editableRef.current as HTMLInputElement).focus();
     }
   }, [edit]);
 
@@ -68,10 +68,10 @@ export const SideBar: React.FC<SideBarProps> = ({
           onClick={() => setCurrDocument(document)}
           primary={true}
         >
-          <div className="flex items-center gap-2">
-            {edit ? (
+          <div className="flex">
+            {edit && (
               <input
-                className="w-40 bg-transparent text-white text-ellipsis text-clip"
+                className="w-40 text-center text-white text-ellipsis text-clip bg-transparent"
                 type="text"
                 ref={editableRef}
                 value={docName}
@@ -80,13 +80,17 @@ export const SideBar: React.FC<SideBarProps> = ({
                 onKeyDown={handleKeyDown}
                 onBlur={onBlur}
               />
-            ) : (
-              <div className="text-left truncate">{document.name}</div>
+            )}
+            {!edit && (
+              <div className={`${className} text-left truncate`}>
+                {document.name}
+              </div>
             )}
             {!edit && (
               <button
                 aria-label="edit"
-                className="transition-all"
+                className="text-left left-0 transition-all"
+                key={document.id}
                 onClick={() => {
                   setEdit(true);
                   setDocName(document.name);
@@ -119,27 +123,27 @@ export const SideBar: React.FC<SideBarProps> = ({
     >
       <h2 className="text-white font-bold text-2xl">Documents:</h2>
       {documentButtons}
-      <Button size={ButtonSize.md} onClick={newDocument}>
+      <Button size={ButtonSize.md} onClick={() => newDocument()}>
         <FontAwesomeIcon icon={faPlus} />
       </Button>
 
-      <button
-        className="absolute bottom-4 left-4 text-white focus:outline-none"
-        aria-label="Help"
-        onClick={() => setShowTooltip((prev) => !prev)}
-      >
-        <FontAwesomeIcon icon={faQuestionCircle} size="2x" />
-      </button>
-
-      {showTooltip && (
-        <div
-          className="absolute bottom-14 left-4 bg-[#1e1e1e] text-white text-lg p-3 rounded shadow-lg cursor-pointer"
-          onClick={() => window.open("https://plantuml.com/", "_blank")}
+      <div className="absolute bottom-4 left-4">
+        <button
+          className="text-white focus:outline-none"
+          aria-label="Help"
+          onClick={() => setShowTooltip(!showTooltip)}
         >
-          About Plant UML
-        </div>
-      )}
-
+          <FontAwesomeIcon icon={faQuestionCircle} size="2x" />
+        </button>
+        {showTooltip && (
+          <div
+            className="absolute bottom-14 left-0 bg-[#1e1e1e] text-white text-lg p-3 rounded shadow-lg cursor-pointer whitespace-nowrap"
+            onClick={() => window.open("https://plantuml.com/", "_blank")}
+          >
+            About Plant UML
+          </div>
+        )}
+      </div>
     </div>
   );
 };
