@@ -41,7 +41,11 @@ describe("UmlDisplay", () => {
 
   it("should initialize PlantUML and show loading state", () => {
     render(
-      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+      <UmlDisplay
+        setSyntaxError={mockSetSyntaxError}
+        umlStr={mockUmlStr}
+        closed={false}
+      />
     );
 
     expect(screen.getByText("Loading plantUml...")).toBeInTheDocument();
@@ -50,7 +54,11 @@ describe("UmlDisplay", () => {
 
   it("should render SVG after initialization", async () => {
     render(
-      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+      <UmlDisplay
+        setSyntaxError={mockSetSyntaxError}
+        umlStr={mockUmlStr}
+        closed={false}
+      />
     );
 
     await waitFor(() => {
@@ -71,6 +79,7 @@ describe("UmlDisplay", () => {
 
     render(
       <UmlDisplay
+        closed={false}
         setSyntaxError={mockSetSyntaxError}
         syntaxError={errorResponse}
         umlStr={mockUmlStr}
@@ -94,7 +103,11 @@ describe("UmlDisplay", () => {
     (plantuml.renderSvg as Mock).mockResolvedValue(mockErrorResponse);
 
     render(
-      <UmlDisplay umlStr={mockUmlStr} setSyntaxError={mockSetSyntaxError} />
+      <UmlDisplay
+        umlStr={mockUmlStr}
+        setSyntaxError={mockSetSyntaxError}
+        closed={false}
+      />
     );
 
     // Wait for the function to be called
@@ -110,7 +123,11 @@ describe("UmlDisplay", () => {
 
   it("should handle PNG download", async () => {
     render(
-      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+      <UmlDisplay
+        setSyntaxError={mockSetSyntaxError}
+        umlStr={mockUmlStr}
+        closed={false}
+      />
     );
 
     await waitFor(() => {
@@ -138,7 +155,11 @@ describe("UmlDisplay", () => {
     (plantuml.renderPng as Mock).mockResolvedValue(errorResponse);
 
     render(
-      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+      <UmlDisplay
+        setSyntaxError={mockSetSyntaxError}
+        umlStr={mockUmlStr}
+        closed={false}
+      />
     );
 
     await waitFor(() => {
@@ -157,7 +178,11 @@ describe("UmlDisplay", () => {
 
   it("should handle SVG download", async () => {
     render(
-      <UmlDisplay setSyntaxError={mockSetSyntaxError} umlStr={mockUmlStr} />
+      <UmlDisplay
+        setSyntaxError={mockSetSyntaxError}
+        umlStr={mockUmlStr}
+        closed={false}
+      />
     );
 
     // Wait for initialization and component to be ready
