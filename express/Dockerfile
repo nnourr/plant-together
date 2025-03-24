@@ -1,4 +1,4 @@
-FROM node:slim as builder
+FROM node:22-slim as builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -13,11 +13,15 @@ ENV DB_PORT=''
 ENV DB_USER=''
 ENV DB_PASS=''
 
+ENV REDIS_HOST=''
+
+ENV CORS_ALLOWED_ORIGIN='*'
+
 EXPOSE $PORT
 
 RUN npm run build
 
-FROM node:slim
+FROM node:22-slim
 WORKDIR /app
 
 COPY package*.json ./
@@ -25,4 +29,4 @@ RUN npm install --production
 
 COPY --from=builder /app/dist ./dist 
 
-CMD ["node", "dist/index.js"]
+CMD ["npm", "start"]

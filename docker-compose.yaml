@@ -1,0 +1,120 @@
+name: plant-together-dev
+
+services:
+  plant-together-react-dev:
+    build:
+      context: ./react
+      dockerfile: Dockerfile.dev
+      args:
+        VITE_SERVER_HTTP_URL: ${VITE_SERVER_HTTP_URL:-http://localhost:${PORT:-3000}}
+        VITE_SERVER_WS_URL: ${VITE_SERVER_WS_URL:-ws://localhost:${YREDIS_PORT:-3003}}
+
+    container_name: plant-together-react-dev
+    volumes:
+      - type: bind
+        source: ./react
+        target: /app
+      - /app/node_modules
+      - /app/.vite
+    ports:
+      - 5173:5173
+    networks:
+      - plant-together-network
+
+  plant-together-express-dev:
+    build:
+      context: ./express
+      dockerfile: Dockerfile.dev
+    container_name: plant-together-express-dev
+    environment:
+      - PORT=${PORT:-3000}
+
+      # Adjust Firebase credentials locally in .env, do not commit!
+      - SERVICE_ACCOUNT_CREDENTIAL=${SERVICE_ACCOUNT_CREDENTIAL}
+      - FIREBASE_API_KEY=${FIREBASE_API_KEY}
+      - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+
+      # Adjust database credentials locally in .env, do not commit!
+      - DB_NAME=${DB_NAME:-postgres}
+      - DB_HOST=${DB_HOST:-database-psql-dev}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASS=${DB_PASS:-1234}
+
+      - REDIS_HOST=${REDIS_HOST:-redis://redis-together-dev}
+    depends_on:
+      - database-psql-dev
+    volumes:
+      - type: bind
+        source: ./express
+        target: /app
+      - /app/node_modules
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    networks:
+      - plant-together-network
+
+  plant-together-yredis-dev:
+    build:
+      context: ./y-redis
+    container_name: plant-together-yredis-dev
+    environment:
+      - PORT=${YREDIS_PORT:-3003}
+      - LOG=${LOG:-"^(?!No tasks available).*$"}
+      - REDIS=${REDIS:-redis://redis-together-dev}
+      - POSTGRES=${POSTGRES:-postgres://${DB_USER:-postgres}:${DB_PASS:-1234}@${DB_HOST:-database-psql-dev}/${DB_NAME:-postgres}}
+    depends_on:
+      - database-psql-dev
+      - redis-together-dev
+    ports:
+      - ${YREDIS_PORT:-3003}:${YREDIS_PORT:-3003}
+    networks:
+      - plant-together-network
+
+  redis-together-dev:
+    image: redis:6.2
+    container_name: redis-together-dev
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    networks:
+      - plant-together-network
+
+  database-psql-dev:
+    image: postgres:16.2
+    container_name: database-psql-dev
+    shm_size: 128mb
+    volumes:
+      - pgdata-plant-together-dev:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASS:-1234}
+    ports:
+      - ${PSQL_PORT:-5432}:5432
+    networks:
+      - plant-together-network
+
+  pgadmin-together-dev:
+    image: dpage/pgadmin4:8.4
+    container_name: pgadmin-together-dev
+    depends_on:
+      - database-psql-dev
+    volumes:
+      - pgadmin-together-dev:/var/lib/pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${ADMIN_EMAIL:-developer@plant-together.com}
+      - PGADMIN_DEFAULT_PASSWORD=${ADMIN_PASS:-1234}
+    ports:
+      - ${PGADMIN_PORT:-1007}:80
+    networks:
+      - plant-together-network
+
+volumes:
+  pgdata-plant-together-dev:
+    name: pgdata-plant-together-dev
+    driver: local
+  pgadmin-together-dev:
+    name: pgadmin-together-dev
+    driver: local
+
+networks:
+  plant-together-network:

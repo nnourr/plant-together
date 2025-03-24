@@ -1,13 +1,21 @@
+import {
+  IPlantUmlError,
+  IRenderPngErrorResponse,
+} from "./models/plantUmlError.model";
+
+type IRenderPngResult = {
+  blob: Blob;
+  error: IPlantUmlError;
+};
+
 export const plantuml = (() => {
   const initialize = async (cheerpjPath = "/app/plantuml-wasm") => {
     await Promise.all([
-      // @ts-expect-error from static import
       cheerpjInit({ preloadResources: _runtimeResources() }),
       _preloadPlantumlFiles(cheerpjPath.replace("/app", "")),
     ]);
 
     // to make cjcall work, first we load the java package like this
-    // @ts-expect-error from static import
     await cheerpjRunMain(
       "com.plantuml.api.cheerpj.v1.RunInit",
       `${cheerpjPath}/plantuml-core.jar`,
@@ -15,23 +23,23 @@ export const plantuml = (() => {
     );
   };
 
-  const renderPng = (pumlContent: string) => {
-    return new Promise((resolve) => {
+  // https://github.com/plantuml/plantuml/blob/master/src/com/plantuml/api/cheerpj/v1/Png.java#L68-L110
+  const renderPng = (
+    pumlContent: string
+  ): Promise<Partial<IRenderPngResult>> => {
+    return new Promise<Partial<IRenderPngResult>>((resolve) => {
       const renderingStartedAt = new Date();
       const resultFileSuffix = renderingStartedAt.getTime().toString();
-      // @ts-expect-error from static import
       cjCall(
         "com.plantuml.api.cheerpj.v1.Png",
-        "convert",
+        "convertToBlob",
         "light",
-        `/files/result-${resultFileSuffix}.png`,
-        pumlContent
+        pumlContent,
+        `/files/result-${resultFileSuffix}.png`
       ).then((result: string) => {
         const obj = JSON.parse(result);
-        if (obj.status == "ok") {
-          // @ts-expect-error from static import
-          cjFileBlob(`result-${resultFileSuffix}.png`).then((blob) => {
-            // @ts-expect-error from static import
+        if (obj?.status == "ok") {
+          cjFileBlob(`result-${resultFileSuffix}.png`).then((blob: Blob) => {
             const transaction = cheerpjGetFSMountForPath(
               "/files/"
             ).dbConnection.transaction("files", "readwrite");
@@ -45,8 +53,25 @@ export const plantuml = (() => {
                 new Date().getTime() - renderingStartedAt.getTime(),
                 "ms"
               );
-              resolve(blob);
+
+              resolve({ blob });
             };
+          });
+        } else {
+          // https://github.com/plantuml/plantuml/blob/master/src/com/plantuml/api/cheerpj/v1/Png.java#L106
+          // Cheerpj for PlantUML returns JsonResult.fromCrash which returns a string of JSON.
+          // No cases exist where result is NOT defined. It either returns General failure or Parsing error
+          const errorResponse = obj as IRenderPngErrorResponse;
+          const errorResult: IPlantUmlError = {
+            duration: errorResponse.duration,
+            status: errorResponse.status,
+            line: errorResponse?.line,
+            message:
+              (errorResponse?.error || errorResponse?.exception) ??
+              "No error was found.",
+          };
+          resolve({
+            error: errorResult,
           });
         }
       });
@@ -54,14 +79,12 @@ export const plantuml = (() => {
   };
 
   const renderSvg = async (pumlContent: string) => {
-    // @ts-expect-error from static import
     const svg = await cjCall(
       "com.plantuml.api.cheerpj.v1.Svg",
       "convert",
       "light",
       pumlContent
     );
-
     return svg;
   };
 

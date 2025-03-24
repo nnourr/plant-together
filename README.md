@@ -15,6 +15,108 @@ For one of my courses, we needed to use PlantUML to create usecase and sequence 
 - Export the PlantUML diagram as an SVG.
 - Sync offline changes if disconnected from the internet.
 
+## Running Plant Together with Docker Compose
+To run the Plant Together application using Docker Compose, follow these steps:
+
+### Prerequisites
+- Docker installed on your machine
+- Docker Compose installed on your machine
+
+### Steps
+#### Clone the Repository
+Clone the Plant Together repository to your local machine:
+
+```sh
+git clone https://github.com/yourusername/plant-together.git
+cd plant-together
+```
+
+### Configure Environment Variables in your .env file
+Refer to [Environment Variables](#environment-variables)
+
+#### Build and Run the Containers
+Use Docker Compose to build and run the containers:
+
+```sh
+docker compose up --build
+```
+
+This command will build the Docker images and start the containers defined in the docker-compose.yaml file.
+
+### Access the Application
+- **React Application**: Open your browser and navigate to [http://localhost:4173](http://localhost:4173) (or the port you specified in the .env file).
+- **Express Server**: The Express server will be running on [http://localhost:3000](http://localhost:3000) (or the port you specified in the .env file).
+- **PgAdmin**: Access PgAdmin (Web DMBS) at [http://localhost:1007](http://localhost:1007) (or the port you specified in the .env file).
+
+### Environment Variables
+The following environment variables are required to be defined in a .env file in the root directory:
+
+- `FIREBASE_API_KEY`: Firebase API Key
+- `FIREBASE_AUTH_DOMAIN`: Firebase Auth Domain
+- `FIREBASE_PROJECT_ID`: Firebase Project ID
+
+You can [optionally change](#create-a-env-file-optional) the following environment variables to customize the setup:
+
+- `VITE_PORT`: Port for the React application (default: 4173)
+- `VITE_SERVER_HTTP_URL`: React app's URL to the express server (default: http://plant-together-express)
+- `VITE_SERVER_WS_URL`: React app's URL to the Y-Redis server (default: ws://plant-together-yredis)
+- `PORT`: Port for the Express server (default: 3000)
+- `DB_NAME`: Connection database name used by express and y-redis (default: postgres)
+- `DB_HOST`: Connection database host used by express and y-redis (if POSTGRES not specified) (default: database-psql)
+- `DB_PORT`: Connection database port used by express and y-redis (if POSTGRES not specified) (default: 5432)
+- `DB_USER`: Connection database user used by express and y-redis (if POSTGRES not specified) (default: postgres)
+- `DB_PASS`: Connection database password used by express and y-redis (if POSTGRES not specified) (default: 1234)
+- `YREDIS_PORT`: Port for the YRedis server (default: 3003)
+- `REDIS_PORT`: Port for the Redis instance (default: 6379)
+- `PSQL_PORT`: Port for the PostgreSQL instance (default: 5432)
+- `ADMIN_EMAIL`: Email for PgAdmin login (default: developer@plant-together.com)
+- `ADMIN_PASS`: Password for PgAdmin login (default: 1234)
+- `PGADMIN_PORT`: Port for PgAdmin (default: 1007)
+- `LOG`: Log level for y-redis (default: *)
+- `REDIS`: Redis instance URL (default: 1007)
+- `POSTGRES`: Postgres connection string used by y-redis (default: postgres://${DB_USER:}:${DB_PASS}@${DB_HOST}/${DB_NAME})
+
+#### Create a .env File [Optional]
+Create a .env file in the root directory of the project to set environment variables. Here is an example of the .env file:
+
+```env
+# React Env Variables
+VITE_PORT=4173
+VITE_SERVER_HTTP_URL=http://plant-together-express
+VITE_SERVER_WS_URL=ws://plant-together-yredis
+
+# DB Env Variables
+DB_NAME=postgres
+DB_HOST=database-psql
+DB_PORT=5432
+DB_USER=postgres
+DB_PASS=1234
+PSQL_PORT=5432
+
+# Express Env Variables
+PORT=3000
+
+# Y-Redis Env Variables
+YREDIS_PORT=3003
+
+# Redis Env Variables
+REDIS_PORT=6379
+
+# PGAdmin Env Variables
+ADMIN_EMAIL=developer@plant-together.com
+ADMIN_PASS=1234
+PGADMIN_PORT=1007
+```
+
+### Stopping the Containers
+To stop the running containers, use the following command:
+
+```sh
+docker-compose down
+```
+
+This will stop and remove the containers defined in the docker-compose.yaml file.
+
 ## Tech
 ### Websocket Framework: Yjs
 Part of building a collaborative editor means handling multiple users editing the same data, and merging seemlessley. There are 2 main techniques to accomplish this: **Operational Transformation** and **Conflict-Free Replicated Data Types**. I won't go into the details, but you can read about them [here](https://medium.com/coinmonks/operational-transformations-as-an-algorithm-for-automatic-conflict-resolution-3bf8920ea447) and [here](https://medium.com/@amberovsky/crdt-conflict-free-replicated-data-types-b4bfc8459d26). [Yjs](https://yjs.dev/) is CRDT implementation, facilitating collaboration with _shared data types_, allowing text to be distributed and merged without conficts. 
@@ -59,4 +161,4 @@ This was just a quick weekend project, so there are some limitations I want to a
 - User Cursors: When someone else is editing the same PlantUml text, it looks like text is magically manifesting on screen. It would be pretty helpful to see which user is editing what and where.
 
 # Thank You! 👋
-  
+
