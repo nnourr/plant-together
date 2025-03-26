@@ -82,7 +82,8 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
       const binding = new MonacoBinding(
         type,
         editorRef.current.getModel()!,
-        new Set([editorRef.current])
+        new Set([editorRef.current]),
+        provider.awareness
       );
       bindingRef.current = binding;
     }
