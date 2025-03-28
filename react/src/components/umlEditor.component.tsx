@@ -11,13 +11,78 @@ import { UserContext } from "./user.context";
 const serverWsUrl =
   import.meta.env.VITE_SERVER_WS_URL || "http://localhost:3002";
 
-interface UmlEditorProps {
-  roomId: string;
-  currDocument: DocumentModel;
-  className?: string;
-  setEditorValue: (newVal: string) => void;
-  error?: IPlantUmlError;
-}
+// List of quirky adjectives and nouns for username generation
+const quirkyAdjectives = [
+  "Flying",
+  "Dancing",
+  "Clever",
+  "Sleepy",
+  "Brave",
+  "Cosmic",
+  "Curious",
+  "Dazzling",
+  "Fluffy",
+  "Gentle",
+  "Happy",
+  "Jolly",
+  "Magical",
+  "Noble",
+  "Peaceful",
+  "Quirky",
+  "Radiant",
+  "Silly",
+  "Thoughtful",
+  "Witty",
+];
+
+const quirkyNouns = [
+  "Panda",
+  "Dolphin",
+  "Phoenix",
+  "Dragon",
+  "Unicorn",
+  "Wizard",
+  "Astronaut",
+  "Butterfly",
+  "Cactus",
+  "Koala",
+  "Robot",
+  "Penguin",
+  "Raccoon",
+  "Tiger",
+  "Falcon",
+  "Jellyfish",
+  "Octopus",
+  "Platypus",
+  "Squirrel",
+  "Walrus",
+];
+
+// Generate a pseudorandom number using a string seed
+const seededRandom = (seed: string): number => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  // Normalize to 0-1 range
+  return Math.abs(hash) / 2 ** 31;
+};
+
+// Generate a quirky username based on userId
+const generateQuirkyUsername = (userId: string): string => {
+  const adjIndex = Math.floor(seededRandom(userId) * quirkyAdjectives.length);
+  // Use a different part of the userId for the noun to reduce collisions
+  const nounIndex = Math.floor(
+    seededRandom(userId.split("").reverse().join("")) * quirkyNouns.length
+  );
+
+  const adjective = quirkyAdjectives[adjIndex];
+  const noun = quirkyNouns[nounIndex];
+
+  return `${adjective}-${noun}`;
+};
 
 // Generate a visually pleasing color based on a string (username)
 const generateColorFromString = (str: string): string => {
@@ -50,6 +115,14 @@ const generateColorFromString = (str: string): string => {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 };
 
+interface UmlEditorProps {
+  roomId: string;
+  currDocument: DocumentModel;
+  className?: string;
+  setEditorValue: (newVal: string) => void;
+  error?: IPlantUmlError;
+}
+
 export const UmlEditor: React.FC<UmlEditorProps> = ({
   roomId,
   currDocument,
@@ -67,12 +140,15 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
   const docRef = useRef<Y.Doc | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const userContext = useContext(UserContext);
-  const userColor = useRef(
-    generateColorFromString(
-      userContext.context?.displayName ||
-        `guest-${Math.random().toString(36).slice(2, 11)}`
-    )
-  );
+
+  // Generate username for guests or use displayName for signed-in users
+  const username =
+    userContext.context?.displayName ||
+    generateQuirkyUsername(
+      userContext.context?.userId || `guest-${Date.now()}`
+    );
+
+  const userColor = useRef(generateColorFromString(username));
 
   useEffect(() => {
     setWsID(`${roomId}${currDocument.id}`);
@@ -106,12 +182,33 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
         const styleSheet = document.createElement("style");
         styleSheet.innerText = `
         .yRemoteSelectionHead-${clientId}{
-          border-left: 2px solid ${state[1].user.color} ;
+          border-left: 2px solid ${state[1].user.color};
+          border-right: 8px solid transparent;
           position:relative;
         }
         .yRemoteSelection-${clientId}{
           background-color: ${state[1].user.color} !important;
           opacity: 0.5 !important;
+        }
+        .yRemoteSelectionHead-${clientId}::before {
+          content: '${state[1].user.name}';
+          color: black; 
+          top: -15px;
+          position:absolute;
+          left: -2px;
+          background-color:${state[1].user.color};
+          opacity:0;
+          transition: opacity 0.3s;
+          font-size:10px;
+          padding-left:1px;
+          margin-bottom:8px;
+          border-top-right-radius: 5px;
+          border-bottom-right-radius: 5px;
+          pointer-events: none !important;
+          border-top-left-radius:5px;
+        }
+        .yRemoteSelectionHead-${clientId}:hover::before {
+          opacity:0.8;
         }
       `;
         document.head.appendChild(styleSheet);
@@ -137,7 +234,7 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     providerRef.current = provider;
 
     provider.awareness.setLocalStateField("user", {
-      name: userContext.context?.displayName || "guest",
+      name: username,
       color: userColor.current,
     });
 
@@ -171,10 +268,11 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
 
     // Clean up on component unmount or when wsID changes
     return () => {
+      provider.awareness.destroy();
       provider.destroy();
       bindingRef.current?.destroy();
     };
-  }, [wsID, userContext.context?.displayName]);
+  }, [wsID, username]);
 
   useEffect(() => {
     if (!!!currDocument || !!!roomId) {
