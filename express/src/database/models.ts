@@ -1,8 +1,8 @@
-// models.ts
-
 export interface Room {
   id: number;
   name: string;
+  is_private: boolean;
+  owner_id: number;
 }
 
 export interface Document {
@@ -10,3 +10,11 @@ export interface Document {
   name: string;
   room_id: number;
 }
+
+export interface RoomParticipants {
+  room_id: number;
+  user_id: number;
+  owner_id: number;
+}
+
+
