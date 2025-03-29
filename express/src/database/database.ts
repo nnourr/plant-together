@@ -50,6 +50,19 @@ CREATE TABLE IF NOT EXISTS "user" (
   email TEXT NOT NULL
 );
 `
+await sql`
+  ALTER TABLE IF EXISTS room
+  ADD COLUMN IF NOT EXISTS is_private BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS owner_id TEXT REFERENCES "user"(id);
+`
+await sql`
+CREATE TABLE IF NOT EXISTS room_participant (
+  room_id TEXT NOT NULL REFERENCES room(id),
+  user_id TEXT NOT NULL REFERENCES "user"(id),
+  owner_id TEXT NOT NULL REFERENCES "user"(id),
+  PRIMARY KEY (room_id, user_id)
+);
+`
 
 // Test the connection
 const alive = await sql`SELECT NOW()`
