@@ -8,11 +8,11 @@ class YWebsocketServer {
   /**
    * @param {uws.TemplatedApp} app
    */
-  constructor (app) {
+  constructor(app) {
     this.app = app
   }
 
-  async destroy () {
+  async destroy() {
     this.app.close()
   }
 }
@@ -33,13 +33,13 @@ export const createYWebsocketServer = async ({
   port,
   store,
   checkPermCallbackUrl,
-  initDocCallback = () => {}
+  initDocCallback = () => { }
 }) => {
   checkPermCallbackUrl += checkPermCallbackUrl.slice(-1) !== '/' ? '/' : ''
   const app = uws.App({})
   await registerYWebsocketServer(app, '/:room', store, async (req) => {
     const room = req.getParameter(0)
-    return {hasWriteAccess: true, room, userid: ""}
+    return { hasWriteAccess: true, room }
   }, { redisPrefix, initDocCallback })
 
   await promise.create((resolve, reject) => {
