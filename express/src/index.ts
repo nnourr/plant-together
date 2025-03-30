@@ -59,8 +59,11 @@ app.post("/room/:room_id", async (req, res) => {
   const room_id = req.params.room_id;
   const room_name = req.body.room_name;
   const document_name = req.body.document_name;
+  const token = req.headers.authorization;
+
   try {
-    await roomRepo.createRoomWithDocument(uuidv4(), room_name, document_name);
+    const ownerId = await authService.getUserId(token!);
+    await roomRepo.createRoomWithDocument(uuidv4(), room_name, document_name, ownerId);
     res.sendStatus(200);
   } catch (error) {
     res.sendStatus(500);

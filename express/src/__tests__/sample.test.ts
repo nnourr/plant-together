@@ -17,6 +17,7 @@ import { DocumentService } from "../document/document.service.js";
 import { logger } from "../logger.js";
 import { DocumentResponse } from "../document/document.types.js";
 import { DocumentRepo } from "../document/document.repo.js";
+import { UserRepo } from "../user/user.repo.js";
 import { createRoomWithDocument } from "../room/room.repo.js";
 import { RedisClientType } from "redis";
 import { mockRedis } from "./__mocks__/redis.mock.js";
@@ -29,6 +30,9 @@ const documentRepo = new DocumentRepo(
   mockRedis as any as RedisClientType,
   yjsHelpersMock
 );
+
+const userRepo = new UserRepo();
+
 const documentService = new DocumentService(documentRepo);
 
 describe("Repositories", () => {
@@ -42,13 +46,19 @@ describe("Repositories", () => {
     const defaultRoomId = "1";
     const defaultRoomName = "Room Name Default";
     const defaultDocumentName = "Default Document Name";
+    const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
+    const defaultOwnerDisplayName = "Display Name";
+    const defaultOwnerEmail = "email@email.email";
 
     beforeEach(async () => {
+      await userRepo.registerUser(defaultOwnerId, defaultOwnerDisplayName, defaultOwnerEmail);
+
       // each test has at least one room and one document
       await room.createRoomWithDocument(
         defaultRoomId,
         defaultRoomName,
-        defaultDocumentName
+        defaultDocumentName,
+        defaultOwnerId
       );
     });
 
@@ -62,7 +72,7 @@ describe("Repositories", () => {
       const roomName = "Room 100";
       const documentName = "Document One";
 
-      await room.createRoomWithDocument(roomId, roomName, documentName);
+      await room.createRoomWithDocument(roomId, roomName, documentName, defaultOwnerId);
       const roomWithDocuments = await documentRepo.getDocumentsInRoom(roomId);
 
       expect(roomWithDocuments?.room_id).toBe(roomId);
@@ -180,6 +190,9 @@ describe("Socket.IO Documents Namespace", () => {
   const DEFAULT_ROOM_ID = "55";
   const DEFAULT_ROOM_NAME = "Room 55";
   const DEFAULT_DOCUMENT_NAME = "Document 1";
+  const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
+  const DEFAULT_OWNER_DISPLAY_NAME = "Display Name";
+  const DEFAULT_OWNER_EMAIL = "email@email.email";
 
   beforeAll(async () => {
     const app = express();
@@ -207,10 +220,13 @@ describe("Socket.IO Documents Namespace", () => {
     });
     clientSocket.on("connect", () => expect(clientSocket.connected).toBe(true));
 
+    await userRepo.registerUser(DEFAULT_OWNER_ID, DEFAULT_OWNER_DISPLAY_NAME, DEFAULT_OWNER_EMAIL);
+
     await createRoomWithDocument(
       DEFAULT_ROOM_ID,
       DEFAULT_ROOM_NAME,
-      DEFAULT_DOCUMENT_NAME
+      DEFAULT_DOCUMENT_NAME,
+      DEFAULT_OWNER_ID
     );
   });
 
@@ -312,6 +328,10 @@ describe("Socket.IO Documents Rename Functionality", () => {
   const DEFAULT_ROOM_ID = "55";
   const DEFAULT_ROOM_NAME = "Room 55";
   const DEFAULT_DOCUMENT_NAME = "Document 1";
+  const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
+  const DEFAULT_OWNER_DISPLAY_NAME = "Display Name";
+  const DEFAULT_OWNER_EMAIL = "email@email.email";
+
   let documentId: number;
 
   beforeAll(async () => {
@@ -339,11 +359,14 @@ describe("Socket.IO Documents Rename Functionality", () => {
       extraHeaders: { "room-id": DEFAULT_ROOM_ID },
     });
     clientSocket.on("connect", () => expect(clientSocket.connected).toBe(true));
+    
+    await userRepo.registerUser(DEFAULT_OWNER_ID, DEFAULT_OWNER_DISPLAY_NAME, DEFAULT_OWNER_EMAIL);
 
     await createRoomWithDocument(
       DEFAULT_ROOM_ID,
       DEFAULT_ROOM_NAME,
-      DEFAULT_DOCUMENT_NAME
+      DEFAULT_DOCUMENT_NAME,
+      DEFAULT_OWNER_ID
     );
     const documents = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
     const foundDocument = documents.documents.find(
