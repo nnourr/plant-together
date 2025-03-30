@@ -61,6 +61,26 @@ export const updateDocumentInRoom = (
   );
 };
 
+export const deleteDocumentInRoom = (
+  socket: Socket,
+  documentId: string,
+  callback: (response: any) => void
+) => {
+  socket.emit(
+    "/delete", 
+    {documentId: documentId},
+    (response: any) => {
+      if (response.status === "SUCCESS") {
+        console.log("Document deleted successfully!");
+      } else {
+        console.error(`Failed to delete document: ${response.message}`);
+      }
+
+      if (callback) callback(response);
+    }
+  );
+};
+
 export const getRoomWithDocuments = async (roomId: string) => {
   const response = await fetch(`${serverHttpUrl}/room/${roomId}`,
     {

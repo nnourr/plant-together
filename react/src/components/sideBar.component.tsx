@@ -19,6 +19,7 @@ interface SideBarProps {
   className?: string;
   newDocument: () => void;
   updateDocument: (documentId: any, documentNewName: string) => void;
+  deleteDocument: (documentId: any) => void;
   setClose: () => void;
 }
 
@@ -28,6 +29,7 @@ export const SideBar: React.FC<SideBarProps> = ({
   setCurrDocument,
   newDocument,
   updateDocument,
+  deleteDocument,
   className,
   setClose,
 }) => {
@@ -110,6 +112,18 @@ export const SideBar: React.FC<SideBarProps> = ({
                 onClick={() => {
                   setEdit(true);
                   setDocName(document.name);
+                }}
+              >
+                <FontAwesomeIcon icon={faEdit} />
+              </button>
+            )}
+            {!edit && (
+              <button
+                aria-label="delete"
+                className={`text-left left-0 transition-all`}
+                key={document.id}
+                onClick={() => {
+                  deleteDocument(currDocument.id);
                 }}
               >
                 <FontAwesomeIcon icon={faEdit} />

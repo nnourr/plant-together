@@ -91,6 +91,25 @@ export const CollabRoom: React.FC = () => {
     );
   };
 
+  const deleteDocument = async (documentId: any) => {
+    if (!userContext?.context?.sessionActive) return;
+
+    await plantService.deleteDocumentInRoom(
+      socket!,
+      documentId,
+      ({ documentId }) => {
+        const updatedRoomDocuments = [...roomDocuments];
+        const deletedDoc = updatedRoomDocuments.find(
+          (doc) => doc.id === documentId
+        );
+        const index = updatedRoomDocuments.indexOf(deletedDoc!);
+
+        updatedRoomDocuments.splice(index, 1);
+        setRoomDocuments(updatedRoomDocuments);
+      }
+    );
+  };
+
   useEffect(() => {
     (async () => {
       if (!userContext?.context?.sessionActive) return;
@@ -135,6 +154,26 @@ export const CollabRoom: React.FC = () => {
       }
     );
 
+    socket?.on(
+      "/document/delete",
+      ({ code, documentId }: any) => {
+        if (code != 200) {
+          alert("Unable to delete document");
+        }
+
+        setRoomDocuments((docs: any) => {
+          const updatedRoomDocuments = [...docs];
+          const deletedDoc = updatedRoomDocuments.find(
+            (doc) => doc.id === documentId
+          );
+          const index = updatedRoomDocuments.indexOf(deletedDoc!);
+
+          updatedRoomDocuments.splice(index, 1);
+          return updatedRoomDocuments;
+        });
+      }
+    );
+
     return () => {
       socket?.disconnect();
     };
@@ -161,6 +200,7 @@ export const CollabRoom: React.FC = () => {
             createNewDocument(roomId, `Document${roomDocuments.length + 1}`)
           }
           updateDocument={updateDocument}
+          deleteDocument={deleteDocument}
           className="w-full h-1/2"
           setClose={() => setSideBarOpen(false)}
         />
@@ -192,6 +232,7 @@ export const CollabRoom: React.FC = () => {
             createNewDocument(roomId, `Document${roomDocuments.length + 1}`)
           }
           updateDocument={updateDocument}
+          deleteDocument={deleteDocument}
           className="w-80"
           setClose={() => setSideBarOpen(false)}
         />

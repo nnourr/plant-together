@@ -18,3 +18,7 @@ export interface RenameDocumentData {
   documentId: string;
   newDocumentName: string;
 }
+
+export interface DeleteDocumentData {
+  documentId: string;
+}

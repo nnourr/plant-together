@@ -47,6 +47,15 @@ export class DocumentRepo {
     return { documentId, newDocumentName };
   };
 
+  deleteDocument = async (documentId: string) => {
+    await this
+      .sql`DELETE FROM document WHERE id = ${documentId}`;
+    logger.info(
+      `Document with ID ${documentId} was deleted`
+    );
+    return { documentId };
+  };
+
   getDocumentUML = async (roomId: string, documentId: number) => {
     const doc = await this.yjsHelpers.getDoc(roomId + documentId, this.redis);
     return doc.getText("monaco").toString();
