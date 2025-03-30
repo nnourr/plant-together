@@ -47,9 +47,10 @@ app.get("/room/:room_name", async (req, res) => {
   if (!roomName) return res.status(400).json({ error: "No Room name Specified" });
   try {
     const roomId = await roomRepo.retrieveRoomId(roomName);
-    const room = await documentRepo.getDocumentsInRoom(roomId);
+    const room = roomId ? await documentRepo.getDocumentsInRoom(roomId) : {};
     res.status(200).json(room);
   } catch (error) {
+    logger.error(error);
     res.sendStatus(500);
   }
 });

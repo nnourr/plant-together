@@ -16,7 +16,7 @@ export const retrieveRoomId = async (roomName: string, ownerId?: string) => {
   if (!ownerId) idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName};`;
   else idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName} AND owner_id = ${ownerId};`;
 
-  if (!idRes.length) {
+  if (!idRes || !idRes.length) {
     console.error(`Requested room ${roomName} doesn't exist`);
     return undefined;
   }
