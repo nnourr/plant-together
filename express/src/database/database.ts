@@ -1,5 +1,5 @@
 import { DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER } from "../config.js";
-import postgres, { PostgresType, type Sql } from 'postgres'
+import postgres, { type Sql } from 'postgres'
 import prexit from 'prexit'
 import { PostgresMock } from "pgmock";
 
@@ -53,7 +53,9 @@ CREATE TABLE IF NOT EXISTS "user" (
 await sql`
   ALTER TABLE IF EXISTS room
   ADD COLUMN IF NOT EXISTS is_private BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS owner_id TEXT REFERENCES "user"(id);
+  ADD COLUMN IF NOT EXISTS owner_id TEXT NOT NULL REFERENCES "user"(id),
+  DROP CONSTRAINT IF EXISTS unique_owner_id_name,
+  ADD CONSTRAINT unique_owner_id_name UNIQUE (name, owner_id);
 `
 await sql`
 CREATE TABLE IF NOT EXISTS room_participant (
@@ -61,6 +63,10 @@ CREATE TABLE IF NOT EXISTS room_participant (
   user_id TEXT NOT NULL REFERENCES "user"(id),
   PRIMARY KEY (room_id, user_id)
 );
+`
+await sql`
+  ALTER TABLE IF EXISTS room_participant
+  DROP COLUMN IF EXISTS owner_id;
 `
 
 // Test the connection
