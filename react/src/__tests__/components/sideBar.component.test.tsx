@@ -23,6 +23,8 @@ const sampleDocuments: DocumentModel[] = [
   { id: 3, name: "Document 3" },
 ];
 
+const sampleRoomId = "2c0a3406-8898-4835-93f0-d9ec64ccd05d";
+
 const renderSideBar = (props: Partial<Parameters<typeof SideBar>[0]> = {}) => {
   return render(
     <MemoryRouter>
@@ -34,6 +36,7 @@ const renderSideBar = (props: Partial<Parameters<typeof SideBar>[0]> = {}) => {
         updateDocument={mockUpdateDocument}
         className="test-class"
         setClose={() => {}}
+        roomId={sampleRoomId}
         {...props}
       />
     </MemoryRouter>

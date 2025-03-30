@@ -12,7 +12,6 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { plantuml } from "../plantuml";
 import { getRoomUML } from "../service/plant.service";
 import JSZip from 'jszip';
-import { useParams } from "react-router-dom";
 
 interface DownloadModalProps {
   onClose: () => void;
