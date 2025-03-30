@@ -17,6 +17,7 @@ import { useParams } from "react-router-dom";
 interface DownloadModalProps {
   onClose: () => void;
   documents: DocumentModel[];
+  roomId: string;
 }
 
 interface DocumentDownloadState {
@@ -31,8 +32,8 @@ interface DocumentDownloadState {
 export const DownloadModal: React.FC<DownloadModalProps> = ({
   onClose,
   documents,
+  roomId
 }) => {
-  const { roomId } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [downloadStates, setDownloadStates] = useState<DocumentDownloadState[]>(
     documents.map((doc) => ({

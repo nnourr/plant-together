@@ -2,6 +2,8 @@ import express from "express";
 import { createServer as createHttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 
+import { v4 as uuidv4 } from 'uuid';
+
 import cors from "cors";
 import morgan from "morgan";
 
@@ -40,10 +42,11 @@ app.get("/", (_, res) => {
 });
 
 // Room endpoints
-app.get("/room/:room_id", async (req, res) => {
-  const roomId = req.params.room_id;
-  if (!roomId) return res.status(400).json({ error: "No Room ID Specified" });
+app.get("/room/:room_name", async (req, res) => {
+  const roomName = req.params.room_name;
+  if (!roomName) return res.status(400).json({ error: "No Room name Specified" });
   try {
+    const roomId = await roomRepo.retrieveRoomId(roomName);
     const room = await documentRepo.getDocumentsInRoom(roomId);
     res.status(200).json(room);
   } catch (error) {
@@ -56,7 +59,7 @@ app.post("/room/:room_id", async (req, res) => {
   const room_name = req.body.room_name;
   const document_name = req.body.document_name;
   try {
-    await roomRepo.createRoomWithDocument(room_id, room_name, document_name);
+    await roomRepo.createRoomWithDocument(uuidv4(), room_name, document_name);
     res.sendStatus(200);
   } catch (error) {
     res.sendStatus(500);

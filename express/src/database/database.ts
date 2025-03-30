@@ -59,7 +59,6 @@ await sql`
 CREATE TABLE IF NOT EXISTS room_participant (
   room_id TEXT NOT NULL REFERENCES room(id),
   user_id TEXT NOT NULL REFERENCES "user"(id),
-  owner_id TEXT NOT NULL REFERENCES "user"(id),
   PRIMARY KEY (room_id, user_id)
 );
 `
