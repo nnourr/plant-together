@@ -10,9 +10,11 @@ export const createRoomWithDocument = async (roomId: string, roomName: string, d
   });
 }
 
-export const retrieveRoomId = async (roomName: string, ownerId?: string) => {
-  const ownerCondition = ownerId ? ` AND owner_id = ${ownerId};` : '';
-  const idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName}`;
+export const retrieveRoomId = async (roomName: string, ownerId?: string) => {  
+  let idRes;
+
+  if (!ownerId) idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName};`;
+  else idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName} AND owner_id = ${ownerId};`;
 
   if (!idRes.length) {
     console.error(`Requested room ${roomName} doesn't exist`);
