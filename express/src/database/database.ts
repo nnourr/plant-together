@@ -53,7 +53,10 @@ CREATE TABLE IF NOT EXISTS "user" (
 await sql`
   ALTER TABLE IF EXISTS room
   ADD COLUMN IF NOT EXISTS is_private BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS owner_id TEXT;
+  ADD COLUMN IF NOT EXISTS owner_id TEXT,
+  DROP CONSTRAINT IF EXISTS room_owner_id_fkey,
+  DROP CONSTRAINT IF EXISTS unique_owner_id_name,
+  ADD CONSTRAINT unique_owner_id_name UNIQUE (name, owner_id);
 `
 
 await sql`
@@ -61,10 +64,7 @@ await sql`
 `
 await sql`
   ALTER TABLE IF EXISTS room
-  ALTER COLUMN owner_id SET NOT NULL, 
-  DROP CONSTRAINT IF EXISTS room_owner_id_fkey,
-  DROP CONSTRAINT IF EXISTS unique_owner_id_name,
-  ADD CONSTRAINT unique_owner_id_name UNIQUE (name, owner_id);
+  ALTER COLUMN owner_id SET NOT NULL;
 `
 await sql`
 CREATE TABLE IF NOT EXISTS room_participant (
