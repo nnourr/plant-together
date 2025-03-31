@@ -56,4 +56,12 @@ export class AuthService {
         const userId = this.getUserId(token);
         return await this.userRepo.retrieveDisplayName(userId);
     }
+
+    isGuestUser(token: string): boolean {
+        if (!token) return false;
+        if ('Bearer ' === token.substring(0, 7)) token = token.substring(7);
+        const decoded = jwtDecode(token) as any;
+
+        return decoded.isGuest;
+    }
 }

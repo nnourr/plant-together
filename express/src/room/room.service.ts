@@ -1,9 +1,13 @@
 import { DocumentRepo } from "../document/document.repo.js";
-
+import { AuthService } from "../user/auth.service.js";
+import * as RoomRepo from "./room.repo.js";
+import { logger } from "../logger.js";
 export class RoomService {
   private documentRepo: DocumentRepo;
-  constructor(documentRepo: DocumentRepo) {
+  private authService: AuthService;
+  constructor(documentRepo: DocumentRepo, authService: AuthService) {
     this.documentRepo = documentRepo;
+    this.authService = authService;
   }
 
   async getUML(roomId: string) {
@@ -20,5 +24,35 @@ export class RoomService {
     }
 
     return content;
+  }
+
+  async validateRoomCreator(token: string, is_private: boolean)  {
+    try{
+      const guest = await this.authService.isGuestUser(token!);
+      if (guest && is_private) {
+        return false;
+      }
+    }
+    catch (error) {
+      logger.error(error);
+      throw new Error("Error validating room creator");
+    }
+    return true;
+  }
+
+  async validatePublicRoomName(roomName: string) {
+    try {
+      const roomid = await RoomRepo.retrieveRoomId(roomName, false);
+      if (!roomid) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    catch (error) {
+      logger.error(error);
+      throw new Error("Public room name already exists");
+    }
   }
 }

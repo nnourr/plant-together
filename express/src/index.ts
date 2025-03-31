@@ -2,7 +2,7 @@ import express from "express";
 import { createServer as createHttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate } from 'uuid';
 
 import cors from "cors";
 import morgan from "morgan";
@@ -22,6 +22,12 @@ import { RedisClientType } from "redis";
 import { RoomService } from "./room/room.service.js";
 import yjsHelpers from "./yjs/yjs.helpers.js";
 
+// ----- Dependency Injection for Authentication -----
+// Create instances of FireauthRepo and UserRepo and inject them into AuthService.
+const fireauth = FireauthRepo.instance();
+const userRepo = new UserRepo();
+const authService = new AuthService(fireauth, userRepo);
+
 // ----- Setup Document & Room Services -----
 const documentRepo = new DocumentRepo(
   sql,
@@ -29,7 +35,7 @@ const documentRepo = new DocumentRepo(
   yjsHelpers
 );
 const documentService = new DocumentService(documentRepo);
-const roomService = new RoomService(documentRepo);
+const roomService = new RoomService(documentRepo, authService);
 
 const app = express();
 app.use(express.json());
@@ -60,10 +66,20 @@ app.post("/room/:room_id", async (req, res) => {
   const room_name = req.body.room_name;
   const document_name = req.body.document_name;
   const token = req.headers.authorization;
+  const is_private = req.body.is_private || false;
 
   try {
+    if (!(await roomService.validateRoomCreator(token!, is_private))) {
+      return res.status(400).json({ error: "Invalid room creator" });
+    }
+
+    if(!is_private && !(await roomService.validatePublicRoomName(room_name))) {
+      return res.status(400).json({ error: "Public room name already exists" });
+    }
+
     const ownerId = await authService.getUserId(token!);
-    await roomRepo.createRoomWithDocument(uuidv4(), room_name, document_name, ownerId);
+    if (!ownerId) return res.status(400).json({ error: "No owner" });
+    await roomRepo.createRoomWithDocument(uuidv4(), room_name, document_name, ownerId, is_private);
     res.sendStatus(200);
   } catch (error) {
     res.sendStatus(500);
@@ -105,11 +121,6 @@ app.put("/room/:room_id/document/:document_id/rename", async (req, res) => {
   }
 });
 
-// ----- Dependency Injection for Authentication -----
-// Create instances of FireauthRepo and UserRepo and inject them into AuthService.
-const fireauth = FireauthRepo.instance();
-const userRepo = new UserRepo();
-const authService = new AuthService(fireauth, userRepo);
 
 // Auth endpoints using dependency-injected authService
 app.post("/auth/signup", async (req, res) => {
