@@ -20,6 +20,7 @@ interface SideBarProps {
   newDocument: () => void;
   updateDocument: (documentId: any, documentNewName: string) => void;
   setClose: () => void;
+  roomId: string;
 }
 
 export const SideBar: React.FC<SideBarProps> = ({
@@ -30,6 +31,7 @@ export const SideBar: React.FC<SideBarProps> = ({
   updateDocument,
   className,
   setClose,
+  roomId,
 }) => {
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
   const [docName, setDocName] = useState<string>("");
@@ -201,6 +203,7 @@ export const SideBar: React.FC<SideBarProps> = ({
           <DownloadModal
             onClose={() => setIsDownloadModalOpen(false)}
             documents={documents}
+            roomId={roomId}
           />
         )
       }

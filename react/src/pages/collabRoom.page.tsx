@@ -18,7 +18,7 @@ const serverHttpUrl =
   "/documents";
 
 export const CollabRoom: React.FC = () => {
-  const { roomId } = useParams();
+  const { roomName } = useParams();
   const navigate = useNavigate();
   //useSocketEvent("/document", console.log());
   const [editorValue, setEditorValue] = useState<string>("");
@@ -30,6 +30,7 @@ export const CollabRoom: React.FC = () => {
   const [mobile, setMobile] = useState<boolean>(false);
   const [umlClosed, setUmlClosed] = useState<boolean>(false);
   const [umlStyle, setUmlStyle] = useState<string>("h-full");
+  const [roomId, setRoomId] = useState<string>('');
   const userContext = useContext(UserContext);
 
   useEffect(() => {
@@ -43,16 +44,17 @@ export const CollabRoom: React.FC = () => {
         return;
       }
 
+      setRoomId(room.room_id);
       setRoomDocuments(room.documents);
       setCurrDocument(room.documents[0]);
     };
 
-    if (roomId) {
-      getRoomInfo(roomId);
+    if (roomName) {
+      getRoomInfo(roomName);
     }
   }, [userContext]);
 
-  if (roomId === undefined) {
+  if (roomName === undefined) {
     navigate("/");
     return;
   }
@@ -93,7 +95,7 @@ export const CollabRoom: React.FC = () => {
 
   useEffect(() => {
     (async () => {
-      if (!userContext?.context?.sessionActive) return;
+      if (!userContext?.context?.sessionActive || !roomId) return;
 
       const authToken = await plantService.retrieveToken();
 
@@ -106,7 +108,7 @@ export const CollabRoom: React.FC = () => {
 
       setSocket(newSocket);
     })();
-  }, [userContext]);
+  }, [userContext, roomId]);
 
   useEffect(() => {
     socket?.on("/document", ({ code, documentName, id }: any) => {
@@ -163,6 +165,7 @@ export const CollabRoom: React.FC = () => {
           updateDocument={updateDocument}
           className="w-full h-1/2"
           setClose={() => setSideBarOpen(false)}
+          roomId={roomId}
         />
       );
     } else {
@@ -194,6 +197,7 @@ export const CollabRoom: React.FC = () => {
           updateDocument={updateDocument}
           className="w-80"
           setClose={() => setSideBarOpen(false)}
+          roomId={roomId}
         />
       );
     } else {

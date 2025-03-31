@@ -56,10 +56,12 @@ const mockUMLContents = [
   { docName: "Document 2", uml: "@startuml\nclass Test2\n@enduml" },
 ];
 
+const sampleRoomId = "2c0a3406-8898-4835-93f0-d9ec64ccd05d";
+
 const renderDownloadModal = () => {
   return render(
     <MemoryRouter initialEntries={["/room/123"]}>
-      <DownloadModal onClose={mockOnClose} documents={sampleDocuments} />
+      <DownloadModal onClose={mockOnClose} documents={sampleDocuments} roomId={sampleRoomId} />
     </MemoryRouter>
   );
 };
@@ -187,7 +189,7 @@ describe("DownloadModal Component", () => {
       fireEvent.click(downloadButton);
       
       await waitFor(() => {
-        expect(getRoomUML).toHaveBeenCalledWith("123");
+        expect(getRoomUML).toHaveBeenCalledWith(sampleRoomId);
       });
       
       expect(mockCreateObjectURL).toHaveBeenCalled();

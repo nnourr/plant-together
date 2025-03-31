@@ -14,7 +14,6 @@ export interface Document {
 export interface RoomParticipants {
   room_id: number;
   user_id: number;
-  owner_id: number;
 }
 
 

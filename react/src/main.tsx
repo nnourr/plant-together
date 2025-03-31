@@ -32,7 +32,7 @@ const router = createHashRouter([
     element: <Landing />,
   },
   {
-    path: "/room/:roomId",
+    path: "/room/:roomName",
     element: <CollabRoom />,
   },
   {
