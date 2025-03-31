@@ -42,7 +42,7 @@ export class RoomService {
 
   async validatePublicRoomName(roomName: string) {
     try {
-      const roomid = await RoomRepo.retrieveRoomId(roomName, false);
+      const roomid = await RoomRepo.retrieveRoomIdByAccess(roomName, false);
       if (!roomid) {
         return true;
       }
@@ -53,6 +53,24 @@ export class RoomService {
     catch (error) {
       logger.error(error);
       throw new Error("Public room name already exists");
+    }
+  }
+
+  async changeRoomAccess(token: string, roomName: string, isPrivate: boolean) {
+    try {
+      const ownerId = this.authService.getUserId(token);
+      const roomId = await RoomRepo.retrieveRoomId(roomName, ownerId);
+      if (roomId) {
+      await RoomRepo.updateRoomAccess(roomId, isPrivate);
+      }
+      else {
+
+        throw new Error("Room not found or not accessible");
+      }
+    } 
+    catch (error) {
+      logger.error(error);
+      throw new Error("Error updating room access");
     }
   }
 }

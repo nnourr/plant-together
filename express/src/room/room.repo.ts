@@ -10,7 +10,21 @@ export const createRoomWithDocument = async (roomId: string, roomName: string, d
 }
 
 
-export const retrieveRoomId = async (roomName: string, isPrivate: boolean = false, ownerId?: string) => {  
+export const retrieveRoomId = async (roomName: string, ownerId?: string) => {  
+  let idRes;
+
+  if (!ownerId) idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName}`;
+  else idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName} AND owner_id = ${ownerId}`;
+
+  if (!idRes || !idRes.length) {
+    console.error(`Requested room ${roomName} doesn't exist`);
+    return undefined;
+  }
+
+  return idRes[0].id;
+};
+
+export const retrieveRoomIdByAccess = async (roomName: string, isPrivate: boolean = false, ownerId?: string) => {  
   let idRes;
 
   if (!ownerId) idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName} AND is_private = ${isPrivate};`;
@@ -23,6 +37,10 @@ export const retrieveRoomId = async (roomName: string, isPrivate: boolean = fals
 
   return idRes[0].id;
 };
+
+export const updateRoomAccess = async (roomId: string, isPrivate: boolean) => {
+  await sql`UPDATE room SET is_private = ${isPrivate} WHERE id = ${roomId}`;
+}
 
 
 

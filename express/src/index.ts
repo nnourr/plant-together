@@ -70,10 +70,10 @@ app.post("/room/:room_id", async (req, res) => {
 
   try {
     if (!(await roomService.validateRoomCreator(token!, is_private))) {
-      return res.status(400).json({ error: "Invalid room creator" });
+      return res.status(403).json({ error: "Invalid room creator" });
     }
 
-    if(!is_private && !(await roomService.validatePublicRoomName(room_name))) {
+    if (!is_private && !(await roomService.validatePublicRoomName(room_name))) {
       return res.status(400).json({ error: "Public room name already exists" });
     }
 
@@ -82,6 +82,23 @@ app.post("/room/:room_id", async (req, res) => {
     await roomRepo.createRoomWithDocument(uuidv4(), room_name, document_name, ownerId, is_private);
     res.sendStatus(200);
   } catch (error) {
+    res.sendStatus(500);
+  }
+});
+
+app.put("/room/access", async (req, res) => {
+  const room_name = req.body.room_name;
+  const token = req.headers.authorization;
+  const is_private = req.body.is_private || false;
+  try {
+    if (!(await roomService.validateRoomCreator(token!, is_private))) {
+      return res.status(403).json({ error: "Guest user can't change access" });
+    }
+    await roomService.changeRoomAccess(token!, room_name, is_private);
+    res.sendStatus(200);
+  }
+  catch (error) {
+    logger.error(error);
     res.sendStatus(500);
   }
 });
