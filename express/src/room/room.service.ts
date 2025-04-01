@@ -16,8 +16,7 @@ export class RoomService {
     let content: any = [];
     let room_documents;
 
-    room_documents = (await this.documentRepo.getDocumentsInRoom(roomId))
-      .documents;
+    room_documents = (await this.documentRepo.getDocumentsInRoom(roomId));
     for (let document of room_documents) {
       content.push({
         docName: document.name,
@@ -33,7 +32,7 @@ export class RoomService {
       if (guest) {
         return false;
       }
-      const room = await this.roomRepo.getRoomById(room_id); 
+      const room = await this.roomRepo.getRoomById(room_id);
       if (!room) {
         return false;
       }
