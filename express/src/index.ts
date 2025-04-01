@@ -8,7 +8,7 @@ import cors from "cors";
 import morgan from "morgan";
 
 import { PORT, CORS_ALLOWED_ORIGIN } from "./config.js";
-import * as roomRepo from "./room/room.repo.js";
+import {RoomRepo} from "./room/room.repo.js";
 import { DocumentRepo } from "./document/document.repo.js";
 import { DocumentService } from "./document/document.service.js";
 import { logger } from "./logger.js";
@@ -35,7 +35,8 @@ const documentRepo = new DocumentRepo(
   yjsHelpers
 );
 const documentService = new DocumentService(documentRepo);
-const roomService = new RoomService(documentRepo, authService);
+const roomRepo = new RoomRepo();
+const roomService = new RoomService(documentRepo, authService, roomRepo);
 
 const app = express();
 app.use(express.json());
