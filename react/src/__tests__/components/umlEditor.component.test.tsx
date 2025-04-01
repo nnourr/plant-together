@@ -16,6 +16,27 @@ const createDecorationsCollectionMock = vi.fn().mockReturnValue({
 const setLocalStateFieldMock = vi.fn();
 const rangeMock = vi.fn();
 
+// Mock the utility functions
+vi.mock("../../utils/userIdentity.utils", () => ({
+  generateQuirkyUsername: (userId: string) => {
+    // Create a deterministic test output based on userId
+    if (userId === "test-user-id-123") return "Test-Username";
+    if (userId === "guest-123") return "Guest-Username";
+    return "Default-Username";
+  },
+  generateColorFromString: (str: string) => {
+    // Return predictable colors for testing
+    if (str === "User1") return "hsl(120, 70%, 60%)";
+    if (str === "User2") return "hsl(240, 70%, 60%)";
+    if (str === "Test User") return "hsl(0, 70%, 60%)";
+    return "hsl(180, 70%, 60%)";
+  },
+  getContrastingTextColor: () => ({
+    textColor: "white",
+    textShadow: "none",
+  }),
+}));
+
 let capturedOnChange: ((value: string | undefined) => void) | undefined =
   undefined;
 
@@ -155,15 +176,41 @@ describe("UmlEditor", () => {
       </UserContext.Provider>
     );
 
-    // Check if awareness was set with "guest" as name
+    // Check if awareness was set with quirky username
     await waitFor(() => {
       expect(setLocalStateFieldMock).toHaveBeenCalledWith(
         "user",
         expect.objectContaining({
-          name: "guest",
+          name: "Default-Username", // This matches our mock implementation
           color: expect.any(String),
         })
       );
+    });
+  });
+
+  test("sets user awareness with quirky guest name when user is not signed in", async () => {
+    // Render with a guest user (with userId but no displayName)
+    render(
+      <UserContext.Provider
+        value={{ context: { sessionActive: true, userId: "guest-123" } }}
+      >
+        <UmlEditor
+          roomId="testRoom"
+          currDocument={mockDocument}
+          setEditorValue={mockSetEditorValue}
+          className="test-class"
+        />
+      </UserContext.Provider>
+    );
+
+    // Check if awareness was set with a quirky name
+    await waitFor(() => {
+      expect(setLocalStateFieldMock).toHaveBeenCalled();
+      const userCall = setLocalStateFieldMock.mock.calls[0];
+
+      expect(userCall[0]).toBe("user");
+      expect(userCall[1]).toHaveProperty("name");
+      expect(userCall[1].name).toBe("Guest-Username"); // From our mock
     });
   });
 
