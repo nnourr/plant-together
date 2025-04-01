@@ -24,30 +24,21 @@ export class RoomService {
         uml: await this.documentRepo.getDocumentUML(roomId, document.id),
       });
     }
-
     return content;
   }
 
-  async getUML(roomId: string) {
-    let content: any = [];
-    let room_documents;
-
-    room_documents = (await this.documentRepo.getDocumentsInRoom(roomId))
-      .documents;
-    for (let document of room_documents) {
-      content.push({
-        docName: document.name,
-        uml: await this.documentRepo.getDocumentUML(roomId, document.id),
-      });
-    }
-
-    return content;
-  }
-
-  async validateRoomCreator(token: string, is_private: boolean) {
+  async validateRoomCreator(token: string, room_id: string) {
     try {
       const guest = await this.authService.isGuestUser(token!);
-      if (guest && is_private) {
+      if (guest) {
+        return false;
+      }
+      const room = await this.roomRepo.getRoomById(room_id); 
+      if (!room) {
+        return false;
+      }
+      const ownerId = this.authService.getUserId(token!);
+      if (room.owner_id !== ownerId) {
         return false;
       }
     }
@@ -74,17 +65,9 @@ export class RoomService {
     }
   }
 
-  async changeRoomAccess(token: string, roomName: string, isPrivate: boolean) {
+  async changeRoomAccess(room_id: string, isPrivate: boolean) {
     try {
-      const ownerId = this.authService.getUserId(token);
-      const roomId = await this.roomRepo.retrieveRoomId(roomName, ownerId);
-      if (roomId) {
-        await this.roomRepo.updateRoomAccess(roomId, isPrivate);
-      }
-      else {
-
-        throw new Error("Room not found or not accessible");
-      }
+      await this.roomRepo.updateRoomAccess(room_id, isPrivate);
     }
     catch (error) {
       logger.error(error);

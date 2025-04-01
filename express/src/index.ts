@@ -8,7 +8,7 @@ import cors from "cors";
 import morgan from "morgan";
 
 import { PORT, CORS_ALLOWED_ORIGIN } from "./config.js";
-import {RoomRepo} from "./room/room.repo.js";
+import { RoomRepo } from "./room/room.repo.js";
 import { DocumentRepo } from "./document/document.repo.js";
 import { DocumentService } from "./document/document.service.js";
 import { logger } from "./logger.js";
@@ -49,29 +49,67 @@ app.get("/", (_, res) => {
 });
 
 // Room endpoints
-app.get("/room/:room_name", async (req, res) => {
+app.get("/room/public/:room_name", async (req, res) => {
   const roomName = req.params.room_name;
   if (!roomName) return res.status(400).json({ error: "No Room name Specified" });
   try {
     const roomId = await roomRepo.retrieveRoomId(roomName);
-    const room = roomId ? await documentRepo.getDocumentsInRoom(roomId) : {};
-    res.status(200).json(room);
+    if (!roomId) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+    const room = await roomRepo.getRoomById(roomId);
+    const documents = await documentRepo.getDocumentsInRoom(roomId);
+    const roomWithDocuments = {
+      ...room,
+      documents: documents,
+    }
+    res.status(200).json(roomWithDocuments);
   } catch (error) {
     logger.error(error);
     res.sendStatus(500);
   }
 });
 
-app.post("/room/:room_id", async (req, res) => {
-  const room_id = req.params.room_id;
-  const room_name = req.body.room_name;
+app.get("/room/private/:owner_id/:room_name", async (req, res) => {
+  const roomName = req.params.room_name;
+  const ownerId = req.params.owner_id;
+  const token = req.headers.authorization;
+  if (!roomName) {
+    return res.status(400).json({ error: "No Room name Specified" });
+  }
+  if (!ownerId) {
+    return res.status(400).json({ error: "No Room name Specified" });
+  }
+  if (!token) {
+    return res.status(403).json({ error: "Unauthorized user" });
+  }
+  try {
+    const roomId = await roomRepo.retrieveRoomId(roomName, ownerId);
+    if (!roomId) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+    const room = await roomRepo.getRoomById(roomId);
+    const documents = await documentRepo.getDocumentsInRoom(roomId);
+    const roomWithDocuments = {
+      ...room,
+      documents: documents,
+    }
+    res.status(200).json(roomWithDocuments);
+  } catch (error) {
+    logger.error(error);
+    res.sendStatus(500);
+  }
+});
+
+app.post("/room/:room_name", async (req, res) => {
+  const room_name = req.params.room_name;
   const document_name = req.body.document_name;
   const token = req.headers.authorization;
   const is_private = req.body.is_private || false;
 
   try {
-    if (!(await roomService.validateRoomCreator(token!, is_private))) {
-      return res.status(403).json({ error: "Invalid room creator" });
+    if (await authService.isGuestUser(token!) && is_private) {
+      return res.status(403).json({ error: "Guest Users Cannot Create Private Rooms" });
     }
 
     if (!is_private && !(await roomService.validatePublicRoomName(room_name))) {
@@ -79,7 +117,7 @@ app.post("/room/:room_id", async (req, res) => {
     }
 
     const ownerId = await authService.getUserId(token!);
-    if (!ownerId) return res.status(400).json({ error: "No owner" });
+    if (!ownerId) return res.status(400).json({ error: "Invalid Token" });
     await roomRepo.createRoomWithDocument(uuidv4(), room_name, document_name, ownerId, is_private);
     res.sendStatus(200);
   } catch (error) {
@@ -87,15 +125,17 @@ app.post("/room/:room_id", async (req, res) => {
   }
 });
 
-app.put("/room/access", async (req, res) => {
-  const room_name = req.body.room_name;
+app.put("/room/:room_id/access", async (req, res) => {
   const token = req.headers.authorization;
-  const is_private = req.body.is_private || false;
+  const room_id = req.params.room_id;
+  const is_private = req.body.is_private;
+  if (is_private === undefined) return res.status(400).json({ error: "No is private provided" });
+
   try {
-    if (!(await roomService.validateRoomCreator(token!, is_private))) {
+    if (!(await roomService.validateRoomCreator(token!, room_id))) {
       return res.status(403).json({ error: "Guest user can't change access" });
     }
-    await roomService.changeRoomAccess(token!, room_name, is_private);
+    await roomService.changeRoomAccess(room_id, is_private);
     res.sendStatus(200);
   }
   catch (error) {
@@ -107,8 +147,21 @@ app.put("/room/access", async (req, res) => {
 app.get("/room/:room_id/uml", async (req, res) => {
   const roomId = req.params.room_id;
   let content: any = [];
+  const is_private = req.body.is_private || false;
+  const token = req.headers.authorization;
   try {
-    content = await roomService.getUML(roomId);
+    if (is_private) {
+      if (!token) {
+        return res.status(403).json({ error: "Unauthorized user" });
+      }
+      if (!(await roomService.validateRoomCreator(token!, is_private))) {
+        return res.status(403).json({ error: "Invalid token" });
+      }
+      content = await roomService.getUML(roomId);
+    }
+    else {
+      content = await roomService.getUML(roomId);
+    }
   } catch (error) {
     logger.error(error);
     return res.status(500).json({ error: "Error extracting uml" });

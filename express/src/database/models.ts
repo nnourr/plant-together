@@ -2,7 +2,7 @@ export interface Room {
   id: number;
   name: string;
   is_private: boolean;
-  owner_id: number;
+  owner_id: string;
 }
 
 export interface Document {

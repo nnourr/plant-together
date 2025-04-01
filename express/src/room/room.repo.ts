@@ -1,8 +1,18 @@
 import sql from "../database/database.js";
+import { Room } from "../database/models.js";
 
 export class RoomRepo{
   constructor(){}
 
+  async getRoomById(roomId: string) {
+    const room = await sql<Room[]>`SELECT * FROM room WHERE id = ${roomId}`;
+    if (!room || !room.length) {
+      console.error(`Room with ID ${roomId} not found`);
+      return undefined;
+    }
+    return room[0];
+  }
+  
   async createRoomWithDocument(roomId: string, roomName: string, documentName: string, ownerId: string, isPrivate: boolean){
     await sql.begin(async sql => {
       // Insert into the room table
@@ -13,11 +23,10 @@ export class RoomRepo{
     });
   }
 
-
   async retrieveRoomId(roomName: string, ownerId?: string){  
     let idRes;
 
-    if (!ownerId) idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName}`;
+    if (!ownerId) idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName} AND is_private = false;`;
     else idRes = await sql`SELECT (id) FROM room WHERE name = ${roomName} AND owner_id = ${ownerId}`;
 
     if (!idRes || !idRes.length) {
