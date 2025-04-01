@@ -2,7 +2,7 @@ import express from "express";
 import { createServer as createHttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 
-import { v4 as uuidv4, validate } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 import cors from "cors";
 import morgan from "morgan";
@@ -21,11 +21,14 @@ import redisClient from "./redis/redis.js";
 import { RedisClientType } from "redis";
 import { RoomService } from "./room/room.service.js";
 import yjsHelpers from "./yjs/yjs.helpers.js";
+import { RoomParticipantRepo } from "./room/participant.repo.js";
+import signed from 'signed';
 
 // ----- Dependency Injection for Authentication -----
 // Create instances of FireauthRepo and UserRepo and inject them into AuthService.
 const fireauth = FireauthRepo.instance();
 const userRepo = new UserRepo();
+const roomParticipantRepo = new RoomParticipantRepo(sql);
 const authService = new AuthService(fireauth, userRepo);
 
 // ----- Setup Document & Room Services -----
@@ -36,7 +39,7 @@ const documentRepo = new DocumentRepo(
 );
 const documentService = new DocumentService(documentRepo);
 const roomRepo = new RoomRepo();
-const roomService = new RoomService(documentRepo, authService, roomRepo);
+const roomService = new RoomService(documentRepo, authService, roomRepo, roomParticipantRepo, signed.default);
 
 const app = express();
 app.use(express.json());
@@ -97,6 +100,24 @@ app.put("/room/access", async (req, res) => {
     }
     await roomService.changeRoomAccess(token!, room_name, is_private);
     res.sendStatus(200);
+  }
+  catch (error) {
+    logger.error(error);
+    res.sendStatus(500);
+  }
+});
+
+app.put("/room/share/:room_id", async (req, res) => {
+  const roomId = req.body.room_id;
+  const token = req.headers.authorization;
+
+  try {
+    if (!(await roomService.validateUserPrivateAccess(token!, roomId))) {
+      return res.sendStatus(403);
+    }
+
+    const signature = await roomService.createRoomSignature(roomId);
+    res.status(200).json({ signature });
   }
   catch (error) {
     logger.error(error);
