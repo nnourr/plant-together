@@ -11,6 +11,7 @@ import { endSession } from "../utils/auth.helpers";
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
   const [error, setError] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
@@ -104,7 +105,7 @@ export const Landing: React.FC = () => {
           </a>
           .
         </h2>
-        <div className="flex gap-4 flex-col md:flex-row box-border mt-8 relative">
+        <div className="flex gap-4 flex-col box-border mt-8 relative items-center">
           <p
             role="alert"
             className={`${
@@ -120,9 +121,26 @@ export const Landing: React.FC = () => {
             onKeyDown={handleKeyDown}
             onBlur={checkOnBlur}
           />
+          <div className="flex items-center gap-2">
+            <label htmlFor="room-privacy" className="cursor-pointer relative">
+              <input
+                type="checkbox"
+                id="room-privacy"
+                className="sr-only peer"
+                checked={isPrivate}
+                onChange={() => setIsPrivate(!isPrivate)}
+              />
+              <div className="w-11 h-6 bg-gray-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500" />
+            </label>
+            <span className="text-2xl font-medium select-none">
+              Private
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col md:flex-row box-border relative">
           <Button size={ButtonSize.lg} onClick={goToRoom}>
             Submit
-          </Button>
+          </Button>          
         </div>
       </div>
       <Footer className="w-full" />
