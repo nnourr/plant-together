@@ -1,17 +1,17 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 export default {
-  preset: 'ts-jest/presets/default-esm', // Use the ESM preset for ts-jest
+  preset: 'ts-jest/presets/default-esm', 
   testEnvironment: 'node',
-  testMatch: ['**/dist/**/*.test.js'], // Or change to ['**/src/**/*.test.ts'] if you want to run tests on source files
+  testMatch: ['**/dist/**/*.test.js'], 
   collectCoverageFrom: ['src/**/*.ts'],
-  extensionsToTreatAsEsm: ['.ts'], // Ensure ts files are treated as ESM
+  extensionsToTreatAsEsm: ['.ts'],
   globals: {
     'ts-jest': {
-      useESM: true, // Let ts-jest know you're using ESM modules
+      useESM: true, 
     },
   },
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1', // Map imports ending in .js to their .ts counterparts
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   verbose: true,
   modulePathIgnorePatterns: ['<rootDir>/dist/__tests__/__mocks__/*'],

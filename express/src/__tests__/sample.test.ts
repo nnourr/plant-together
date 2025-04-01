@@ -9,7 +9,6 @@ import express from "express";
 
 import * as encoding from "lib0/encoding";
 import * as Y from "yjs";
-import * as room from "../room/room.repo.js";
 import { jest } from "@jest/globals";
 import sql from "../database/database.js";
 
@@ -19,10 +18,14 @@ import { DocumentResponse } from "../document/document.types.js";
 import { DocumentRepo } from "../document/document.repo.js";
 import { RoomRepo } from "../room/room.repo.js";
 import { RedisClientType } from "redis";
+import { AuthService } from "../user/auth.service.js";
 import { mockRedis } from "./__mocks__/redis.mock.js";
 import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
 import yjsHelpers from "../yjs/yjs.helpers.js";
+import { jwtDecode } from "jwt-decode";
 const PORT = 7565;
+
+jest.setTimeout(10000);
 
 const documentRepo = new DocumentRepo(
   sql,
@@ -46,8 +49,6 @@ describe("Repositories", () => {
     const defaultRoomName = "Room Name Default";
     const defaultDocumentName = "Default Document Name";
     const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
-    const defaultOwnerDisplayName = "Display Name";
-    const defaultOwnerEmail = "email@email.email";
     const isPrivate = false;
 
     beforeEach(async () => {
@@ -71,7 +72,7 @@ describe("Repositories", () => {
       const roomName = "Room 100";
       const documentName = "Document One";
 
-      await roomRepo.createRoomWithDocument(roomId, roomName, documentName, defaultOwnerId, isPrivate);
+      await roomRepo.createRoomWithDocument(roomId, roomName, documentName, defaultOwnerId, false);
       const roomWithDocuments = await documentRepo.getDocumentsInRoom(roomId);
 
       expect(roomWithDocuments?.room_id).toBe(roomId);
@@ -190,8 +191,6 @@ describe("Socket.IO Documents Namespace", () => {
   const DEFAULT_ROOM_NAME = "Room 55";
   const DEFAULT_DOCUMENT_NAME = "Document 1";
   const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
-  const DEFAULT_OWNER_DISPLAY_NAME = "Display Name";
-  const DEFAULT_OWNER_EMAIL = "email@email.email";
   const DEFAULT_IS_PRIVATE = false;
 
   beforeAll(async () => {
@@ -328,8 +327,6 @@ describe("Socket.IO Documents Rename Functionality", () => {
   const DEFAULT_ROOM_NAME = "Room 55";
   const DEFAULT_DOCUMENT_NAME = "Document 1";
   const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
-  const DEFAULT_OWNER_DISPLAY_NAME = "Display Name";
-  const DEFAULT_OWNER_EMAIL = "email@email.email";
   const DEFAULT_IS_PRIVATE = false;
 
   let documentId: number;
@@ -510,7 +507,6 @@ describe("Yjs Helpers", () => {
   });
 });
 
-import { AuthService } from '../user/auth.service.js';
 import { firebaseMock } from './__mocks__/firebase.mock.js';
 import { userRepoMock } from "./__mocks__/user.repo.mock.js";
 
@@ -594,3 +590,68 @@ describe("AuthService with Firebase Mock", () => {
     expect(userRepoMock.retrieveDisplayName).toHaveBeenCalledWith("user123");
   });
 });
+
+import { v4 as uuidv4 } from 'uuid';
+
+describe("RoomRepo Tests", () => {
+  let roomRepo: RoomRepo;
+  const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
+
+  beforeEach(() => {
+    roomRepo = new RoomRepo();
+  });
+
+  afterEach(async () => {
+    // Clean up the tables after each test.
+    await sql`TRUNCATE room, document RESTART IDENTITY CASCADE`;
+  });
+
+  it("should return undefined when no room exists", async () => {
+    const roomId = await roomRepo.retrieveRoomIdByAccess("NonExistentRoom", false);
+    expect(roomId).toBeUndefined();
+  });
+
+  it("should return room id when room exists without ownerId provided", async () => {
+    const newRoomId = uuidv4();
+    // Insert a test room without specifying ownerId in the function call.
+    await sql`
+      INSERT INTO room (id, name, is_private, owner_id)
+      VALUES (${newRoomId}, 'TestRoom', false, ${defaultOwnerId})
+    `;
+    const retrievedId = await roomRepo.retrieveRoomIdByAccess("TestRoom", false);
+    expect(retrievedId).toBe(newRoomId);
+  });
+
+  it("should return room id when room exists with ownerId provided", async () => {
+    const newRoomId = uuidv4();
+    await sql`
+      INSERT INTO room (id, name, is_private, owner_id)
+      VALUES (${newRoomId}, 'TestRoom2', false, ${defaultOwnerId})
+    `;
+    const retrievedId = await roomRepo.retrieveRoomIdByAccess("TestRoom2", false, defaultOwnerId);
+    expect(retrievedId).toBe(newRoomId);
+  });
+
+  it("should update the room's is_private flag", async () => {
+    const newRoomId = uuidv4();
+    // Insert a test room with is_private initially false.
+    await sql`
+      INSERT INTO room (id, name, is_private, owner_id)
+      VALUES (${newRoomId}, 'TestRoomUpdate', false, ${defaultOwnerId})
+    `;
+    // Verify the initial value is false.
+    let result = await sql`SELECT is_private FROM room WHERE id = ${newRoomId}`;
+    expect(result[0].is_private).toBe(false);
+  
+    // Update the room access to true.
+    await roomRepo.updateRoomAccess(newRoomId, true);
+  
+    // Verify that is_private is now true.
+    result = await sql`SELECT is_private FROM room WHERE id = ${newRoomId}`;
+    expect(result[0].is_private).toBe(true);
+  });
+});
+
+
+
+

@@ -28,6 +28,22 @@ export class RoomService {
     return content;
   }
 
+  async getUML(roomId: string) {
+    let content: any = [];
+    let room_documents;
+
+    room_documents = (await this.documentRepo.getDocumentsInRoom(roomId))
+      .documents;
+    for (let document of room_documents) {
+      content.push({
+        docName: document.name,
+        uml: await this.documentRepo.getDocumentUML(roomId, document.id),
+      });
+    }
+
+    return content;
+  }
+
   async validateRoomCreator(token: string, is_private: boolean) {
     try {
       const guest = await this.authService.isGuestUser(token!);
