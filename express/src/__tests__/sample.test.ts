@@ -11,6 +11,7 @@ import * as encoding from "lib0/encoding";
 import * as Y from "yjs";
 import { jest } from "@jest/globals";
 import sql from "../database/database.js";
+import postgres from "postgres";
 
 import { DocumentService } from "../document/document.service.js";
 import { logger } from "../logger.js";
@@ -21,7 +22,6 @@ import { RoomRepo } from "../room/room.repo.js";
 import { RedisClientType } from "redis";
 import { AuthService } from "../user/auth.service.js";
 import { mockRedis } from "./__mocks__/redis.mock.js";
-import { PostgresError } from "postgres";
 import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
 import yjsHelpers from "../yjs/yjs.helpers.js";
 const PORT = 7565;
@@ -172,7 +172,7 @@ describe("Repositories", () => {
     });
 
     it("should not add participant to invalid room", async () => {
-      expect(await participantRepo.addUserAccess(defaultRoomId.replace('3', '4'), defaultOwnerId)).toThrow(PostgresError);
+      expect(await participantRepo.addUserAccess(defaultRoomId.replace('3', '4'), defaultOwnerId)).toThrow(postgres.PostgresError);
     });
   });
 });
