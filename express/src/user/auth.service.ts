@@ -44,10 +44,16 @@ export class AuthService {
         return this.fireauth.verifyFirebaseIdToken(token);
     }
 
-    async getDisplayName(token: string): Promise<string> {
+    getUserId(token: string): string {
         if (!token) return "";
         if ('Bearer ' === token.substring(0, 7)) token = token.substring(7);
         const decoded = jwtDecode(token) as any;
-        return await this.userRepo.retrieveDisplayName(decoded.user_id);
+
+        return decoded.user_id;
+    }
+
+    async getDisplayName(token: string): Promise<string> {
+        const userId = this.getUserId(token);
+        return await this.userRepo.retrieveDisplayName(userId);
     }
 }

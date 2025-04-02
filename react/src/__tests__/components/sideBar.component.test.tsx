@@ -50,10 +50,13 @@ const sampleDocuments: DocumentModel[] = [
   { id: 3, name: "Document 3" },
 ];
 
+const sampleRoomId = "2c0a3406-8898-4835-93f0-d9ec64ccd05d";
+
 const renderSideBar = (props: Partial<Parameters<typeof SideBar>[0]> = {}) => {
   return render(
     <MemoryRouter>
       <SideBar
+        roomId={sampleRoomId}
         currDocument={sampleDocuments[0]}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
@@ -79,6 +82,7 @@ describe("SideBar Component", () => {
   test("renders the component correctly", () => {
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={currDocument}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
@@ -99,6 +103,7 @@ describe("SideBar Component", () => {
   test("clicking the edit button shows the input field and allows document name editing", () => {
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={currDocument}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
@@ -128,6 +133,7 @@ describe("SideBar Component", () => {
   test("calling updateDocument when Enter is pressed", () => {
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={currDocument}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
@@ -159,6 +165,7 @@ describe("SideBar Component", () => {
   test("focuses on input when editing a document", () => {
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={currDocument}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
@@ -181,6 +188,7 @@ describe("SideBar Component", () => {
   test("does not allow update if the document is not selected", () => {
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={undefined}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
@@ -200,6 +208,7 @@ describe("SideBar Component", () => {
   test("shows loading state when documents are not provided", () => {
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={undefined}
         documents={undefined}
         setCurrDocument={mockSetCurrDocument}
@@ -216,6 +225,7 @@ describe("SideBar Component", () => {
   test("handles empty document name on edit", () => {
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={currDocument}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
@@ -240,6 +250,7 @@ describe("SideBar Component", () => {
   test("creates new document when plus button is clicked", async () => {
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={currDocument}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
@@ -260,6 +271,7 @@ describe("SideBar Component", () => {
   test("switches document when another document is clicked", () => {
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={currDocument}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
@@ -287,6 +299,7 @@ describe("SideBar Component", () => {
 
     render(
       <SideBar
+        roomId={sampleRoomId}
         currDocument={currDocument}
         documents={sampleDocuments}
         setCurrDocument={mockSetCurrDocument}
