@@ -16,13 +16,14 @@ import { DocumentService } from "../document/document.service.js";
 import { logger } from "../logger.js";
 import { DocumentResponse } from "../document/document.types.js";
 import { DocumentRepo } from "../document/document.repo.js";
+import { RoomParticipantRepo } from "../room/participant.repo.js";
 import { RoomRepo } from "../room/room.repo.js";
 import { RedisClientType } from "redis";
 import { AuthService } from "../user/auth.service.js";
 import { mockRedis } from "./__mocks__/redis.mock.js";
+import { PostgresError } from "postgres";
 import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
 import yjsHelpers from "../yjs/yjs.helpers.js";
-import { jwtDecode } from "jwt-decode";
 const PORT = 7565;
 
 jest.setTimeout(10000);
@@ -34,6 +35,7 @@ const documentRepo = new DocumentRepo(
 );
 
 const roomRepo = new RoomRepo();
+const participantRepo = new RoomParticipantRepo(sql);
 
 const documentService = new DocumentService(documentRepo);
 
@@ -131,6 +133,46 @@ describe("Repositories", () => {
 
       const umlText = await documentRepo.getDocumentUML(room, 2);
       expect(umlText).toBe("");
+    });
+  });
+
+  describe("Participant Repository", () => {
+    const defaultRoomId = "32332323232";
+    const defaultRoomName = "Room Name Default";
+    const defaultDocumentName = "Default Document Name";
+    const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
+    const isPrivate = false;
+
+    beforeEach(async () => {
+      await roomRepo.createRoomWithDocument(
+        defaultRoomId,
+        defaultRoomName,
+        defaultDocumentName,
+        defaultOwnerId,
+        isPrivate
+      );
+    });
+
+    afterEach(async () => {
+      // undo actions that occurred with the test
+      await sql!`TRUNCATE room, document, room_participant RESTART IDENTITY CASCADE`;
+    });
+
+    it("should not authorize user with no access to private room", async () => {
+      const isAuthorized = await participantRepo.userPrivateAccess(defaultRoomId, defaultOwnerId.replace('0', '1'));
+      expect(isAuthorized).toBe(false);  
+    });
+    
+    it("should authorize user with access to private room", async () => {
+      const userId = defaultOwnerId.replace('0', '1');
+      await participantRepo.addUserAccess(defaultRoomId, userId);
+
+      const isAuthorized = await participantRepo.userPrivateAccess(defaultRoomId, userId);
+      expect(isAuthorized).toBe(true);  
+    });
+
+    it("should not add participant to invalid room", async () => {
+      expect(await participantRepo.addUserAccess(defaultRoomId.replace('3', '4'), defaultOwnerId)).toThrow(PostgresError);
     });
   });
 });

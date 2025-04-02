@@ -14,9 +14,9 @@ import { v4 as uuidv4 } from 'uuid';
 const { 
   roomService, 
   authService,
-  documentService, 
-  roomRepo, 
-  roomParticipantRepo, 
+  documentService,
+  roomRepo,
+  roomParticipantRepo,
   documentRepo
 } = loadDependencies();
 
