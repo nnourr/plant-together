@@ -3,6 +3,7 @@ dotenv.config();
 
 // server
 export const PORT = (process.env.PORT || 3333) as number;
+export const ROOM_SIGNATURE_SECRET= process.env.ROOM_SIGNATURE_SECRET;
 
 export const CORS_ALLOWED_ORIGIN = process.env.CORS_ALLOWED_ORIGIN || "*";
 
