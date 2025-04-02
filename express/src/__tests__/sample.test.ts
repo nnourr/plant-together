@@ -90,7 +90,6 @@ describe("Repositories", () => {
         defaultRoomId
       );
 
-      expect(roomWithDocuments).toBe(defaultRoomId);
       expect(roomWithDocuments).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: documentName }),
