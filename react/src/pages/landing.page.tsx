@@ -48,7 +48,7 @@ export const Landing: React.FC = () => {
       navigate(`/${roomToGoTo}`);
     } catch (error: any) {
       setError(true);
-      setErrorMessage(error.message);
+      setErrorMessage(error.message.replace(/ /g,''));
     }
   }, [roomName, navigate, isPrivate, userContext?.context?.userId, plantService]);
 
