@@ -1,45 +1,24 @@
 import express from "express";
-import { createServer as createHttpServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
-
-import { v4 as uuidv4 } from 'uuid';
-
 import cors from "cors";
 import morgan from "morgan";
 
+import loadDependencies from "./dependencies.js";
+
 import { PORT, CORS_ALLOWED_ORIGIN } from "./config.js";
-import { RoomRepo } from "./room/room.repo.js";
-import { DocumentRepo } from "./document/document.repo.js";
-import { DocumentService } from "./document/document.service.js";
 import { logger } from "./logger.js";
-import { FireauthRepo } from "./firebase/fireauth.repo.js";
-import { AuthService } from "./user/auth.service.js";
-import { UserRepo } from "./user/user.repo.js";
 
-import sql from "./database/database.js";
-import redisClient from "./redis/redis.js";
-import { RedisClientType } from "redis";
-import { RoomService } from "./room/room.service.js";
-import yjsHelpers from "./yjs/yjs.helpers.js";
-import { RoomParticipantRepo } from "./room/participant.repo.js";
-import signed from 'signed';
+import { createServer as createHttpServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
+import { v4 as uuidv4 } from 'uuid';
 
-// ----- Dependency Injection for Authentication -----
-// Create instances of FireauthRepo and UserRepo and inject them into AuthService.
-const fireauth = FireauthRepo.instance();
-const userRepo = new UserRepo();
-const roomParticipantRepo = new RoomParticipantRepo(sql);
-const authService = new AuthService(fireauth, userRepo);
-
-// ----- Setup Document & Room Services -----
-const documentRepo = new DocumentRepo(
-  sql,
-  redisClient as RedisClientType,
-  yjsHelpers
-);
-const documentService = new DocumentService(documentRepo);
-const roomRepo = new RoomRepo();
-const roomService = new RoomService(documentRepo, authService, roomRepo, roomParticipantRepo, signed.default);
+const { 
+  roomService, 
+  authService,
+  documentService, 
+  roomRepo, 
+  roomParticipantRepo, 
+  documentRepo
+} = loadDependencies();
 
 const app = express();
 app.use(express.json());
