@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer.component";
 import { InputField } from "../components/inputField.component";
@@ -7,6 +7,7 @@ import { faSeedling } from "@fortawesome/free-solid-svg-icons";
 import { Button, ButtonSize } from "../components/button.component";
 import { UserContext } from "../components/user.context";
 import { endSession } from "../utils/auth.helpers";
+import * as plantService from "../service/plant.service";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
@@ -15,8 +16,9 @@ export const Landing: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
+  const [isPrivate, setIsPrivate] = useState(false);
 
-  const goToRoom = () => {
+  const handleGoToRoom = useCallback(async () => {
     if (!roomName.trim()) {
       setError(true);
       setErrorMessage("room name cannot be empty x(");
@@ -32,12 +34,28 @@ export const Landing: React.FC = () => {
       setErrorMessage("no slash allowed x(");
       return;
     }
-    navigate(`room/${roomName}`);
-  };
+
+    try {
+      const roomToGoTo = isPrivate ? `private/${userContext?.context?.userId}/${roomName}` : roomName;
+      // check if room exists in either public or private and goto it
+      const room = isPrivate ? await plantService.getPrivateRoom(userContext?.context?.userId!, roomName) : await plantService.getPublicRoom(roomName);
+      if (room?.documents) { // rooms that exist will have documents key
+        navigate(`/${roomToGoTo}`);
+        return;
+      }
+
+      // create the room
+      await plantService.createRoomWithDocument(roomName, isPrivate, "Document1");
+      navigate(`/${roomToGoTo}`);
+    } catch (error: any) {
+      setError(true);
+      setErrorMessage(error.message);
+    }
+  }, [roomName, navigate, isPrivate, userContext?.context?.userId, plantService]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      goToRoom();
+      handleGoToRoom();
     }
   };
 
@@ -110,7 +128,7 @@ export const Landing: React.FC = () => {
             role="alert"
             className={`${
               !error ? "opacity-0" : "opacity-100"
-            } text-red-500 absolute -bottom-8 text-lg transition-opacity`}
+            } text-red-500 absolute bottom-12 -translate-y-full text-lg transition-opacity`}
           >
             {errorMessage}
           </p>
@@ -138,7 +156,7 @@ export const Landing: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-col md:flex-row box-border relative">
-          <Button size={ButtonSize.lg} onClick={goToRoom}>
+          <Button size={ButtonSize.lg} onClick={handleGoToRoom}>
             Submit
           </Button>          
         </div>

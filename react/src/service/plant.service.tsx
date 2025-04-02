@@ -3,11 +3,11 @@ import { parseToken } from "../utils/auth.helpers";
 
 const serverHttpUrl = (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000");
 
-export const createRoomWithDocument = async (roomId: string, roomName: string, documentName: string) => {
+export const createRoomWithDocument = async (roomId: string, isPrivate: boolean, documentName: string) => {
   const response = await fetch(`${serverHttpUrl}/room/${roomId}`, {
     body: JSON.stringify({
-      room_name: roomName,
-      document_name: documentName
+      document_name: documentName,
+      is_private: isPrivate
     }),
     method:"POST",
     headers: {
@@ -16,7 +16,16 @@ export const createRoomWithDocument = async (roomId: string, roomName: string, d
     },
   })
   if (!response.ok) {
-    throw new Error(`Response status: ${response.status}`)
+    switch (response.status) {
+      case 400:
+      case 403:
+        const errorBody = await response.json();
+        throw new Error(errorBody.error);
+      case 500:
+        throw new Error("You already have a room with this name, maybe it's private?");
+      default:
+        throw new Error(`Response status: ${response.status}`);
+    }
   }
 }
 
@@ -60,24 +69,6 @@ export const updateDocumentInRoom = (
     }
   );
 };
-
-export const getRoomWithDocuments = async (roomId: string) => {
-  const response = await fetch(`${serverHttpUrl}/room/${roomId}`,
-    {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${await retrieveToken()}`
-      }
-    }
-  )
-
-  if (!response.ok) {
-    throw new Error(`Response status: ${response.status}`)
-  }
-
-  const room = await response.json()
-  return room
-}
 
 export const loginWithEmailPassword = async (email: string, password: string) => {
   const response = await fetch(`${serverHttpUrl}/auth/login`, {
@@ -182,3 +173,95 @@ export async function getRoomUML(roomId: string): Promise<{docName: string, uml:
   return response.json();
 }
 
+export const getPublicRoom = async (roomName: string) => {
+  const token = await retrieveToken();
+  const response = await fetch(
+    `${serverHttpUrl}/room/public/${roomName}`, 
+    {
+      headers: {
+        'Authorization': token
+      }
+    }
+  );
+  if (!response.ok) {
+    switch (response.status) {
+      case 400:
+      case 403:
+      case 404:
+        const errorBody = await response.json();
+        console.error(errorBody.error);
+        return {};
+      default:
+        throw new Error(`Response status: ${response.status}`);
+    }
+  }
+  return await response.json();
+};
+
+export const getPrivateRoom = async (ownerId: string, roomName: string, signature?: string | null) => {
+  const token = await retrieveToken();
+  const url = new URL(`${serverHttpUrl}/room/private/${ownerId}/${roomName}`);
+  if (signature) {
+    url.searchParams.append('signature', signature);
+  }
+  
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': token
+    }
+  });
+  
+  if (!response.ok) {
+    switch (response.status) {
+      case 400:
+      case 403:
+      case 404:
+        const errorBody = await response.json();
+        console.error(errorBody.error);
+        return {};
+      default:
+        throw new Error(`Response status: ${response.status}`);
+    }
+  }
+  return await response.json();
+};
+
+export const shareRoom = async (roomId: string) => {
+  const token = await retrieveToken();
+  const response = await fetch(
+    `${serverHttpUrl}/room/share/${roomId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': token
+      }
+    }
+  );
+  if (!response.ok) throw new Error('Failed to share room');
+  return await response.json();
+};
+
+export const changeRoomAccess = async (roomId: string, isPrivate: boolean) => {
+  const token = await retrieveToken();
+  const response = await fetch(
+    `${serverHttpUrl}/room/${roomId}/access`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify({ is_private: isPrivate })
+    }
+  );
+  if (!response.ok) {
+    switch (response.status) {
+      case 400:
+      case 403:
+        const errorBody = await response.json();
+        throw new Error(errorBody.error);
+      default:
+        throw new Error(`Response status: ${response.status}`);
+    }
+  }
+};
