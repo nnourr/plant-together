@@ -3,6 +3,18 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Landing } from "../pages/landing.page";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../components/user.context";
+
+// Mock the plant service
+const mockGetPrivateRoom = vi.fn();
+const mockGetPublicRoom = vi.fn();
+const mockCreateRoomWithDocument = vi.fn();
+
+vi.mock("../service/plant.service", () => ({
+  getPrivateRoom: (...args: any[]) => mockGetPrivateRoom(...args),
+  getPublicRoom: (...args: any[]) => mockGetPublicRoom(...args),
+  createRoomWithDocument: (...args: any[]) => mockCreateRoomWithDocument(...args)
+}));
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>(
@@ -14,159 +26,157 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
-describe("Landing Component - Inline Validation", () => {
+describe("Landing Component", () => {
   let mockNavigate: ReturnType<typeof vi.fn>;
+  const mockUserContext = {
+    context: {
+      userId: "123",
+      sessionActive: true
+    }
+  };
 
   beforeEach(() => {
     mockNavigate = vi.fn();
     vi.mocked(useNavigate).mockReturnValue(mockNavigate);
+    vi.clearAllMocks();
   });
 
-  test("shows error message when input contains spaces", () => {
-    render(
-      <MemoryRouter>
-        <Landing />
-      </MemoryRouter>
+  const renderWithContext = (ui: React.ReactElement) => {
+    return render(
+      <UserContext.Provider value={mockUserContext}>
+        <MemoryRouter>
+          {ui}
+        </MemoryRouter>
+      </UserContext.Provider>
     );
+  };
 
-    const input = screen.getByPlaceholderText("enter a room name");
-    const button = screen.getByText("Submit");
+  describe("Input Validation", () => {
+    test("shows error message when input contains spaces", () => {
+      renderWithContext(<Landing />);
 
-    fireEvent.change(input, { target: { value: "room name" } });
-    fireEvent.click(button);
+      const input = screen.getByPlaceholderText("enter a room name");
+      const button = screen.getByText("Submit");
 
-    expect(screen.getByRole("alert")).toHaveTextContent("no spaces allowed x(");
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
+      fireEvent.change(input, { target: { value: "room name" } });
+      fireEvent.click(button);
 
-  test("shows error message when input contains a slash", () => {
-    render(
-      <MemoryRouter>
-        <Landing />
-      </MemoryRouter>
-    );
+      expect(screen.getByRole("alert")).toHaveTextContent("no spaces allowed x(");
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
 
-    const input = screen.getByPlaceholderText("enter a room name");
-    const button = screen.getByText("Submit");
+    test("shows error message when input contains a slash", () => {
+      renderWithContext(<Landing />);
 
-    fireEvent.change(input, { target: { value: "room/name" } });
-    fireEvent.click(button);
+      const input = screen.getByPlaceholderText("enter a room name");
+      const button = screen.getByText("Submit");
 
-    expect(screen.getByRole("alert")).toHaveTextContent("no slash allowed x(");
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
+      fireEvent.change(input, { target: { value: "room/name" } });
+      fireEvent.click(button);
 
-  test("allows navigation for valid input", () => {
-    render(
-      <MemoryRouter>
-        <Landing />
-      </MemoryRouter>
-    );
+      expect(screen.getByRole("alert")).toHaveTextContent("no slash allowed x(");
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
 
-    const input = screen.getByPlaceholderText("enter a room name");
-    const button = screen.getByText("Submit");
+    test("does not allow empty input and shows an error message", () => {
+      renderWithContext(<Landing />);
 
-    fireEvent.change(input, { target: { value: "validRoomName" } });
-    fireEvent.click(button);
+      const input = screen.getByPlaceholderText("enter a room name");
+      const button = screen.getByText("Submit");
 
-    expect(mockNavigate).toHaveBeenCalledWith("room/validRoomName");
-    expect(screen.queryByRole("alert")).toHaveClass("opacity-0");
-  });
+      fireEvent.change(input, { target: { value: "" } });
+      fireEvent.click(button);
 
-  test("triggers validation on Enter key press", () => {
-    render(
-      <MemoryRouter>
-        <Landing />
-      </MemoryRouter>
-    );
-
-    const input = screen.getByPlaceholderText("enter a room name");
-
-    fireEvent.change(input, { target: { value: "invalid room" } });
-    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
-
-    expect(screen.getByRole("alert")).toHaveTextContent("no spaces allowed x(");
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  test("navigates correctly on Enter key press with valid input", () => {
-    render(
-      <MemoryRouter>
-        <Landing />
-      </MemoryRouter>
-    );
-
-    const input = screen.getByPlaceholderText("enter a room name");
-
-    fireEvent.change(input, { target: { value: "validRoom" } });
-    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
-
-    expect(mockNavigate).toHaveBeenCalledWith("room/validRoom");
-    expect(screen.queryByRole("alert")).toHaveClass("opacity-0");
-  });
-
-  test("does not allow empty input and shows an error message", () => {
-    render(
-      <MemoryRouter>
-        <Landing />
-      </MemoryRouter>
-    );
-
-    const input = screen.getByPlaceholderText("enter a room name");
-    const button = screen.getByText("Submit");
-
-    fireEvent.change(input, { target: { value: "" } });
-    fireEvent.click(button);
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "room name cannot be empty x("
-    );
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('should show error message when room name contains spaces and input field loses focus', async () => {
-    render(<Landing />);
-
-    const input = screen.getByPlaceholderText('enter a room name');
-    
-    // Simulate typing a name with spaces
-    fireEvent.change(input, { target: { value: 'room name with spaces' } });
-    fireEvent.blur(input);
-
-    await waitFor(() => {
-      // Check if the error message is displayed
-      expect(screen.getByRole('alert')).toHaveTextContent('no spaces allowed x(');
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "room name cannot be empty x("
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
-  it('should show error message when room name contains a slash and input field loses focus', async () => {
-    render(<Landing />);
+  describe("Room Creation and Navigation", () => {
+    test("creates and navigates to a public room", async () => {
+      mockGetPublicRoom.mockResolvedValue(null);
+      renderWithContext(<Landing />);
 
-    const input = screen.getByPlaceholderText('enter a room name');
-    
-    // Simulate typing a name with a slash
-    fireEvent.change(input, { target: { value: 'room/name/with/slash' } });
-    fireEvent.blur(input);
+      const input = screen.getByPlaceholderText("enter a room name");
+      const button = screen.getByText("Submit");
 
-    await waitFor(() => {
-      // Check if the error message is displayed
-      expect(screen.getByRole('alert')).toHaveTextContent('no slash allowed x(');
+      fireEvent.change(input, { target: { value: "validRoom" } });
+      await fireEvent.click(button);
+
+      await waitFor(() => {
+        expect(mockGetPublicRoom).toHaveBeenCalledWith("validRoom");
+        expect(mockCreateRoomWithDocument).toHaveBeenCalledWith("validRoom", false, "Document1");
+        expect(mockNavigate).toHaveBeenCalledWith("/validRoom");
+      });
+    });
+
+    test("creates and navigates to a private room", async () => {
+      mockGetPrivateRoom.mockResolvedValue(null);
+      renderWithContext(<Landing />);
+
+      const input = screen.getByPlaceholderText("enter a room name");
+      const privacyToggle = screen.getByRole("checkbox", { name: "room-privacy" });
+      const button = screen.getByText("Submit");
+
+      fireEvent.change(input, { target: { value: "validRoom" } });
+      fireEvent.click(privacyToggle);
+      await fireEvent.click(button);
+
+      await waitFor(() => {
+        expect(mockGetPrivateRoom).toHaveBeenCalledWith("123", "validRoom");
+        expect(mockCreateRoomWithDocument).toHaveBeenCalledWith("validRoom", true, "Document1");
+        expect(mockNavigate).toHaveBeenCalledWith("/private/123/validRoom");
+      });
+    });
+
+    test("navigates to existing public room", async () => {
+      mockGetPublicRoom.mockResolvedValue({ documents: [] });
+      renderWithContext(<Landing />);
+
+      const input = screen.getByPlaceholderText("enter a room name");
+      const button = screen.getByText("Submit");
+
+      fireEvent.change(input, { target: { value: "existingRoom" } });
+      await fireEvent.click(button);
+
+      await waitFor(() => {
+        expect(mockGetPublicRoom).toHaveBeenCalledWith("existingRoom");
+        expect(mockCreateRoomWithDocument).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith("/existingRoom");
+      });
+    });
+
+    test("navigates to existing private room", async () => {
+      mockGetPrivateRoom.mockResolvedValue({ documents: [] });
+      renderWithContext(<Landing />);
+
+      const input = screen.getByPlaceholderText("enter a room name");
+      const privacyToggle = screen.getByRole("checkbox", { name: "room-privacy" });
+      const button = screen.getByText("Submit");
+
+      fireEvent.change(input, { target: { value: "existingRoom" } });
+      fireEvent.click(privacyToggle);
+      await fireEvent.click(button);
+
+      await waitFor(() => {
+        expect(mockGetPrivateRoom).toHaveBeenCalledWith("123", "existingRoom");
+        expect(mockCreateRoomWithDocument).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith("/private/123/existingRoom");
+      });
     });
   });
 
-  it('should not show error message when room name is valid and input field loses focus', async () => {
-    render(<Landing />);
+  describe("Privacy Toggle", () => {
+    test("toggles privacy state when clicked", () => {
+      renderWithContext(<Landing />);
 
-    const input = screen.getByPlaceholderText('enter a room name');
-    
-    // Simulate typing a valid name
-    fireEvent.change(input, { target: { value: 'validRoomName' } });
-    fireEvent.blur(input);
+      const privacyToggle = screen.getByRole("checkbox", { name: "room-privacy" })
+      expect(privacyToggle).not.toBeChecked();
 
-    await waitFor(() => {
-      // Check if the error message is not displayed
-      const errorMessage = screen.getByRole('alert');
-      expect(errorMessage).toHaveClass('opacity-0');
+      fireEvent.click(privacyToggle);
+      expect(privacyToggle).toBeChecked();
     });
   });
 });

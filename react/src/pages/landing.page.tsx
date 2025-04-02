@@ -144,6 +144,8 @@ export const Landing: React.FC = () => {
                 type="checkbox"
                 id="room-privacy"
                 className="sr-only peer"
+                aria-label="room-privacy"
+                role="checkbox"
                 checked={isPrivate}
                 onChange={() => setIsPrivate(!isPrivate)}
               />
