@@ -7,6 +7,10 @@ import { editor } from "monaco-editor";
 import { DocumentModel } from "../models/document.model";
 import { IPlantUmlError } from "../models/plantUmlError.model";
 import { UserContext } from "./user.context";
+import {
+  generateQuirkyUsername,
+  generateColorFromString,
+} from "../utils/userIdentity.utils";
 
 const serverWsUrl =
   import.meta.env.VITE_SERVER_WS_URL || "http://localhost:3002";
@@ -18,37 +22,6 @@ interface UmlEditorProps {
   setEditorValue: (newVal: string) => void;
   error?: IPlantUmlError;
 }
-
-// Generate a visually pleasing color based on a string (username)
-const generateColorFromString = (str: string): string => {
-  // Simple hash function to generate a number from a string
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const pleasingHueRanges = [
-    [0, 30], // Reds
-    [40, 60], // Oranges
-    [190, 240], // Blues
-    [260, 280], // Purples
-    [290, 330], // Magentas
-    [120, 150], // Greens
-  ];
-
-  // Select a hue range based on hash
-  const rangeIndex = Math.abs(hash) % pleasingHueRanges.length;
-  const [minHue, maxHue] = pleasingHueRanges[rangeIndex];
-
-  // Generate hue within the selected range
-  const hue = minHue + (Math.abs(hash >> 8) % (maxHue - minHue));
-
-  // Control saturation and lightness for vibrant but not overwhelming colors
-  const saturation = 65 + (Math.abs(hash >> 16) % 20); // 65-85%
-  const lightness = 55 + (Math.abs(hash >> 24) % 10); // 55-65%
-
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-};
 
 export const UmlEditor: React.FC<UmlEditorProps> = ({
   roomId,
@@ -67,12 +40,15 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
   const docRef = useRef<Y.Doc | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const userContext = useContext(UserContext);
-  const userColor = useRef(
-    generateColorFromString(
-      userContext.context?.displayName ||
-        `guest-${Math.random().toString(36).slice(2, 11)}`
-    )
-  );
+
+  // Generate username for guests or use displayName for signed-in users
+  const username =
+    userContext.context?.displayName ||
+    generateQuirkyUsername(
+      userContext.context?.userId || `guest-${Date.now()}`
+    );
+
+  const userColor = useRef(generateColorFromString(username));
 
   useEffect(() => {
     setWsID(`${roomId}${currDocument.id}`);
@@ -103,15 +79,41 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     statesArray.forEach((state) => {
       const clientId = state[0];
       if (state[1].user) {
+        // Extract the color and determine best text color for contrast
+        const userColor = state[1].user.color;
+        const username = state[1].user.name;
+
         const styleSheet = document.createElement("style");
         styleSheet.innerText = `
         .yRemoteSelectionHead-${clientId}{
-          border-left: 2px solid ${state[1].user.color} ;
+          border-left: 2px solid ${userColor};
+          border-right: 10px solid transparent;
+          margin-right: -10px;
           position:relative;
         }
         .yRemoteSelection-${clientId}{
-          background-color: ${state[1].user.color} !important;
+          background-color: ${userColor} !important;
           opacity: 0.5 !important;
+        }
+        .yRemoteSelectionHead-${clientId}::before {
+          content: '${username}';
+          color: black; 
+          top: -18px;
+          position: absolute;
+          left: -2px;
+          background-color:${userColor};
+          opacity:0;
+          transition: opacity 0.3s;
+          font-size:10px;
+          padding-left:1px;
+          margin-bottom:8px;
+          border-top-right-radius: 5px;
+          border-bottom-right-radius: 5px;
+          pointer-events: none !important;
+          border-top-left-radius:5px;
+        }
+        .yRemoteSelectionHead-${clientId}:hover::before {
+          opacity:0.8;
         }
       `;
         document.head.appendChild(styleSheet);
@@ -137,7 +139,7 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
     providerRef.current = provider;
 
     provider.awareness.setLocalStateField("user", {
-      name: userContext.context?.displayName || "guest",
+      name: username,
       color: userColor.current,
     });
 
@@ -171,10 +173,11 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
 
     // Clean up on component unmount or when wsID changes
     return () => {
+      provider.awareness.destroy();
       provider.destroy();
       bindingRef.current?.destroy();
     };
-  }, [wsID, userContext.context?.displayName]);
+  }, [wsID, username]);
 
   useEffect(() => {
     if (!!!currDocument || !!!roomId) {
