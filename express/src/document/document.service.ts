@@ -6,11 +6,13 @@ import {
   DocumentCallback,
   DocumentResponse,
   RenameDocumentData,
+  DeleteDocumentData,
 } from "./document.types.js";
 import {
   validateDocumentData,
   notifyClientsDocChange,
   notifyClientsDocRename,
+  notifyClientsDocDelete,
 } from "./document.helpers.js";
 import { DocumentRepo } from "./document.repo.js";
 
@@ -61,6 +63,18 @@ export class DocumentService {
           }: Received rename event with data: ${JSON.stringify(data)}`
         );
         this.renameEventHandler(socket, data, callback);
+      }
+    );
+
+    socket.on(
+      "/delete",
+      async (data: DeleteDocumentData, callback: DocumentCallback) => {
+        logger.info(
+          `${
+            socket.nsp.name
+          }: Received delete event with data: ${JSON.stringify(data)}`
+        );
+        this.deleteEventHandler(socket, data, callback);
       }
     );
 
@@ -153,5 +167,42 @@ export class DocumentService {
     notifyClientsDocRename(socket, roomId, documentId, newDocumentName);
     logger.info(`Clients in ${roomId} notified of rename of ducumentID: ${documentId} to name: ${newDocumentName}`);
     callback({ status: "SUCCESS", code: 200, documentName: newDocumentName });
+  };
+
+  private deleteEventHandler = async (
+    socket: Socket,
+    data: DeleteDocumentData,
+    callback: DocumentCallback
+  ) => {
+    if (typeof callback !== "function")
+      callback = (response: DocumentResponse) => {};
+
+    const { documentId } = data;
+    const roomId = socket.handshake.headers?.["room-id"] as string;
+
+    if (!documentId) {
+      callback({
+        status: "ERROR",
+        code: 400,
+        message: "Invalid delete request",
+      });
+      return;
+    }
+
+    try {
+      await this.documentRepo.deleteDocument(documentId);
+    } catch (error) {
+      logger.error(`Error deleting document: ${error}`);
+      callback({
+        status: "ERROR",
+        code: 500,
+        message: "Internal server error",
+      });
+      return;
+    }
+
+    notifyClientsDocDelete(socket, roomId, documentId);
+    logger.info(`Clients in ${roomId} notified of deletion of ducumentID: ${documentId}`);
+    callback({ status: "SUCCESS", code: 200, documentId: documentId });
   };
 }

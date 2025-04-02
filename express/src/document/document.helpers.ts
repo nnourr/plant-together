@@ -35,3 +35,10 @@ export const notifyClientsDocRename = (socket: Socket, roomId: string, documentI
     } as DocumentResponse);
 };
 
+export const notifyClientsDocDelete = (socket: Socket, roomId: string, documentId: string) => {
+    socket.broadcast.to(roomId).emit('/document/delete', {
+        status: 'SUCCESS',
+        code: 200,
+        documentId
+    } as DocumentResponse);
+};
