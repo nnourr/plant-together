@@ -104,8 +104,12 @@ export const CollabRoom: React.FC = () => {
         );
         const index = updatedRoomDocuments.indexOf(deletedDoc!);
 
-        updatedRoomDocuments.splice(index, 1);
+        const deleted = updatedRoomDocuments.splice(index, 1);
         setRoomDocuments(updatedRoomDocuments);
+
+        if (currDocument === deleted[0]) {
+          setCurrDocument(updatedRoomDocuments[0]);
+        }
       }
     );
   };
@@ -168,7 +172,12 @@ export const CollabRoom: React.FC = () => {
           );
           const index = updatedRoomDocuments.indexOf(deletedDoc!);
 
-          updatedRoomDocuments.splice(index, 1);
+          const deleted = updatedRoomDocuments.splice(index, 1);
+
+          if (currDocument === deleted[0]) {
+            setCurrDocument(updatedRoomDocuments[0]);
+          }
+
           return updatedRoomDocuments;
         });
       }

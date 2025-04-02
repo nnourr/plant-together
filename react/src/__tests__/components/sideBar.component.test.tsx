@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 const mockUpdateDocument = vi.fn();
 const mockSetCurrDocument = vi.fn();
 const mockNewDocument = vi.fn();
+const mockDeleteDocument = vi.fn();
 
 // Mock the DownloadModal component
 vi.mock("../../components/downloadModal.component", () => ({
@@ -13,6 +14,32 @@ vi.mock("../../components/downloadModal.component", () => ({
     <div data-testid="download-modal">
       Mock Download Modal
       <button onClick={onClose}>Close</button>
+    </div>
+  ),
+}));
+
+vi.mock("../../components/confirmModal.component", () => ({
+  
+  ConfirmModal: (
+    { onClose }: { onClose: (arg: string) => void },
+  ) => (
+    <div data-testid="confirm-modal">
+      Mock Confirm Modal
+      <h2>Delete?</h2>
+      <button 
+        onClick={() => {
+          onClose("No")
+        }}
+      >
+        No
+      </button>
+      <button 
+        onClick={() => {
+          onClose("Yes")
+        }}
+      >
+        Yes
+      </button>
     </div>
   ),
 }));
@@ -32,6 +59,7 @@ const renderSideBar = (props: Partial<Parameters<typeof SideBar>[0]> = {}) => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
         {...props}
@@ -56,6 +84,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
       />
@@ -75,6 +104,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
       />
@@ -103,6 +133,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
       />
@@ -133,6 +164,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
       />
@@ -154,6 +186,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
       />
@@ -172,6 +205,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
       />
@@ -187,6 +221,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
       />
@@ -210,6 +245,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
       />
@@ -229,6 +265,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={() => {}}
       />
@@ -255,6 +292,7 @@ describe("SideBar Component", () => {
         setCurrDocument={mockSetCurrDocument}
         newDocument={mockNewDocument}
         updateDocument={mockUpdateDocument}
+        deleteDocument={mockDeleteDocument}
         className="test-class"
         setClose={mockSetClose}
       />
@@ -305,6 +343,112 @@ describe("SideBar Component", () => {
       
       const modal = screen.getByTestId("download-modal");
       expect(modal).toBeInTheDocument();
+    });
+  });
+
+  describe("Delete functionality", () => {
+    beforeEach(() => {
+      mockDeleteDocument.mockClear();
+    });
+
+    test("opens confirm modal when delete button is pressed", () => {
+      render(
+        <SideBar
+          currDocument={currDocument}
+          documents={sampleDocuments}
+          setCurrDocument={mockSetCurrDocument}
+          newDocument={mockNewDocument}
+          updateDocument={mockUpdateDocument}
+          deleteDocument={mockDeleteDocument}
+          className="test-class"
+          setClose={() => {}}
+        />
+      );
+      
+      // Open modal
+      const deleteButton = screen.getByRole("button", { name: /delete/i });
+      fireEvent.click(deleteButton);
+      
+      expect(screen.queryByTestId("confirm-modal")).toBeInTheDocument();
+    });
+
+    test("closes confirm modal and doesn't call deleteDocument when No is pressed", () => {
+      render(
+        <SideBar
+          currDocument={currDocument}
+          documents={sampleDocuments}
+          setCurrDocument={mockSetCurrDocument}
+          newDocument={mockNewDocument}
+          updateDocument={mockUpdateDocument}
+          deleteDocument={mockDeleteDocument}
+          className="test-class"
+          setClose={() => {}}
+        />
+      );
+      
+      const deleteButton = screen.getByRole("button", { name: /delete/i });
+      fireEvent.click(deleteButton);
+
+      const noButton = screen.getByRole("button", { name: /No/i });
+      fireEvent.click(noButton);
+      
+      expect(screen.queryByTestId("confirm-modal")).not.toBeInTheDocument();
+      expect(mockDeleteDocument).not.toHaveBeenCalled();
+
+    });
+
+    test("calling deleteDocument when delete is confirmed", () => {
+      render(
+        <SideBar
+          currDocument={currDocument}
+          documents={sampleDocuments}
+          setCurrDocument={mockSetCurrDocument}
+          newDocument={mockNewDocument}
+          updateDocument={mockUpdateDocument}
+          deleteDocument={mockDeleteDocument}
+          className="test-class"
+          setClose={() => {}}
+        />
+      );
+
+      const deleteButton = screen.getByRole("button", { name: /delete/i });
+      fireEvent.click(deleteButton);
+
+      const confirm = screen.getByRole("button", {name: /Yes/i})
+      fireEvent.click(confirm);
+
+      expect(mockDeleteDocument).toHaveBeenCalledWith(
+        currDocument.id
+      );
+    });
+
+    test("opening error modal and not calling deleteDocument when deleting last document", () => {
+      const roomDocuments: DocumentModel[] = [
+        { id: 1, name: "Document 1" },
+      ];
+
+      render(
+        <SideBar
+          currDocument={roomDocuments[0]}
+          documents={roomDocuments}
+          setCurrDocument={mockSetCurrDocument}
+          newDocument={mockNewDocument}
+          updateDocument={mockUpdateDocument}
+          deleteDocument={mockDeleteDocument}
+          className="test-class"
+          setClose={() => {}}
+        />
+      );
+
+      const deleteButton = screen.getByRole("button", { name: /delete/i });
+      fireEvent.click(deleteButton);
+
+      expect(screen.queryByTestId("error-modal")).toBeInTheDocument();
+
+      const back = screen.getByRole("button", {name: /back/i});
+      fireEvent.click(back);
+
+      expect(mockDeleteDocument).not.toHaveBeenCalled();
     });
   });
 });

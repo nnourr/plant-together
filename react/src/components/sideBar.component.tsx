@@ -8,9 +8,11 @@ import {
   faEdit,
   faPlus,
   faQuestionCircle,
+  faTrash,
+  faDownload
 } from "@fortawesome/free-solid-svg-icons";
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload";
 import { DownloadModal } from "./downloadModal.component";
+import { ConfirmModal } from "./confirmModal.component";
 
 interface SideBarProps {
   currDocument?: DocumentModel;
@@ -38,6 +40,9 @@ export const SideBar: React.FC<SideBarProps> = ({
   const [edit, setEdit] = useState(false);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const editableRef = useRef(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [choice, setChoice] = useState("No");
+  const [isLastDoc, setIsLastDoc] = useState(false);
 
   useEffect(() => {
     if (edit) {
@@ -47,6 +52,13 @@ export const SideBar: React.FC<SideBarProps> = ({
       }
     }
   }, [edit]);
+
+  useEffect(() => {
+    if(choice == "Yes") {
+      setChoice("No");
+      deleteDocument(currDocument!.id);
+    }
+  }, [choice])
 
   if (!!!currDocument || !!!documents) {
     return <div className={className}>Loading...</div>;
@@ -105,29 +117,34 @@ export const SideBar: React.FC<SideBarProps> = ({
               </div>
             )}
             {!edit && (
-              <button
-                aria-label="edit"
-                className={`text-left left-0 transition-all`}
-                key={document.id}
-                onClick={() => {
-                  setEdit(true);
-                  setDocName(document.name);
-                }}
-              >
-                <FontAwesomeIcon icon={faEdit} />
-              </button>
-            )}
-            {!edit && (
-              <button
-                aria-label="delete"
-                className={`text-left left-0 transition-all`}
-                key={document.id}
-                onClick={() => {
-                  deleteDocument(currDocument.id);
-                }}
-              >
-                <FontAwesomeIcon icon={faEdit} />
-              </button>
+              <div className="flex space-x-2">
+                <button
+                  aria-label="edit"
+                  className={`text-md text-left left-0 transition-all`}
+                  key={document.id}
+                  onClick={() => {
+                    setEdit(true);
+                    setDocName(document.name);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} />
+                </button>
+
+                <button
+                  aria-label="delete"
+                  className={`text-md text-left left-0 transition-all`}
+                  key={document.id}
+                  onClick={() => {
+                    if (documents.length > 1) {
+                      setIsConfirmModalOpen(true);
+                    } else {
+                      setIsLastDoc(true);
+                    }
+                  }}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
             )}
           </div>
         </Button>
@@ -154,7 +171,9 @@ export const SideBar: React.FC<SideBarProps> = ({
       >
       <Button 
         size={ButtonSize.md}
-        onClick={() => setIsDownloadModalOpen(true)}
+        onClick={() => {
+          setIsDownloadModalOpen(true)
+        }}
         className="flex items-center gap-2 justify-center mb-2"
       >
         <FontAwesomeIcon icon={faDownload} />
@@ -209,6 +228,42 @@ export const SideBar: React.FC<SideBarProps> = ({
             </div>
           )}
         </div>
+
+      {
+        isConfirmModalOpen && (
+          <ConfirmModal
+            onClose={(arg: string) => {
+              setIsConfirmModalOpen(false);
+              setChoice(arg);
+            }}
+            document={currDocument.name}
+          />
+        )
+      }
+
+      {
+        isLastDoc && (
+          <div data-testid="error-modal" className="fixed inset-0  backdrop-blur-sm flex items-center justify-center z-[9999] transition-opacity duration-200">
+            <div className="bg-slate-800 p-6 rounded-xl w-[32rem] shadow-xl">
+                <div className="items-center justify-between mb-6 space-y-2">
+                    <h2 className="text-white text-2xl font-bold">Cannot delete last document in room!</h2>
+
+                </div>
+                <div className="text-center space-y-2 space-x-40 max-h-[60vh]">
+                    <Button
+                        size={ButtonSize.lg}
+                        onClick={() => {
+                            setIsLastDoc(false);
+                        }}
+                        aria-label="back"
+                    >
+                        Go Back
+                    </Button>
+                </div>
+            </div>
+        </div>
+        )
+      }
       
       {
         isDownloadModalOpen && (

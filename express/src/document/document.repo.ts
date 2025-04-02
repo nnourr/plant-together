@@ -18,7 +18,7 @@ export class DocumentRepo {
     await this
       .sql`INSERT INTO document (name, room_id) VALUES (${documentName}, ${roomId})`;
     const id_res = await this
-      .sql`SELECT id FROM document WHERE room_id = ${roomId} AND name = ${documentName}`;
+      .sql`SELECT id FROM document WHERE room_id = ${roomId} AND name = ${documentName} ORDER BY ID DESC LIMIT 1`;
     logger.info(
       `Document "${documentName}" added to room with ID ${roomId} response ${JSON.stringify(
         id_res
