@@ -176,12 +176,18 @@ export const CollabRoom: React.FC = () => {
 
           const deleted = updatedRoomDocuments.splice(index, 1);
 
-          if (currDocument === deleted[0]) {
-            setCurrDocument(updatedRoomDocuments[0]);
-          }
+          setCurrDocument((doc: any) =>{
+            if (doc.id === documentId) {
+              return updatedRoomDocuments[0];
+            } else {
+              return doc;
+            }
+          })
 
           return updatedRoomDocuments;
         });
+
+        
       }
     );
 
