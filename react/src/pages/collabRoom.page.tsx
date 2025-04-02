@@ -34,9 +34,9 @@ export const CollabRoom: React.FC = () => {
   const [umlStyle, setUmlStyle] = useState<string>("h-full");
   const [roomId, setRoomId] = useState<string>('');
   const userContext = useContext(UserContext);
+  
+  const [isOwner, setIsOwner] = useState<boolean>(false);
   const isPrivate = useMemo<boolean>(() => Boolean(ownerId), [ownerId]);
-
-  console.log(userContext.context);
 
   useEffect(() => {
     const getRoomInfo = async () => {
@@ -51,6 +51,7 @@ export const CollabRoom: React.FC = () => {
           return;
         }
 
+        setIsOwner(room.owner_id === userContext?.context?.userId);
         setRoomId(room.id);
         setRoomDocuments(room.documents);
         setCurrDocument(room.documents[0]);
@@ -241,7 +242,7 @@ export const CollabRoom: React.FC = () => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <NavBar isPrivate={isPrivate} roomId={roomId} roomName={roomName} />
+      <NavBar isPrivate={isPrivate} roomId={roomId} roomName={roomName} isOwner={isOwner} />
       <div className="flex w-full h-[calc(100%-4rem)] max-w-[100vw] flex-col-reverse md:flex-row">
         {!mobile && closableSideBar()}
         {mobile && mobileSideBar()}

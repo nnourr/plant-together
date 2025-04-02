@@ -11,9 +11,10 @@ interface NavBarProps {
   isPrivate: boolean;
   roomId: string;
   roomName: string;
+  isOwner: boolean;
 }
 
-export const NavBar: React.FC<NavBarProps> = ({ isPrivate, roomId, roomName }) => {
+export const NavBar: React.FC<NavBarProps> = ({ isPrivate, roomId, roomName, isOwner }) => {
   const navigate = useNavigate();
   const userContext = useContext(UserContext);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,7 +69,7 @@ export const NavBar: React.FC<NavBarProps> = ({ isPrivate, roomId, roomName }) =
             share room
           </Button>
         )}
-        {!userContext.context.isGuest && (
+        {!userContext.context.isGuest && isOwner && (
         <Button 
           size={ButtonSize.sm} 
           onClick={handleAccessToggle}

@@ -16,7 +16,6 @@ export const Landing: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
-  const [isPrivate, setIsPrivate] = useState(false);
 
   const handleGoToRoom = useCallback(async () => {
     if (!roomName.trim()) {
@@ -128,7 +127,7 @@ export const Landing: React.FC = () => {
             role="alert"
             className={`${
               !error ? "opacity-0" : "opacity-100"
-            } text-red-500 absolute bottom-12 -translate-y-full text-lg transition-opacity`}
+            } text-red-500 absolute bottom-12 -translate-y-[200%] text-lg transition-opacity`}
           >
             {errorMessage}
           </p>

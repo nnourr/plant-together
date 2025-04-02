@@ -3,8 +3,8 @@ import { parseToken } from "../utils/auth.helpers";
 
 const serverHttpUrl = (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000");
 
-export const createRoomWithDocument = async (roomId: string, isPrivate: boolean, documentName: string) => {
-  const response = await fetch(`${serverHttpUrl}/room/${roomId}`, {
+export const createRoomWithDocument = async (roomName: string, isPrivate: boolean, documentName: string) => {
+  const response = await fetch(`${serverHttpUrl}/room/${roomName}`, {
     body: JSON.stringify({
       document_name: documentName,
       is_private: isPrivate
