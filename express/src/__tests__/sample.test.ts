@@ -1,17 +1,32 @@
+import express from "express";
+import signed from "signed";
+import sql from "../database/database.js";
+import postgres from "postgres";
+
+import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
+import yjsHelpers from "../yjs/yjs.helpers.js";
+
+import * as encoding from "lib0/encoding";
+import * as Y from "yjs";
+
 import { createServer as createHttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+
 import {
   io as ClientSocket,
   Socket as ClientSocketType,
 } from "socket.io-client";
 
-import express from "express";
+import { v4 as uuidv4 } from 'uuid';
 
-import * as encoding from "lib0/encoding";
-import * as Y from "yjs";
+import { RoomService } from "../room/room.service.js";
+
 import { jest } from "@jest/globals";
-import sql from "../database/database.js";
-import postgres from "postgres";
+import { authServiceMock } from './__mocks__/auth.service.mock.js';
+import { roomRepoMock } from "./__mocks__/room.repo.mock.js";
+import { documentRepoMock } from "./__mocks__/document.repo.mock.js";
+import { participantRepoMock } from "./__mocks__/participant.repo.mock.js";
+import { mockRedis } from "./__mocks__/redis.mock.js";
 
 import { DocumentService } from "../document/document.service.js";
 import { logger } from "../logger.js";
@@ -21,9 +36,7 @@ import { RoomParticipantRepo } from "../room/participant.repo.js";
 import { RoomRepo } from "../room/room.repo.js";
 import { RedisClientType } from "redis";
 import { AuthService } from "../user/auth.service.js";
-import { mockRedis } from "./__mocks__/redis.mock.js";
-import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
-import yjsHelpers from "../yjs/yjs.helpers.js";
+
 const PORT = 7565;
 
 jest.setTimeout(10000);
@@ -629,9 +642,6 @@ describe("AuthService with Firebase Mock", () => {
   });
 });
 
-import { v4 as uuidv4 } from 'uuid';
-import { RoomService } from "../room/room.service.js";
-
 describe("RoomRepo Tests", () => {
   let roomRepo: RoomRepo;
   const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
@@ -690,13 +700,6 @@ describe("RoomRepo Tests", () => {
     expect(result[0].is_private).toBe(true);
   });
 });
-
-import signed, { Signature } from "signed";
-
-import { authServiceMock } from './__mocks__/auth.service.mock.js';
-import { roomRepoMock } from "./__mocks__/room.repo.mock.js";
-import { documentRepoMock } from "./__mocks__/document.repo.mock.js";
-import { participantRepoMock } from "./__mocks__/participant.repo.mock.js";
 
 describe("Room Service", () => {
   let roomService: RoomService;
