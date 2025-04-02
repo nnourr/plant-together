@@ -467,6 +467,7 @@ describe("Socket.IO Documents Delete Functionality", () => {
   const DEFAULT_ROOM_ID = "55";
   const DEFAULT_ROOM_NAME = "Room 55";
   const DEFAULT_DOCUMENT_NAME = "Document 1";
+  const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
   let documentId: number;
 
   beforeAll(async () => {
@@ -498,7 +499,8 @@ describe("Socket.IO Documents Delete Functionality", () => {
     await createRoomWithDocument(
       DEFAULT_ROOM_ID,
       DEFAULT_ROOM_NAME,
-      DEFAULT_DOCUMENT_NAME
+      DEFAULT_DOCUMENT_NAME,
+      DEFAULT_OWNER_ID
     );
     const documents = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
     const foundDocument = documents.documents.find(

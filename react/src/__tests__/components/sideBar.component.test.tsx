@@ -367,6 +367,7 @@ describe("SideBar Component", () => {
     test("opens confirm modal when delete button is pressed", () => {
       render(
         <SideBar
+          roomId={sampleRoomId}
           currDocument={currDocument}
           documents={sampleDocuments}
           setCurrDocument={mockSetCurrDocument}
@@ -388,6 +389,7 @@ describe("SideBar Component", () => {
     test("closes confirm modal and doesn't call deleteDocument when No is pressed", () => {
       render(
         <SideBar
+          roomId={sampleRoomId}
           currDocument={currDocument}
           documents={sampleDocuments}
           setCurrDocument={mockSetCurrDocument}
@@ -413,6 +415,7 @@ describe("SideBar Component", () => {
     test("calling deleteDocument when delete is confirmed", () => {
       render(
         <SideBar
+          roomId={sampleRoomId}
           currDocument={currDocument}
           documents={sampleDocuments}
           setCurrDocument={mockSetCurrDocument}
@@ -442,6 +445,7 @@ describe("SideBar Component", () => {
 
       render(
         <SideBar
+          roomId={sampleRoomId}
           currDocument={roomDocuments[0]}
           documents={roomDocuments}
           setCurrDocument={mockSetCurrDocument}
