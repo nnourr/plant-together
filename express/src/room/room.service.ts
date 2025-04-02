@@ -88,7 +88,23 @@ export class RoomService {
   async createRoomSignature(roomId: string) {
     try {
       if (!roomId) throw new Error("Room not found or not accessible");  
-      return  this.signature.sign(roomId));
+      return this.signature.sign(roomId);
+    } catch (error: any) {
+      logger.error(error);
+      throw new Error("Failed to sign room url");
+    }
+  }
+
+  async processRoomSignature(token: string, roomId: string, signature: string) {
+    try {
+      if (!roomId) throw new Error("No room provided");
+
+      const userId = this.authService.getUserId(token);
+      const verifiedRoomId = this.signature.verify(signature);
+
+      if (verifiedRoomId !== roomId) throw new Error("Provided signature doesn't match requested room");
+      
+      this.roomParticipantRepo.addUserAccess(verifiedRoomId, userId);
     } catch (error: any) {
       logger.error(error);
       throw new Error("Failed to sign room url");

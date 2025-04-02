@@ -77,20 +77,22 @@ app.get("/room/private/:owner_id/:room_name", async (req, res) => {
   const roomName = req.params.room_name;
   const ownerId = req.params.owner_id;
   const token = req.headers.authorization;
-  if (!roomName) {
-    return res.status(400).json({ error: "No Room name Specified" });
-  }
-  if (!ownerId) {
-    return res.status(400).json({ error: "No Room name Specified" });
-  }
-  if (!token) {
-    return res.status(403).json({ error: "Unauthorized user" });
-  }
+  const signature = req.query?.signature;
+  
+  if (!roomName) return res.status(400).json({ error: "No Room name Specified" });
+  if (!ownerId) return res.status(400).json({ error: "No owner ID Specified" });
+  if (!token) return res.status(401).json({ error: "Unauthorized user" });
+
   try {
     const roomId = await roomRepo.retrieveRoomId(roomName, ownerId);
-    if (!roomId) {
-      return res.status(404).json({ error: "Room not found" });
+    if (!roomId) return res.status(404).json({ error: "Room not found" });
+
+    try {
+      if (signature) await roomService.processRoomSignature(token!, roomId, signature as string);
+    } catch(error) {
+      logger.error(`Failed to process provided signature. Continuing with existing user permissions`);
     }
+    
     const room = await roomRepo.getRoomById(roomId);
     const documents = await documentRepo.getDocumentsInRoom(roomId);
     const roomWithDocuments = {
@@ -121,7 +123,10 @@ app.post("/room/:room_name", async (req, res) => {
 
     const ownerId = await authService.getUserId(token!);
     if (!ownerId) return res.status(400).json({ error: "Invalid Token" });
-    await roomRepo.createRoomWithDocument(uuidv4(), room_name, document_name, ownerId, is_private);
+
+    const roomId = uuidv4();
+    await roomRepo.createRoomWithDocument(roomId, room_name, document_name, ownerId, is_private);
+    await roomParticipantRepo.addUserAccess(roomId, ownerId);
     res.sendStatus(200);
   } catch (error) {
     res.sendStatus(500);
@@ -148,13 +153,12 @@ app.put("/room/:room_id/access", async (req, res) => {
 });
 
 app.put("/room/share/:room_id", async (req, res) => {
-  const roomId = req.body.room_id;
+  const roomId = req.params.room_id;
   const token = req.headers.authorization;
 
   try {
-    if (!(await roomService.validateUserPrivateAccess(token!, roomId))) {
-      return res.sendStatus(403);
-    }
+    if (!token) return res.sendStatus(401);
+    if (!(await roomService.validateUserPrivateAccess(token!, roomId))) return res.sendStatus(403);
 
     const signature = await roomService.createRoomSignature(roomId);
     res.status(200).json({ signature });
@@ -173,7 +177,7 @@ app.get("/room/:room_id/uml", async (req, res) => {
   try {
     if (is_private) {
       if (!token) {
-        return res.status(403).json({ error: "Unauthorized user" });
+        return res.status(401).json({ error: "Unauthorized user" });
       }
       if (!(await roomService.validateRoomCreator(token!, is_private))) {
         return res.status(403).json({ error: "Invalid token" });

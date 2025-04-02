@@ -75,8 +75,7 @@ describe("Repositories", () => {
       await roomRepo.createRoomWithDocument(roomId, roomName, documentName, defaultOwnerId, false);
       const roomWithDocuments = await documentRepo.getDocumentsInRoom(roomId);
 
-      expect(roomWithDocuments?.room_id).toBe(roomId);
-      expect(roomWithDocuments?.documents).toEqual(
+      expect(roomWithDocuments).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: documentName }),
         ])
@@ -91,8 +90,8 @@ describe("Repositories", () => {
         defaultRoomId
       );
 
-      expect(roomWithDocuments?.room_id).toBe(defaultRoomId);
-      expect(roomWithDocuments?.documents).toEqual(
+      expect(roomWithDocuments).toBe(defaultRoomId);
+      expect(roomWithDocuments).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: documentName }),
         ])
@@ -104,8 +103,7 @@ describe("Repositories", () => {
         defaultRoomId
       );
 
-      expect(roomWithDocuments?.room_id).toBe(defaultRoomId);
-      expect(roomWithDocuments?.documents).toBeInstanceOf(Array);
+      expect(roomWithDocuments).toBeInstanceOf(Array);
     });
   });
 
@@ -262,7 +260,7 @@ describe("Socket.IO Documents Namespace", () => {
         const documemts = await documentRepo.getDocumentsInRoom(
           DEFAULT_ROOM_ID
         );
-        expect(documemts?.documents).toEqual(
+        expect(documemts).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ name: DEFAULT_DOCUMENT_NAME }),
           ])
@@ -295,7 +293,7 @@ describe("Socket.IO Documents Namespace", () => {
           const documents = await documentRepo.getDocumentsInRoom(
             DEFAULT_ROOM_ID
           );
-          expect(documents?.documents).toEqual(
+          expect(documents).toEqual(
             expect.arrayContaining([
               expect.objectContaining({ name: DEFAULT_DOCUMENT_NAME }),
             ])
@@ -365,7 +363,7 @@ describe("Socket.IO Documents Rename Functionality", () => {
       DEFAULT_IS_PRIVATE
     );
     const documents = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
-    const foundDocument = documents.documents.find(
+    const foundDocument = documents.find(
       (doc) => doc.name === DEFAULT_DOCUMENT_NAME
     );
 
@@ -398,7 +396,7 @@ describe("Socket.IO Documents Rename Functionality", () => {
         const updatedDocuments = await documentRepo.getDocumentsInRoom(
           DEFAULT_ROOM_ID
         );
-        expect(updatedDocuments.documents).toEqual(
+        expect(updatedDocuments).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: documentId, name: newDocumentName }),
           ])
