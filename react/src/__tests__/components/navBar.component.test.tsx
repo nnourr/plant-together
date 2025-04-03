@@ -19,6 +19,7 @@ describe('NavBar', () => {
     roomId: "1",
     roomName: "test",
     isOwner: true,
+    ownerId: "test-id"
   };
 
   const mockUserContext = {

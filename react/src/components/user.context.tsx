@@ -20,7 +20,7 @@ export const UserContext = createContext<UserContextType>({
 });
 
 const userContextInit = async (userContext: UserContextType) => {
-  const token = window.sessionStorage.getItem("jwt");
+  const token = window.localStorage.getItem("jwt");
 
   if (token) {
     try {

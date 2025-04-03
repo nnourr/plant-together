@@ -71,6 +71,8 @@ app.get("/room/private/:owner_id/:room_name", async (req, res) => {
     } catch(error) {
       logger.error(`Failed to process provided signature. Continuing with existing user permissions`);
     }
+
+    if (!(await roomService.validateUserPrivateAccess(token!, roomId))) return res.sendStatus(403);
     
     const room = await roomRepo.getRoomById(roomId);
     const documents = await documentRepo.getDocumentsInRoom(roomId);

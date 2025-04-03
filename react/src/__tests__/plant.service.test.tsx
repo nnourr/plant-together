@@ -12,11 +12,11 @@ const mockFetch = vi.fn();
 
 vi.stubGlobal('fetch', mockFetch);
 
-const mockSessionStorage = {
+const mockLocalStorage = {
   getItem: vi.fn(),
   setItem: vi.fn(),
 };
-Object.defineProperty(window, 'sessionStorage', { value: mockSessionStorage });
+Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
 vi.mock('../service/plant.service.tsx', async () => {
   const actual = await vi.importActual('../service/plant.service.tsx');
@@ -244,7 +244,7 @@ describe('createDocumentInRoom', () => {
 describe('Room Service Functions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSessionStorage.getItem.mockReturnValue('mock.jwt.token');
+    mockLocalStorage.getItem.mockReturnValue('mock.jwt.token');
   });
 
   describe('getPublicRoom', () => {

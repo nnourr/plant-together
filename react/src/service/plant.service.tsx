@@ -161,13 +161,13 @@ const refreshToken = async (token: string | null) => {
 };
 
 export const retrieveToken = async (loginGuestUserCallback?: (...args: any[]) => Promise<void> | undefined, ...args: any[]) => {
-  let token = window.sessionStorage.getItem("jwt") as string;
+  let token = window.localStorage.getItem("jwt") as string;
   
   if (!token) {
     if (!loginGuestUserCallback) throw new Error("User session was not properly initialized");
     
     await loginGuestUserCallback(...args);
-    token = window.sessionStorage.getItem("jwt") as string;
+    token = window.localStorage.getItem("jwt") as string;
 
     console.log('Guest user login success');
   }
