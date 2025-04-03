@@ -524,6 +524,7 @@ describe("Socket.IO Documents Delete Functionality", () => {
   const DEFAULT_ROOM_NAME = "Room 55";
   const DEFAULT_DOCUMENT_NAME = "Document 1";
   const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
+  const DEFAULT_IS_PRIVATE = false;
   let documentId: number;
 
   beforeAll(async () => {
@@ -552,14 +553,15 @@ describe("Socket.IO Documents Delete Functionality", () => {
     });
     clientSocket.on("connect", () => expect(clientSocket.connected).toBe(true));
 
-    await createRoomWithDocument(
+    await roomRepo.createRoomWithDocument(
       DEFAULT_ROOM_ID,
       DEFAULT_ROOM_NAME,
       DEFAULT_DOCUMENT_NAME,
-      DEFAULT_OWNER_ID
+      DEFAULT_OWNER_ID,
+      DEFAULT_IS_PRIVATE
     );
     const documents = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
-    const foundDocument = documents.documents.find(
+    const foundDocument = documents.find(
       (doc) => doc.name === DEFAULT_DOCUMENT_NAME
     );
 
@@ -591,7 +593,7 @@ describe("Socket.IO Documents Delete Functionality", () => {
         const updatedDocuments = await documentRepo.getDocumentsInRoom(
           DEFAULT_ROOM_ID
         );
-        expect(updatedDocuments.documents.length).toEqual(0);
+        expect(updatedDocuments.length).toEqual(0);
 
         console.log("Expecting no documents in the room");
 
