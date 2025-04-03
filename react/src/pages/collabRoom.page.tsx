@@ -38,7 +38,8 @@ export const CollabRoom: React.FC = () => {
   const [isOwner, setIsOwner] = useState<boolean>(false);
   const isPrivate = useMemo<boolean>(() => Boolean(ownerId), [ownerId]);
 
-  useEffect(() => {
+  useEffect(() => { 
+    if (!userContext?.context?.userId) return;
     const getRoomInfo = async () => {
       try {
         const room = isPrivate 
