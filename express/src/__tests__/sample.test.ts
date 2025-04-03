@@ -515,6 +515,129 @@ describe("Socket.IO Documents Rename Functionality", () => {
   });
 });
 
+describe("Socket.IO Documents Delete Functionality", () => {
+  let io: SocketIOServer;
+  let server: any;
+  let clientSocket: ClientSocketType;
+
+  const DEFAULT_ROOM_ID = "55";
+  const DEFAULT_ROOM_NAME = "Room 55";
+  const DEFAULT_DOCUMENT_NAME = "Document 1";
+  const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
+  let documentId: number;
+
+  beforeAll(async () => {
+    const app = express();
+    server = createHttpServer(app);
+    io = new SocketIOServer(server);
+
+    io.of("/documents").on("connection", (socket) =>
+      documentService.documentSocketRouter(io, socket)
+    );
+
+    server.listen(PORT2, () => {
+      console.log(`Test server started on port ${PORT2}`);
+    });
+  });
+
+  afterAll((done) => {
+    io.close();
+    server.close();
+    done();
+  });
+
+  beforeEach(async () => {
+    clientSocket = ClientSocket(`http://localhost:${PORT2}/documents`, {
+      extraHeaders: { "room-id": DEFAULT_ROOM_ID },
+    });
+    clientSocket.on("connect", () => expect(clientSocket.connected).toBe(true));
+
+    await createRoomWithDocument(
+      DEFAULT_ROOM_ID,
+      DEFAULT_ROOM_NAME,
+      DEFAULT_DOCUMENT_NAME,
+      DEFAULT_OWNER_ID
+    );
+    const documents = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
+    const foundDocument = documents.documents.find(
+      (doc) => doc.name === DEFAULT_DOCUMENT_NAME
+    );
+
+    if (!foundDocument) {
+      throw new Error(
+        `Document with name "${DEFAULT_DOCUMENT_NAME}" not found in room ${DEFAULT_ROOM_ID}`
+      );
+    }
+
+    documentId = foundDocument.id;
+  });
+
+  afterEach(async () => {
+    if (clientSocket.connected) clientSocket.disconnect();
+    await sql!`TRUNCATE room, document RESTART IDENTITY CASCADE`;
+  });
+
+  test("should delete a document successfully", (done) => {
+
+    clientSocket.emit(
+      "/delete",
+      { documentId },
+      async (response: DocumentResponse) => {
+        console.log(response);
+        expect(response.status).toBe("SUCCESS");
+        expect(response.code).toBe(200);
+        expect(response.documentId).toBe(documentId);
+
+        const updatedDocuments = await documentRepo.getDocumentsInRoom(
+          DEFAULT_ROOM_ID
+        );
+        expect(updatedDocuments.documents.length).toEqual(0);
+
+        console.log("Expecting no documents in the room");
+
+        done();
+      }
+    );
+  });
+
+  test("should fail to delete a document with a missing documentId", (done) => {
+    clientSocket.emit(
+      "/delete",
+      {  },
+      (response: DocumentResponse) => {
+        expect(response.status).toBe("ERROR");
+        expect(response.code).toBe(400);
+        expect(response.message).toBe("Invalid delete request");
+        done();
+      }
+    );
+  });
+
+  test("should notify other clients when a document is deleted", (done) => {
+    const clientSocket2 = ClientSocket(`http://localhost:${PORT2}/documents`, {
+      extraHeaders: { "room-id": DEFAULT_ROOM_ID },
+    });
+
+    clientSocket2.on("connect", () => {
+      clientSocket.emit(
+        "/delete",
+        { documentId },
+        (response: DocumentResponse) => {
+          expect(response.status).toBe("SUCCESS");
+          expect(response.code).toBe(200);
+        }
+      );
+
+      clientSocket2.on("/document/delete", (message: any) => {
+        expect(message).toEqual(
+          expect.objectContaining({ documentId, code: 200 })
+        );
+        done();
+      });
+    });
+  });
+});
+
 describe("Yjs Helpers", () => {
   const room = "testRoom";
   const docid = "index";
