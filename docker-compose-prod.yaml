@@ -25,6 +25,7 @@ services:
     restart: always
     environment:
       - PORT=${PORT:-3000}
+      - ROOM_SIGNATURE_SECRET=${ROOM_SIGNATURE_SECRET:-0)8+a~([:<OE8RLj5Zp}
 
       # Adjust Firebase credentials locally in .env, do not commit!
       - SERVICE_ACCOUNT_CREDENTIAL=${SERVICE_ACCOUNT_CREDENTIAL}

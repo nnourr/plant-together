@@ -1,28 +1,42 @@
+import express from "express";
+import signed from "signed";
+import sql from "../database/database.js";
+import postgres from "postgres";
+
+import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
+import yjsHelpers from "../yjs/yjs.helpers.js";
+
+import * as encoding from "lib0/encoding";
+import * as Y from "yjs";
+
 import { createServer as createHttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+
 import {
   io as ClientSocket,
   Socket as ClientSocketType,
 } from "socket.io-client";
 
-import express from "express";
+import { v4 as uuidv4 } from 'uuid';
 
-import * as encoding from "lib0/encoding";
-import * as Y from "yjs";
+import { RoomService } from "../room/room.service.js";
+
 import { jest } from "@jest/globals";
-import sql from "../database/database.js";
+import { authServiceMock } from './__mocks__/auth.service.mock.js';
+import { roomRepoMock } from "./__mocks__/room.repo.mock.js";
+import { documentRepoMock } from "./__mocks__/document.repo.mock.js";
+import { participantRepoMock } from "./__mocks__/participant.repo.mock.js";
+import { mockRedis } from "./__mocks__/redis.mock.js";
 
 import { DocumentService } from "../document/document.service.js";
 import { logger } from "../logger.js";
 import { DocumentResponse } from "../document/document.types.js";
 import { DocumentRepo } from "../document/document.repo.js";
+import { RoomParticipantRepo } from "../room/participant.repo.js";
 import { RoomRepo } from "../room/room.repo.js";
 import { RedisClientType } from "redis";
 import { AuthService } from "../user/auth.service.js";
-import { mockRedis } from "./__mocks__/redis.mock.js";
-import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
-import yjsHelpers from "../yjs/yjs.helpers.js";
-import { jwtDecode } from "jwt-decode";
+
 const PORT = 7565;
 
 jest.setTimeout(10000);
@@ -34,6 +48,7 @@ const documentRepo = new DocumentRepo(
 );
 
 const roomRepo = new RoomRepo();
+const participantRepo = new RoomParticipantRepo(sql);
 
 const documentService = new DocumentService(documentRepo);
 
@@ -131,6 +146,45 @@ describe("Repositories", () => {
 
       const umlText = await documentRepo.getDocumentUML(room, 2);
       expect(umlText).toBe("");
+    });
+  });
+
+  describe("Participant Repository", () => {
+    const defaultRoomId = "32332323232";
+    const defaultRoomName = "Room Name Default";
+    const defaultDocumentName = "Default Document Name";
+    const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
+    const isPrivate = false;
+
+    beforeEach(async () => {
+      await roomRepo.createRoomWithDocument(
+        defaultRoomId,
+        defaultRoomName,
+        defaultDocumentName,
+        defaultOwnerId,
+        isPrivate
+      );
+    });
+
+    afterEach(async () => {
+      await sql!`TRUNCATE room_participant, room, document RESTART IDENTITY CASCADE`;
+    });
+
+    it("should not authorize user with no access to private room", async () => {
+      const isAuthorized = await participantRepo.userPrivateAccess(defaultRoomId, defaultOwnerId.replace('0', '1'));
+      expect(isAuthorized).toBe(false);  
+    });
+    
+    it("should authorize user with access to private room", async () => {
+      const userId = defaultOwnerId.replace('0', '1');
+      await participantRepo.addUserAccess(defaultRoomId, userId);
+
+      const isAuthorized = await participantRepo.userPrivateAccess(defaultRoomId, userId);
+      expect(isAuthorized).toBe(true);  
+    });
+
+    it("should not add participant to invalid room", async () => {
+      expect(participantRepo.addUserAccess(defaultRoomId.replace('3', '4'), defaultOwnerId)).rejects.toThrow(postgres.PostgresError);
     });
   });
 });
@@ -588,8 +642,6 @@ describe("AuthService with Firebase Mock", () => {
   });
 });
 
-import { v4 as uuidv4 } from 'uuid';
-
 describe("RoomRepo Tests", () => {
   let roomRepo: RoomRepo;
   const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
@@ -649,6 +701,114 @@ describe("RoomRepo Tests", () => {
   });
 });
 
+describe("Room Service", () => {
+  let roomService: RoomService;
 
+  const mockToken = 'test-token';
+  const mockRoomId = 'test-room-id';
+  const mockUserId = 'test-user-id';
+  const mockSignatureSecret = 'secret';
+
+  describe('validate user private access', () => {
+    beforeEach(async () => {
+      jest.resetAllMocks();
+  
+      roomService = new RoomService(
+        documentRepoMock as any, 
+        authServiceMock as any, 
+        roomRepoMock as any, 
+        participantRepoMock as any, 
+        signed.default
+      );
+    });
+
+    it('should check user access with id from token', async () => {
+      authServiceMock.getUserId.mockImplementation((token: string) => mockUserId);
+      await roomService.validateUserPrivateAccess(mockToken, mockRoomId);
+
+      expect(authServiceMock.getUserId).toHaveBeenCalledWith(mockToken);
+      expect(participantRepoMock.userPrivateAccess).toHaveBeenCalledWith(mockRoomId, mockUserId);
+    });
+
+    it('should return the result of roomParticipantRepo.userPrivateAccess', async () => {
+      const mockAccessResult = true;
+      participantRepoMock.userPrivateAccess.mockResolvedValue(mockAccessResult);
+
+      const result = await roomService.validateUserPrivateAccess(mockToken, mockRoomId);
+      expect(result).toEqual(mockAccessResult);
+
+      const mockAccessResult2 = false;
+      participantRepoMock.userPrivateAccess.mockResolvedValue(mockAccessResult2);
+
+      const result2 = await roomService.validateUserPrivateAccess(mockToken, mockRoomId);
+      expect(result2).toEqual(mockAccessResult2);
+    });
+
+    it('should throw auth service errors', async () => {
+      const errorMessage = 'Auth service error';
+      const logSpy = jest.spyOn(logger, 'error');
+
+      
+      authServiceMock.getUserId.mockImplementation(() => {
+        throw new Error(errorMessage);
+      });
+
+      expect(roomService.validateUserPrivateAccess(mockToken, mockRoomId)).rejects.toThrow('Failed to validate user access to room');
+      expect(logSpy).toHaveBeenCalledWith(new Error(errorMessage));
+    });
+
+    it('should throw participant repo errors', async () => {
+      const errorMessage = 'Repo error';
+      const logSpy = jest.spyOn(logger, 'error');
+
+      participantRepoMock.userPrivateAccess.mockImplementation(() => {
+        throw new Error(errorMessage);
+      });
+
+      expect(roomService.validateUserPrivateAccess(mockToken, mockRoomId)).rejects.toThrow('Failed to validate user access to room');
+      expect(logSpy).toHaveBeenCalledWith(new Error(errorMessage));
+    });
+  });
+
+  describe('room share signatures', () => {
+    const signature = signed.default({ secret: mockSignatureSecret });
+
+    beforeEach(async () => {
+      jest.resetAllMocks();
+  
+      roomService = new RoomService(
+        documentRepoMock as any, 
+        authServiceMock as any, 
+        roomRepoMock as any, 
+        participantRepoMock as any, 
+        () => signature
+      );
+    });
+
+    it('should process valid signatures', async () => {
+      const signSpy = jest.spyOn(signature, 'sign');
+      const verifySpy = jest.spyOn(signature, 'verify');
+
+      authServiceMock.getUserId.mockImplementation(() => mockUserId);
+
+      const roomSignature = await roomService.createRoomSignature(mockRoomId);
+      expect(signSpy).toHaveBeenCalledWith(mockRoomId);
+
+      await roomService.processRoomSignature(mockToken, mockRoomId, roomSignature);
+      expect(verifySpy).toHaveBeenCalledWith(roomSignature);
+      expect(participantRepoMock.addUserAccess).toHaveBeenCalledWith(mockRoomId, mockUserId);
+    });
+
+    it('should throw error for invalid signatures', async () => {
+      const verifySpy = jest.spyOn(signature, 'verify');
+      const invalidSignature = 'invalidroomSignature';
+
+      authServiceMock.getUserId.mockImplementation(() => mockUserId);
+
+      expect(roomService.processRoomSignature(mockToken, mockRoomId, invalidSignature)).rejects.toThrow(Error);
+      expect(verifySpy).toHaveBeenCalledWith(invalidSignature);
+    });
+  });
+});
 
 

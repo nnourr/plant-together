@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer.component";
 import { InputField } from "../components/inputField.component";
@@ -7,15 +7,17 @@ import { faSeedling } from "@fortawesome/free-solid-svg-icons";
 import { Button, ButtonSize } from "../components/button.component";
 import { UserContext } from "../components/user.context";
 import { endSession } from "../utils/auth.helpers";
+import * as plantService from "../service/plant.service";
 
 export const Landing: React.FC = () => {
   const [roomName, setRoomName] = useState<string>("");
   const [error, setError] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const userContext = useContext(UserContext);
   const navigate = useNavigate();
 
-  const goToRoom = () => {
+  const handleGoToRoom = useCallback(async () => {
     if (!roomName.trim()) {
       setError(true);
       setErrorMessage("room name cannot be empty x(");
@@ -31,12 +33,28 @@ export const Landing: React.FC = () => {
       setErrorMessage("no slash allowed x(");
       return;
     }
-    navigate(`room/${roomName}`);
-  };
+
+    try {
+      const roomToGoTo = isPrivate ? `private/${userContext?.context?.userId}/${roomName}` : roomName;
+      // check if room exists in either public or private and goto it
+      const room = isPrivate ? await plantService.getPrivateRoom(userContext?.context?.userId!, roomName) : await plantService.getPublicRoom(roomName);
+      if (room?.documents) { // rooms that exist will have documents key
+        navigate(`/${roomToGoTo}`);
+        return;
+      }
+
+      // create the room
+      await plantService.createRoomWithDocument(roomName, isPrivate, "Document1");
+      navigate(`/${roomToGoTo}`);
+    } catch (error: any) {
+      setError(true);
+      setErrorMessage(error.message.replace(/ /g,''));
+    }
+  }, [roomName, navigate, isPrivate, userContext?.context?.userId, plantService]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      goToRoom();
+      handleGoToRoom();
     }
   };
 
@@ -104,12 +122,12 @@ export const Landing: React.FC = () => {
           </a>
           .
         </h2>
-        <div className="flex gap-4 flex-col md:flex-row box-border mt-8 relative">
+        <div className="flex gap-4 flex-col box-border mt-8 relative items-center">
           <p
             role="alert"
             className={`${
               !error ? "opacity-0" : "opacity-100"
-            } text-red-500 absolute -bottom-8 text-lg transition-opacity`}
+            } text-red-500 absolute bottom-12 -translate-y-[200%] text-lg transition-opacity`}
           >
             {errorMessage}
           </p>
@@ -120,9 +138,28 @@ export const Landing: React.FC = () => {
             onKeyDown={handleKeyDown}
             onBlur={checkOnBlur}
           />
-          <Button size={ButtonSize.lg} onClick={goToRoom}>
+          <div className="flex items-center gap-2">
+            <label htmlFor="room-privacy" className="cursor-pointer relative">
+              <input
+                type="checkbox"
+                id="room-privacy"
+                className="sr-only peer"
+                aria-label="room-privacy"
+                role="checkbox"
+                checked={isPrivate}
+                onChange={() => setIsPrivate(!isPrivate)}
+              />
+              <div className="w-11 h-6 bg-gray-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500" />
+            </label>
+            <span className="text-2xl font-medium select-none">
+              Private
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col md:flex-row box-border relative">
+          <Button size={ButtonSize.lg} onClick={handleGoToRoom}>
             Submit
-          </Button>
+          </Button>          
         </div>
       </div>
       <Footer className="w-full" />
