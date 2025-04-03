@@ -26,16 +26,15 @@ export const Signup: React.FC = () => {
 
     const DEFAULT_ERROR_MESSAGE = "Error occurred while creating account. Please try again later.";
 
-    const handleGuest = async () => {
+    const handleGuest = async (e: React.MouseEvent) => {
+        e.preventDefault();
         try {
             await loginGuestUser(userContext);
+            setError("");
+            navigate("/", { replace: true });
         } catch(error: any) {
             await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError, userContext);
-            return;
         }
-
-        setError("");
-        navigate("/");
     };
 
     const validateSignupForm = () : boolean => {
@@ -52,18 +51,17 @@ export const Signup: React.FC = () => {
         return true;
     }
 
-    const handleSignup = async () => {
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
         if (!validateSignupForm()) return;
 
         try {
             await createUser(displayName, email, password, userContext);
+            setError("");
+            navigate("/", { replace: true });
         } catch (error: any) {
             await failedCreateSession(error.message || DEFAULT_ERROR_MESSAGE, setError, userContext);
-            return;
         }
-
-        setError("");
-        navigate("/");
     };
 
     return (
@@ -90,7 +88,7 @@ export const Signup: React.FC = () => {
                         </div>
                         )}
 
-                        <form className="space-y-6">
+                        <form onSubmit={handleSignup} className="space-y-6">
                             <div className="space-y-2">
                                 <label htmlFor="displayName" className="block text-sm font-medium text-gray-300">Display Name</label>
                                 <InputField
@@ -137,7 +135,7 @@ export const Signup: React.FC = () => {
                                 />
                             </div>
 
-                            <Button size={ButtonSize.lg} onClick={handleSignup} className="w-full bg-green-600 hover:bg-green-700 rounded-md" primary>
+                            <Button type="submit" size={ButtonSize.lg} className="w-full bg-green-600 hover:bg-green-700 rounded-md" primary>
                                 Create Account
                             </Button>
 
@@ -150,7 +148,7 @@ export const Signup: React.FC = () => {
                                 </div>
                             </div>
 
-                            <Button size={ButtonSize.lg}
+                            <Button type="button" size={ButtonSize.lg}
                                 className="w-full hover:bg-green-600/10 rounded-md"
                                 onClick={handleGuest}
                             >
