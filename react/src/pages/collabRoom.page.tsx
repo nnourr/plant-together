@@ -183,8 +183,15 @@ export const CollabRoom: React.FC = () => {
         setRoomDocuments((docs: any) => {
           const updatedRoomDocuments = [...docs];
           
+          const deletedDoc = updatedRoomDocuments.find(
+            (doc) => doc.id === documentId
+          );
+          const index = updatedRoomDocuments.indexOf(deletedDoc!);
+
+          const deleted = updatedRoomDocuments.splice(index, 1);
+
           setCurrDocument((doc: any) =>{
-            if (doc.id === documentId) {
+            if (doc === deleted[0]) {
               return updatedRoomDocuments[0];
             } else {
               return doc;
