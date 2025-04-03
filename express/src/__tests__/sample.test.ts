@@ -1,34 +1,54 @@
+import express from "express";
+import signed from "signed";
+import sql from "../database/database.js";
+import postgres from "postgres";
+
+import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
+import yjsHelpers from "../yjs/yjs.helpers.js";
+
+import * as encoding from "lib0/encoding";
+import * as Y from "yjs";
+
 import { createServer as createHttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+
 import {
   io as ClientSocket,
   Socket as ClientSocketType,
 } from "socket.io-client";
 
-import express from "express";
+import { v4 as uuidv4 } from 'uuid';
 
-import * as encoding from "lib0/encoding";
-import * as Y from "yjs";
-import * as room from "../room/room.repo.js";
+import { RoomService } from "../room/room.service.js";
+
 import { jest } from "@jest/globals";
-import sql from "../database/database.js";
+import { authServiceMock } from './__mocks__/auth.service.mock.js';
+import { roomRepoMock } from "./__mocks__/room.repo.mock.js";
+import { documentRepoMock } from "./__mocks__/document.repo.mock.js";
+import { participantRepoMock } from "./__mocks__/participant.repo.mock.js";
+import { mockRedis } from "./__mocks__/redis.mock.js";
 
 import { DocumentService } from "../document/document.service.js";
 import { logger } from "../logger.js";
 import { DocumentResponse } from "../document/document.types.js";
 import { DocumentRepo } from "../document/document.repo.js";
-import { createRoomWithDocument } from "../room/room.repo.js";
+import { RoomParticipantRepo } from "../room/participant.repo.js";
+import { RoomRepo } from "../room/room.repo.js";
 import { RedisClientType } from "redis";
-import { mockRedis } from "./__mocks__/redis.mock.js";
-import yjsHelpersMock from "./__mocks__/yjs.helpers.mock.js";
-import yjsHelpers from "../yjs/yjs.helpers.js";
+import { AuthService } from "../user/auth.service.js";
+
 const PORT = 7565;
+
+jest.setTimeout(10000);
 
 const documentRepo = new DocumentRepo(
   sql,
   mockRedis as any as RedisClientType,
   yjsHelpersMock
 );
+
+const roomRepo = new RoomRepo();
+const participantRepo = new RoomParticipantRepo(sql);
 
 const documentService = new DocumentService(documentRepo);
 
@@ -44,16 +64,16 @@ describe("Repositories", () => {
     const defaultRoomName = "Room Name Default";
     const defaultDocumentName = "Default Document Name";
     const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
-    const defaultOwnerDisplayName = "Display Name";
-    const defaultOwnerEmail = "email@email.email";
+    const isPrivate = false;
 
     beforeEach(async () => {
       // each test has at least one room and one document
-      await room.createRoomWithDocument(
+      await roomRepo.createRoomWithDocument(
         defaultRoomId,
         defaultRoomName,
         defaultDocumentName,
-        defaultOwnerId
+        defaultOwnerId,
+        isPrivate
       );
     });
 
@@ -67,11 +87,10 @@ describe("Repositories", () => {
       const roomName = "Room 100";
       const documentName = "Document One";
 
-      await room.createRoomWithDocument(roomId, roomName, documentName, defaultOwnerId);
+      await roomRepo.createRoomWithDocument(roomId, roomName, documentName, defaultOwnerId, false);
       const roomWithDocuments = await documentRepo.getDocumentsInRoom(roomId);
 
-      expect(roomWithDocuments?.room_id).toBe(roomId);
-      expect(roomWithDocuments?.documents).toEqual(
+      expect(roomWithDocuments).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: documentName }),
         ])
@@ -86,8 +105,7 @@ describe("Repositories", () => {
         defaultRoomId
       );
 
-      expect(roomWithDocuments?.room_id).toBe(defaultRoomId);
-      expect(roomWithDocuments?.documents).toEqual(
+      expect(roomWithDocuments).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ name: documentName }),
         ])
@@ -99,8 +117,7 @@ describe("Repositories", () => {
         defaultRoomId
       );
 
-      expect(roomWithDocuments?.room_id).toBe(defaultRoomId);
-      expect(roomWithDocuments?.documents).toBeInstanceOf(Array);
+      expect(roomWithDocuments).toBeInstanceOf(Array);
     });
   });
 
@@ -129,6 +146,45 @@ describe("Repositories", () => {
 
       const umlText = await documentRepo.getDocumentUML(room, 2);
       expect(umlText).toBe("");
+    });
+  });
+
+  describe("Participant Repository", () => {
+    const defaultRoomId = "32332323232";
+    const defaultRoomName = "Room Name Default";
+    const defaultDocumentName = "Default Document Name";
+    const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
+    const isPrivate = false;
+
+    beforeEach(async () => {
+      await roomRepo.createRoomWithDocument(
+        defaultRoomId,
+        defaultRoomName,
+        defaultDocumentName,
+        defaultOwnerId,
+        isPrivate
+      );
+    });
+
+    afterEach(async () => {
+      await sql!`TRUNCATE room_participant, room, document RESTART IDENTITY CASCADE`;
+    });
+
+    it("should not authorize user with no access to private room", async () => {
+      const isAuthorized = await participantRepo.userPrivateAccess(defaultRoomId, defaultOwnerId.replace('0', '1'));
+      expect(isAuthorized).toBe(false);  
+    });
+    
+    it("should authorize user with access to private room", async () => {
+      const userId = defaultOwnerId.replace('0', '1');
+      await participantRepo.addUserAccess(defaultRoomId, userId);
+
+      const isAuthorized = await participantRepo.userPrivateAccess(defaultRoomId, userId);
+      expect(isAuthorized).toBe(true);  
+    });
+
+    it("should not add participant to invalid room", async () => {
+      expect(participantRepo.addUserAccess(defaultRoomId.replace('3', '4'), defaultOwnerId)).rejects.toThrow(postgres.PostgresError);
     });
   });
 });
@@ -186,8 +242,7 @@ describe("Socket.IO Documents Namespace", () => {
   const DEFAULT_ROOM_NAME = "Room 55";
   const DEFAULT_DOCUMENT_NAME = "Document 1";
   const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
-  const DEFAULT_OWNER_DISPLAY_NAME = "Display Name";
-  const DEFAULT_OWNER_EMAIL = "email@email.email";
+  const DEFAULT_IS_PRIVATE = false;
 
   beforeAll(async () => {
     const app = express();
@@ -215,11 +270,12 @@ describe("Socket.IO Documents Namespace", () => {
     });
     clientSocket.on("connect", () => expect(clientSocket.connected).toBe(true));
 
-    await createRoomWithDocument(
+    await roomRepo.createRoomWithDocument(
       DEFAULT_ROOM_ID,
       DEFAULT_ROOM_NAME,
       DEFAULT_DOCUMENT_NAME,
-      DEFAULT_OWNER_ID
+      DEFAULT_OWNER_ID,
+      DEFAULT_IS_PRIVATE
     );
   });
 
@@ -257,7 +313,7 @@ describe("Socket.IO Documents Namespace", () => {
         const documemts = await documentRepo.getDocumentsInRoom(
           DEFAULT_ROOM_ID
         );
-        expect(documemts?.documents).toEqual(
+        expect(documemts).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ name: DEFAULT_DOCUMENT_NAME }),
           ])
@@ -290,7 +346,7 @@ describe("Socket.IO Documents Namespace", () => {
           const documents = await documentRepo.getDocumentsInRoom(
             DEFAULT_ROOM_ID
           );
-          expect(documents?.documents).toEqual(
+          expect(documents).toEqual(
             expect.arrayContaining([
               expect.objectContaining({ name: DEFAULT_DOCUMENT_NAME }),
             ])
@@ -322,8 +378,7 @@ describe("Socket.IO Documents Rename Functionality", () => {
   const DEFAULT_ROOM_NAME = "Room 55";
   const DEFAULT_DOCUMENT_NAME = "Document 1";
   const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
-  const DEFAULT_OWNER_DISPLAY_NAME = "Display Name";
-  const DEFAULT_OWNER_EMAIL = "email@email.email";
+  const DEFAULT_IS_PRIVATE = false;
 
   let documentId: number;
 
@@ -353,14 +408,15 @@ describe("Socket.IO Documents Rename Functionality", () => {
     });
     clientSocket.on("connect", () => expect(clientSocket.connected).toBe(true));
 
-    await createRoomWithDocument(
+    await roomRepo.createRoomWithDocument(
       DEFAULT_ROOM_ID,
       DEFAULT_ROOM_NAME,
       DEFAULT_DOCUMENT_NAME,
-      DEFAULT_OWNER_ID
+      DEFAULT_OWNER_ID,
+      DEFAULT_IS_PRIVATE
     );
     const documents = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
-    const foundDocument = documents.documents.find(
+    const foundDocument = documents.find(
       (doc) => doc.name === DEFAULT_DOCUMENT_NAME
     );
 
@@ -393,7 +449,7 @@ describe("Socket.IO Documents Rename Functionality", () => {
         const updatedDocuments = await documentRepo.getDocumentsInRoom(
           DEFAULT_ROOM_ID
         );
-        expect(updatedDocuments.documents).toEqual(
+        expect(updatedDocuments).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ id: documentId, name: newDocumentName }),
           ])
@@ -468,6 +524,7 @@ describe("Socket.IO Documents Delete Functionality", () => {
   const DEFAULT_ROOM_NAME = "Room 55";
   const DEFAULT_DOCUMENT_NAME = "Document 1";
   const DEFAULT_OWNER_ID = "00000000-0000-0000-0000-000000000000";
+  const DEFAULT_IS_PRIVATE = false;
   let documentId: number;
 
   beforeAll(async () => {
@@ -496,14 +553,15 @@ describe("Socket.IO Documents Delete Functionality", () => {
     });
     clientSocket.on("connect", () => expect(clientSocket.connected).toBe(true));
 
-    await createRoomWithDocument(
+    await roomRepo.createRoomWithDocument(
       DEFAULT_ROOM_ID,
       DEFAULT_ROOM_NAME,
       DEFAULT_DOCUMENT_NAME,
-      DEFAULT_OWNER_ID
+      DEFAULT_OWNER_ID,
+      DEFAULT_IS_PRIVATE
     );
     const documents = await documentRepo.getDocumentsInRoom(DEFAULT_ROOM_ID);
-    const foundDocument = documents.documents.find(
+    const foundDocument = documents.find(
       (doc) => doc.name === DEFAULT_DOCUMENT_NAME
     );
 
@@ -535,7 +593,7 @@ describe("Socket.IO Documents Delete Functionality", () => {
         const updatedDocuments = await documentRepo.getDocumentsInRoom(
           DEFAULT_ROOM_ID
         );
-        expect(updatedDocuments.documents.length).toEqual(0);
+        expect(updatedDocuments.length).toEqual(0);
 
         console.log("Expecting no documents in the room");
 
@@ -625,7 +683,6 @@ describe("Yjs Helpers", () => {
   });
 });
 
-import { AuthService } from '../user/auth.service.js';
 import { firebaseMock } from './__mocks__/firebase.mock.js';
 import { userRepoMock } from "./__mocks__/user.repo.mock.js";
 
@@ -709,3 +766,174 @@ describe("AuthService with Firebase Mock", () => {
     expect(userRepoMock.retrieveDisplayName).toHaveBeenCalledWith("user123");
   });
 });
+
+describe("RoomRepo Tests", () => {
+  let roomRepo: RoomRepo;
+  const defaultOwnerId = "00000000-0000-0000-0000-000000000000";
+
+  beforeEach(() => {
+    roomRepo = new RoomRepo();
+  });
+
+  afterEach(async () => {
+    // Clean up the tables after each test.
+    await sql`TRUNCATE room, document RESTART IDENTITY CASCADE`;
+  });
+
+  it("should return undefined when no room exists", async () => {
+    const roomId = await roomRepo.retrieveRoomIdByAccess("NonExistentRoom", false);
+    expect(roomId).toBeUndefined();
+  });
+
+  it("should return room id when room exists without ownerId provided", async () => {
+    const newRoomId = uuidv4();
+    // Insert a test room without specifying ownerId in the function call.
+    await sql`
+      INSERT INTO room (id, name, is_private, owner_id)
+      VALUES (${newRoomId}, 'TestRoom', false, ${defaultOwnerId})
+    `;
+    const retrievedId = await roomRepo.retrieveRoomIdByAccess("TestRoom", false);
+    expect(retrievedId).toBe(newRoomId);
+  });
+
+  it("should return room id when room exists with ownerId provided", async () => {
+    const newRoomId = uuidv4();
+    await sql`
+      INSERT INTO room (id, name, is_private, owner_id)
+      VALUES (${newRoomId}, 'TestRoom2', false, ${defaultOwnerId})
+    `;
+    const retrievedId = await roomRepo.retrieveRoomIdByAccess("TestRoom2", false, defaultOwnerId);
+    expect(retrievedId).toBe(newRoomId);
+  });
+
+  it("should update the room's is_private flag", async () => {
+    const newRoomId = uuidv4();
+    // Insert a test room with is_private initially false.
+    await sql`
+      INSERT INTO room (id, name, is_private, owner_id)
+      VALUES (${newRoomId}, 'TestRoomUpdate', false, ${defaultOwnerId})
+    `;
+    // Verify the initial value is false.
+    let result = await sql`SELECT is_private FROM room WHERE id = ${newRoomId}`;
+    expect(result[0].is_private).toBe(false);
+  
+    // Update the room access to true.
+    await roomRepo.updateRoomAccess(newRoomId, true);
+  
+    // Verify that is_private is now true.
+    result = await sql`SELECT is_private FROM room WHERE id = ${newRoomId}`;
+    expect(result[0].is_private).toBe(true);
+  });
+});
+
+describe("Room Service", () => {
+  let roomService: RoomService;
+
+  const mockToken = 'test-token';
+  const mockRoomId = 'test-room-id';
+  const mockUserId = 'test-user-id';
+  const mockSignatureSecret = 'secret';
+
+  describe('validate user private access', () => {
+    beforeEach(async () => {
+      jest.resetAllMocks();
+  
+      roomService = new RoomService(
+        documentRepoMock as any, 
+        authServiceMock as any, 
+        roomRepoMock as any, 
+        participantRepoMock as any, 
+        signed.default
+      );
+    });
+
+    it('should check user access with id from token', async () => {
+      authServiceMock.getUserId.mockImplementation((token: string) => mockUserId);
+      await roomService.validateUserPrivateAccess(mockToken, mockRoomId);
+
+      expect(authServiceMock.getUserId).toHaveBeenCalledWith(mockToken);
+      expect(participantRepoMock.userPrivateAccess).toHaveBeenCalledWith(mockRoomId, mockUserId);
+    });
+
+    it('should return the result of roomParticipantRepo.userPrivateAccess', async () => {
+      const mockAccessResult = true;
+      participantRepoMock.userPrivateAccess.mockResolvedValue(mockAccessResult);
+
+      const result = await roomService.validateUserPrivateAccess(mockToken, mockRoomId);
+      expect(result).toEqual(mockAccessResult);
+
+      const mockAccessResult2 = false;
+      participantRepoMock.userPrivateAccess.mockResolvedValue(mockAccessResult2);
+
+      const result2 = await roomService.validateUserPrivateAccess(mockToken, mockRoomId);
+      expect(result2).toEqual(mockAccessResult2);
+    });
+
+    it('should throw auth service errors', async () => {
+      const errorMessage = 'Auth service error';
+      const logSpy = jest.spyOn(logger, 'error');
+
+      
+      authServiceMock.getUserId.mockImplementation(() => {
+        throw new Error(errorMessage);
+      });
+
+      expect(roomService.validateUserPrivateAccess(mockToken, mockRoomId)).rejects.toThrow('Failed to validate user access to room');
+      expect(logSpy).toHaveBeenCalledWith(new Error(errorMessage));
+    });
+
+    it('should throw participant repo errors', async () => {
+      const errorMessage = 'Repo error';
+      const logSpy = jest.spyOn(logger, 'error');
+
+      participantRepoMock.userPrivateAccess.mockImplementation(() => {
+        throw new Error(errorMessage);
+      });
+
+      expect(roomService.validateUserPrivateAccess(mockToken, mockRoomId)).rejects.toThrow('Failed to validate user access to room');
+      expect(logSpy).toHaveBeenCalledWith(new Error(errorMessage));
+    });
+  });
+
+  describe('room share signatures', () => {
+    const signature = signed.default({ secret: mockSignatureSecret });
+
+    beforeEach(async () => {
+      jest.resetAllMocks();
+  
+      roomService = new RoomService(
+        documentRepoMock as any, 
+        authServiceMock as any, 
+        roomRepoMock as any, 
+        participantRepoMock as any, 
+        () => signature
+      );
+    });
+
+    it('should process valid signatures', async () => {
+      const signSpy = jest.spyOn(signature, 'sign');
+      const verifySpy = jest.spyOn(signature, 'verify');
+
+      authServiceMock.getUserId.mockImplementation(() => mockUserId);
+
+      const roomSignature = await roomService.createRoomSignature(mockRoomId);
+      expect(signSpy).toHaveBeenCalledWith(mockRoomId);
+
+      await roomService.processRoomSignature(mockToken, mockRoomId, roomSignature);
+      expect(verifySpy).toHaveBeenCalledWith(roomSignature);
+      expect(participantRepoMock.addUserAccess).toHaveBeenCalledWith(mockRoomId, mockUserId);
+    });
+
+    it('should throw error for invalid signatures', async () => {
+      const verifySpy = jest.spyOn(signature, 'verify');
+      const invalidSignature = 'invalidroomSignature';
+
+      authServiceMock.getUserId.mockImplementation(() => mockUserId);
+
+      expect(roomService.processRoomSignature(mockToken, mockRoomId, invalidSignature)).rejects.toThrow(Error);
+      expect(verifySpy).toHaveBeenCalledWith(invalidSignature);
+    });
+  });
+});
+
+

@@ -1,7 +1,7 @@
 import { UmlEditor } from "../components/umlEditor.component";
 import { UmlDisplay } from "../components/umlDisplay.component";
-import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState, useContext } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useState, useContext, useMemo } from "react";
 import { NavBar } from "../components/navBar.component";
 import * as plantService from "../service/plant.service.tsx";
 import { DocumentModel } from "../models/document.model";
@@ -18,7 +18,9 @@ const serverHttpUrl =
   "/documents";
 
 export const CollabRoom: React.FC = () => {
-  const { roomName } = useParams();
+  const { roomName, ownerId } = useParams();
+  const [searchParams] = useSearchParams();
+  const signature = searchParams.get('signature');
   const navigate = useNavigate();
   //useSocketEvent("/document", console.log());
   const [editorValue, setEditorValue] = useState<string>("");
@@ -32,27 +34,39 @@ export const CollabRoom: React.FC = () => {
   const [umlStyle, setUmlStyle] = useState<string>("h-full");
   const [roomId, setRoomId] = useState<string>('');
   const userContext = useContext(UserContext);
+  
+  const [isOwner, setIsOwner] = useState<boolean>(false);
+  const isPrivate = useMemo<boolean>(() => Boolean(ownerId), [ownerId]);
 
-  useEffect(() => {
-    const getRoomInfo = async (r: string) => {
-      if (!userContext?.context?.sessionActive) return;
+  useEffect(() => { 
+    if (!userContext?.context?.userId) return;
+    const getRoomInfo = async () => {
+      try {
+        const room = isPrivate 
+          ? await plantService.getPrivateRoom(ownerId!, roomName!, signature) 
+          : await plantService.getPublicRoom(roomName!);
+        
+        if (!room) {
+          alert("Room not found");
+          navigate('/');
+          return;
+        }
 
-      const room = await plantService.getRoomWithDocuments(r);
-      if (!!!room.documents || room.documents.length === 0) {
-        await plantService.createRoomWithDocument(r, r, "Document1");
-        await getRoomInfo(r);
-        return;
+        setIsOwner(room.owner_id === userContext?.context?.userId);
+        setRoomId(room.id);
+        setRoomDocuments(room.documents);
+        setCurrDocument(room.documents[0]);
+      } catch (error) {
+        console.error("Error getting room info:", error);
+        alert(`Error getting room info: ${error}`);
+        navigate('/');
       }
-
-      setRoomId(room.room_id);
-      setRoomDocuments(room.documents);
-      setCurrDocument(room.documents[0]);
     };
 
     if (roomName) {
-      getRoomInfo(roomName);
+      getRoomInfo();
     }
-  }, [userContext]);
+  }, [userContext, roomName, ownerId, signature]);
 
   if (roomName === undefined) {
     navigate("/");
@@ -169,6 +183,7 @@ export const CollabRoom: React.FC = () => {
 
         setRoomDocuments((docs: any) => {
           const updatedRoomDocuments = [...docs];
+          
           const deletedDoc = updatedRoomDocuments.find(
             (doc) => doc.id === documentId
           );
@@ -177,7 +192,7 @@ export const CollabRoom: React.FC = () => {
           const deleted = updatedRoomDocuments.splice(index, 1);
 
           setCurrDocument((doc: any) =>{
-            if (doc.id === documentId) {
+            if (doc === deleted[0]) {
               return updatedRoomDocuments[0];
             } else {
               return doc;
@@ -285,7 +300,7 @@ export const CollabRoom: React.FC = () => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <NavBar />
+      <NavBar isPrivate={isPrivate} roomId={roomId} roomName={roomName} isOwner={isOwner} ownerId={ownerId!} />
       <div className="flex w-full h-[calc(100%-4rem)] max-w-[100vw] flex-col-reverse md:flex-row">
         {!mobile && closableSideBar()}
         {mobile && mobileSideBar()}

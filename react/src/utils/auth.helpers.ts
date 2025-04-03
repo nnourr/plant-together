@@ -17,7 +17,7 @@ export const parseToken = (token: string) : UserContextObjectType => {
 
 export const createUserSession = async (response: any, userContext: UserContextType) => {
     const token = response.token;
-    window.sessionStorage.setItem("jwt", token);
+    window.localStorage.setItem("jwt", token);
 
     const userContextValue = parseToken(token);
     
@@ -30,7 +30,7 @@ export const createUserSession = async (response: any, userContext: UserContextT
 };
 
 export const endSession = (userContext: UserContextType) => {
-    window.sessionStorage.removeItem("jwt");
+    window.localStorage.removeItem("jwt");
     userContext.set && userContext.set({ sessionActive: false }); 
 };
 

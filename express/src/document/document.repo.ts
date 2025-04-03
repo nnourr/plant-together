@@ -35,7 +35,7 @@ export class DocumentRepo {
     `;
 
     console.info(`Documents in Room ${roomId}:`, documents);
-    return { room_id: roomId, documents: documents };
+    return documents;
   };
 
   renameDocument = async (documentId: string, newDocumentName: string) => {
