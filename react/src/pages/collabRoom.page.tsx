@@ -299,7 +299,7 @@ export const CollabRoom: React.FC = () => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <NavBar isPrivate={isPrivate} roomId={roomId} roomName={roomName} isOwner={isOwner} />
+      <NavBar isPrivate={isPrivate} roomId={roomId} roomName={roomName} isOwner={isOwner} ownerId={ownerId!} />
       <div className="flex w-full h-[calc(100%-4rem)] max-w-[100vw] flex-col-reverse md:flex-row">
         {!mobile && closableSideBar()}
         {mobile && mobileSideBar()}

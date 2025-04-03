@@ -12,9 +12,10 @@ interface NavBarProps {
   roomId: string;
   roomName: string;
   isOwner: boolean;
+  ownerId: string;
 }
 
-export const NavBar: React.FC<NavBarProps> = ({ isPrivate, roomId, roomName, isOwner }) => {
+export const NavBar: React.FC<NavBarProps> = ({ isPrivate, roomId, roomName, isOwner, ownerId }) => {
   const navigate = useNavigate();
   const userContext = useContext(UserContext);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +23,6 @@ export const NavBar: React.FC<NavBarProps> = ({ isPrivate, roomId, roomName, isO
   const displayName = userContext.context.displayName;
 
   const handleAccessToggle = async () => {
-    console.log("handleAccessToggle", isPrivate, roomId);
     if (!roomId) return;
     
     try {
@@ -41,7 +41,7 @@ export const NavBar: React.FC<NavBarProps> = ({ isPrivate, roomId, roomName, isO
   const handleShare = async () => {
     try {
       const { signature } = await plantService.shareRoom(roomId);
-      const shareUrl = `${window.location.origin}/#/private/${userContext.context.userId}/${roomName}?signature=${signature}`;
+      const shareUrl = `${window.location.origin}/#/private/${ownerId}/${roomName}?signature=${signature}`;
       
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
