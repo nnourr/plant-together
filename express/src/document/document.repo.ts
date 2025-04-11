@@ -48,16 +48,17 @@ export class DocumentRepo {
   };
 
   deleteDocument = async (documentId: string) => {
-    await this
-      .sql`DELETE FROM document WHERE id = ${documentId}`;
-    logger.info(
-      `Document with ID ${documentId} was deleted`
-    );
+    await this.sql`DELETE FROM document WHERE id = ${documentId}`;
+    logger.info(`Document with ID ${documentId} was deleted`);
     return { documentId };
   };
 
   getDocumentUML = async (roomId: string, documentId: number) => {
-    const doc = await this.yjsHelpers.getDoc(roomId + documentId, this.redis);
+    const doc = await this.yjsHelpers.getDoc(
+      roomId + documentId,
+      this.redis,
+      this.sql
+    );
     return doc.getText("monaco").toString();
   };
 }
