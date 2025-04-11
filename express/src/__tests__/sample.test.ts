@@ -17,12 +17,12 @@ import {
   Socket as ClientSocketType,
 } from "socket.io-client";
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 import { RoomService } from "../room/room.service.js";
 
 import { jest } from "@jest/globals";
-import { authServiceMock } from './__mocks__/auth.service.mock.js';
+import { authServiceMock } from "./__mocks__/auth.service.mock.js";
 import { roomRepoMock } from "./__mocks__/room.repo.mock.js";
 import { documentRepoMock } from "./__mocks__/document.repo.mock.js";
 import { participantRepoMock } from "./__mocks__/participant.repo.mock.js";
@@ -87,7 +87,13 @@ describe("Repositories", () => {
       const roomName = "Room 100";
       const documentName = "Document One";
 
-      await roomRepo.createRoomWithDocument(roomId, roomName, documentName, defaultOwnerId, false);
+      await roomRepo.createRoomWithDocument(
+        roomId,
+        roomName,
+        documentName,
+        defaultOwnerId,
+        false
+      );
       const roomWithDocuments = await documentRepo.getDocumentsInRoom(roomId);
 
       expect(roomWithDocuments).toEqual(
@@ -171,20 +177,31 @@ describe("Repositories", () => {
     });
 
     it("should not authorize user with no access to private room", async () => {
-      const isAuthorized = await participantRepo.userPrivateAccess(defaultRoomId, defaultOwnerId.replace('0', '1'));
-      expect(isAuthorized).toBe(false);  
+      const isAuthorized = await participantRepo.userPrivateAccess(
+        defaultRoomId,
+        defaultOwnerId.replace("0", "1")
+      );
+      expect(isAuthorized).toBe(false);
     });
-    
+
     it("should authorize user with access to private room", async () => {
-      const userId = defaultOwnerId.replace('0', '1');
+      const userId = defaultOwnerId.replace("0", "1");
       await participantRepo.addUserAccess(defaultRoomId, userId);
 
-      const isAuthorized = await participantRepo.userPrivateAccess(defaultRoomId, userId);
-      expect(isAuthorized).toBe(true);  
+      const isAuthorized = await participantRepo.userPrivateAccess(
+        defaultRoomId,
+        userId
+      );
+      expect(isAuthorized).toBe(true);
     });
 
     it("should not add participant to invalid room", async () => {
-      expect(participantRepo.addUserAccess(defaultRoomId.replace('3', '4'), defaultOwnerId)).rejects.toThrow(postgres.PostgresError);
+      expect(
+        participantRepo.addUserAccess(
+          defaultRoomId.replace("3", "4"),
+          defaultOwnerId
+        )
+      ).rejects.toThrow(postgres.PostgresError);
     });
   });
 });
@@ -580,7 +597,6 @@ describe("Socket.IO Documents Delete Functionality", () => {
   });
 
   test("should delete a document successfully", (done) => {
-
     clientSocket.emit(
       "/delete",
       { documentId },
@@ -603,16 +619,12 @@ describe("Socket.IO Documents Delete Functionality", () => {
   });
 
   test("should fail to delete a document with a missing documentId", (done) => {
-    clientSocket.emit(
-      "/delete",
-      {  },
-      (response: DocumentResponse) => {
-        expect(response.status).toBe("ERROR");
-        expect(response.code).toBe(400);
-        expect(response.message).toBe("Invalid delete request");
-        done();
-      }
-    );
+    clientSocket.emit("/delete", {}, (response: DocumentResponse) => {
+      expect(response.status).toBe("ERROR");
+      expect(response.code).toBe(400);
+      expect(response.message).toBe("Invalid delete request");
+      done();
+    });
   });
 
   test("should notify other clients when a document is deleted", (done) => {
@@ -671,27 +683,29 @@ describe("Yjs Helpers", () => {
 
     expect(ydoc.getText("monaco").toString()).toBe("Hello, Yjs!");
 
-    const retrievedDoc = await yjsHelpers.getDoc(room, mockRedis as any);
+    const retrievedDoc = await yjsHelpers.getDoc(room, mockRedis as any, sql);
     expect(retrievedDoc.getText("monaco").toString()).toBe("Hello, Yjs!");
   });
 
   it("should return an empty Y.Doc when redis returns null", async () => {
     // Simulate redis.xRead returning null
     mockRedis.xRead.mockResolvedValueOnce(null);
-    const retrievedDoc = await yjsHelpers.getDoc(room, mockRedis as any);
+    const retrievedDoc = await yjsHelpers.getDoc(room, mockRedis as any, sql);
     expect(retrievedDoc.getText("monaco").toString()).toBe("");
   });
 });
 
-import { firebaseMock } from './__mocks__/firebase.mock.js';
+import { firebaseMock } from "./__mocks__/firebase.mock.js";
 import { userRepoMock } from "./__mocks__/user.repo.mock.js";
 
-jest.mock('../user/user.repo', () => ({
+jest.mock("../user/user.repo", () => ({
   registerUser: jest.fn((): Promise<void> => Promise.resolve()),
-  retrieveDisplayName: jest.fn((): Promise<string> => Promise.resolve("John Doe")),
+  retrieveDisplayName: jest.fn(
+    (): Promise<string> => Promise.resolve("John Doe")
+  ),
 }));
 
-jest.mock('jwt-decode', () => ({
+jest.mock("jwt-decode", () => ({
   __esModule: true,
   default: jest.fn(() => ({ user_id: "user123" })),
 }));
@@ -714,22 +728,39 @@ describe("AuthService with Firebase Mock", () => {
     firebaseMock.signUpWithEmailPassword.mockResolvedValue(fakeToken);
     // (If AuthService uses jwtDecode internally, ensure that it decodes the above token to { user_id: "user123" })
 
-    const token = await authService.signUpWithEmailPassword("John Doe", "john@example.com", "password123");
+    const token = await authService.signUpWithEmailPassword(
+      "John Doe",
+      "john@example.com",
+      "password123"
+    );
 
     expect(token).toBe(fakeToken);
-    expect(firebaseMock.signUpWithEmailPassword).toHaveBeenCalledWith("john@example.com", "password123");
+    expect(firebaseMock.signUpWithEmailPassword).toHaveBeenCalledWith(
+      "john@example.com",
+      "password123"
+    );
     // We expect that after decoding the token, registerUser is called with "user123"
-    expect(userRepoMock.registerUser).toHaveBeenCalledWith("user123", "John Doe", "john@example.com");
+    expect(userRepoMock.registerUser).toHaveBeenCalledWith(
+      "user123",
+      "John Doe",
+      "john@example.com"
+    );
   });
 
   it("should log in a user and return the token", async () => {
     const fakeToken = "loginFakeToken";
     firebaseMock.loginWithEmailPassword.mockResolvedValue(fakeToken);
 
-    const token = await authService.loginWithEmailPassword("john@example.com", "password123");
+    const token = await authService.loginWithEmailPassword(
+      "john@example.com",
+      "password123"
+    );
 
     expect(token).toBe(fakeToken);
-    expect(firebaseMock.loginWithEmailPassword).toHaveBeenCalledWith("john@example.com", "password123");
+    expect(firebaseMock.loginWithEmailPassword).toHaveBeenCalledWith(
+      "john@example.com",
+      "password123"
+    );
   });
 
   it("should guest login and return a token", async () => {
@@ -749,7 +780,9 @@ describe("AuthService with Firebase Mock", () => {
     const result = await authService.verifyToken(tokenToVerify);
 
     expect(result).toBe(true);
-    expect(firebaseMock.verifyFirebaseIdToken).toHaveBeenCalledWith(tokenToVerify);
+    expect(firebaseMock.verifyFirebaseIdToken).toHaveBeenCalledWith(
+      tokenToVerify
+    );
   });
 
   it("should return false when verifying an empty token", async () => {
@@ -760,7 +793,8 @@ describe("AuthService with Firebase Mock", () => {
 
   it("should return the display name for a dummy token", async () => {
     // Pass any dummy token because our stub always returns the same decoded result.
-    const validToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcjEyMyIsImRpc3BsYXlOYW1lIjoieW8gbWFtYSIsImlhdCI6MTc0MjQxNzk5OH0.CHmi0bE2WtF4pGHtFS8xvGX3yZeu7heJzV0wyo9igfk";
+    const validToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcjEyMyIsImRpc3BsYXlOYW1lIjoieW8gbWFtYSIsImlhdCI6MTc0MjQxNzk5OH0.CHmi0bE2WtF4pGHtFS8xvGX3yZeu7heJzV0wyo9igfk";
     await authService.getDisplayName(validToken);
 
     expect(userRepoMock.retrieveDisplayName).toHaveBeenCalledWith("user123");
@@ -781,7 +815,10 @@ describe("RoomRepo Tests", () => {
   });
 
   it("should return undefined when no room exists", async () => {
-    const roomId = await roomRepo.retrieveRoomIdByAccess("NonExistentRoom", false);
+    const roomId = await roomRepo.retrieveRoomIdByAccess(
+      "NonExistentRoom",
+      false
+    );
     expect(roomId).toBeUndefined();
   });
 
@@ -792,7 +829,10 @@ describe("RoomRepo Tests", () => {
       INSERT INTO room (id, name, is_private, owner_id)
       VALUES (${newRoomId}, 'TestRoom', false, ${defaultOwnerId})
     `;
-    const retrievedId = await roomRepo.retrieveRoomIdByAccess("TestRoom", false);
+    const retrievedId = await roomRepo.retrieveRoomIdByAccess(
+      "TestRoom",
+      false
+    );
     expect(retrievedId).toBe(newRoomId);
   });
 
@@ -802,7 +842,11 @@ describe("RoomRepo Tests", () => {
       INSERT INTO room (id, name, is_private, owner_id)
       VALUES (${newRoomId}, 'TestRoom2', false, ${defaultOwnerId})
     `;
-    const retrievedId = await roomRepo.retrieveRoomIdByAccess("TestRoom2", false, defaultOwnerId);
+    const retrievedId = await roomRepo.retrieveRoomIdByAccess(
+      "TestRoom2",
+      false,
+      defaultOwnerId
+    );
     expect(retrievedId).toBe(newRoomId);
   });
 
@@ -816,10 +860,10 @@ describe("RoomRepo Tests", () => {
     // Verify the initial value is false.
     let result = await sql`SELECT is_private FROM room WHERE id = ${newRoomId}`;
     expect(result[0].is_private).toBe(false);
-  
+
     // Update the room access to true.
     await roomRepo.updateRoomAccess(newRoomId, true);
-  
+
     // Verify that is_private is now true.
     result = await sql`SELECT is_private FROM room WHERE id = ${newRoomId}`;
     expect(result[0].is_private).toBe(true);
@@ -829,111 +873,138 @@ describe("RoomRepo Tests", () => {
 describe("Room Service", () => {
   let roomService: RoomService;
 
-  const mockToken = 'test-token';
-  const mockRoomId = 'test-room-id';
-  const mockUserId = 'test-user-id';
-  const mockSignatureSecret = 'secret';
+  const mockToken = "test-token";
+  const mockRoomId = "test-room-id";
+  const mockUserId = "test-user-id";
+  const mockSignatureSecret = "secret";
 
-  describe('validate user private access', () => {
+  describe("validate user private access", () => {
     beforeEach(async () => {
       jest.resetAllMocks();
-  
+
       roomService = new RoomService(
-        documentRepoMock as any, 
-        authServiceMock as any, 
-        roomRepoMock as any, 
-        participantRepoMock as any, 
+        documentRepoMock as any,
+        authServiceMock as any,
+        roomRepoMock as any,
+        participantRepoMock as any,
         signed.default
       );
     });
 
-    it('should check user access with id from token', async () => {
-      authServiceMock.getUserId.mockImplementation((token: string) => mockUserId);
+    it("should check user access with id from token", async () => {
+      authServiceMock.getUserId.mockImplementation(
+        (token: string) => mockUserId
+      );
       await roomService.validateUserPrivateAccess(mockToken, mockRoomId);
 
       expect(authServiceMock.getUserId).toHaveBeenCalledWith(mockToken);
-      expect(participantRepoMock.userPrivateAccess).toHaveBeenCalledWith(mockRoomId, mockUserId);
+      expect(participantRepoMock.userPrivateAccess).toHaveBeenCalledWith(
+        mockRoomId,
+        mockUserId
+      );
     });
 
-    it('should return the result of roomParticipantRepo.userPrivateAccess', async () => {
+    it("should return the result of roomParticipantRepo.userPrivateAccess", async () => {
       const mockAccessResult = true;
       participantRepoMock.userPrivateAccess.mockResolvedValue(mockAccessResult);
 
-      const result = await roomService.validateUserPrivateAccess(mockToken, mockRoomId);
+      const result = await roomService.validateUserPrivateAccess(
+        mockToken,
+        mockRoomId
+      );
       expect(result).toEqual(mockAccessResult);
 
       const mockAccessResult2 = false;
-      participantRepoMock.userPrivateAccess.mockResolvedValue(mockAccessResult2);
+      participantRepoMock.userPrivateAccess.mockResolvedValue(
+        mockAccessResult2
+      );
 
-      const result2 = await roomService.validateUserPrivateAccess(mockToken, mockRoomId);
+      const result2 = await roomService.validateUserPrivateAccess(
+        mockToken,
+        mockRoomId
+      );
       expect(result2).toEqual(mockAccessResult2);
     });
 
-    it('should throw auth service errors', async () => {
-      const errorMessage = 'Auth service error';
-      const logSpy = jest.spyOn(logger, 'error');
+    it("should throw auth service errors", async () => {
+      const errorMessage = "Auth service error";
+      const logSpy = jest.spyOn(logger, "error");
 
-      
       authServiceMock.getUserId.mockImplementation(() => {
         throw new Error(errorMessage);
       });
 
-      expect(roomService.validateUserPrivateAccess(mockToken, mockRoomId)).rejects.toThrow('Failed to validate user access to room');
+      expect(
+        roomService.validateUserPrivateAccess(mockToken, mockRoomId)
+      ).rejects.toThrow("Failed to validate user access to room");
       expect(logSpy).toHaveBeenCalledWith(new Error(errorMessage));
     });
 
-    it('should throw participant repo errors', async () => {
-      const errorMessage = 'Repo error';
-      const logSpy = jest.spyOn(logger, 'error');
+    it("should throw participant repo errors", async () => {
+      const errorMessage = "Repo error";
+      const logSpy = jest.spyOn(logger, "error");
 
       participantRepoMock.userPrivateAccess.mockImplementation(() => {
         throw new Error(errorMessage);
       });
 
-      expect(roomService.validateUserPrivateAccess(mockToken, mockRoomId)).rejects.toThrow('Failed to validate user access to room');
+      expect(
+        roomService.validateUserPrivateAccess(mockToken, mockRoomId)
+      ).rejects.toThrow("Failed to validate user access to room");
       expect(logSpy).toHaveBeenCalledWith(new Error(errorMessage));
     });
   });
 
-  describe('room share signatures', () => {
+  describe("room share signatures", () => {
     const signature = signed.default({ secret: mockSignatureSecret });
 
     beforeEach(async () => {
       jest.resetAllMocks();
-  
+
       roomService = new RoomService(
-        documentRepoMock as any, 
-        authServiceMock as any, 
-        roomRepoMock as any, 
-        participantRepoMock as any, 
+        documentRepoMock as any,
+        authServiceMock as any,
+        roomRepoMock as any,
+        participantRepoMock as any,
         () => signature
       );
     });
 
-    it('should process valid signatures', async () => {
-      const signSpy = jest.spyOn(signature, 'sign');
-      const verifySpy = jest.spyOn(signature, 'verify');
+    it("should process valid signatures", async () => {
+      const signSpy = jest.spyOn(signature, "sign");
+      const verifySpy = jest.spyOn(signature, "verify");
 
       authServiceMock.getUserId.mockImplementation(() => mockUserId);
 
       const roomSignature = await roomService.createRoomSignature(mockRoomId);
       expect(signSpy).toHaveBeenCalledWith(mockRoomId);
 
-      await roomService.processRoomSignature(mockToken, mockRoomId, roomSignature);
+      await roomService.processRoomSignature(
+        mockToken,
+        mockRoomId,
+        roomSignature
+      );
       expect(verifySpy).toHaveBeenCalledWith(roomSignature);
-      expect(participantRepoMock.addUserAccess).toHaveBeenCalledWith(mockRoomId, mockUserId);
+      expect(participantRepoMock.addUserAccess).toHaveBeenCalledWith(
+        mockRoomId,
+        mockUserId
+      );
     });
 
-    it('should throw error for invalid signatures', async () => {
-      const verifySpy = jest.spyOn(signature, 'verify');
-      const invalidSignature = 'invalidroomSignature';
+    it("should throw error for invalid signatures", async () => {
+      const verifySpy = jest.spyOn(signature, "verify");
+      const invalidSignature = "invalidroomSignature";
 
       authServiceMock.getUserId.mockImplementation(() => mockUserId);
 
-      expect(roomService.processRoomSignature(mockToken, mockRoomId, invalidSignature)).rejects.toThrow(Error);
+      expect(
+        roomService.processRoomSignature(
+          mockToken,
+          mockRoomId,
+          invalidSignature
+        )
+      ).rejects.toThrow(Error);
       expect(verifySpy).toHaveBeenCalledWith(invalidSignature);
     });
   });
 });
-
-
