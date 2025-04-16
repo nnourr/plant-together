@@ -227,7 +227,7 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({
   const isOnlyPng = downloadStates.every((state) => !state.code && !state.svg && state.png);
 
   return (
-    <div className="fixed inset-0  backdrop-blur-sm flex items-center justify-center z-[9999] transition-opacity duration-200">
+    <div className="fixed inset-0  backdrop-blur-xs flex items-center justify-center z-9999 transition-opacity duration-200">
       <div className="bg-slate-800 p-6 rounded-xl w-[32rem] shadow-xl">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-white text-2xl font-bold">Download Package</h2>
