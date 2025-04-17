@@ -35,22 +35,40 @@ export const Landing: React.FC = () => {
     }
 
     try {
-      const roomToGoTo = isPrivate ? `private/${userContext?.context?.userId}/${roomName}` : roomName;
+      const roomToGoTo = isPrivate
+        ? `private/${userContext?.context?.userId}/${roomName}`
+        : roomName;
       // check if room exists in either public or private and goto it
-      const room = isPrivate ? await plantService.getPrivateRoom(userContext?.context?.userId!, roomName) : await plantService.getPublicRoom(roomName);
-      if (room?.documents) { // rooms that exist will have documents key
+      const room = isPrivate
+        ? await plantService.getPrivateRoom(
+            userContext?.context?.userId!,
+            roomName
+          )
+        : await plantService.getPublicRoom(roomName);
+      if (room?.documents) {
+        // rooms that exist will have documents key
         navigate(`/${roomToGoTo}`);
         return;
       }
 
       // create the room
-      await plantService.createRoomWithDocument(roomName, isPrivate, "Document1");
+      await plantService.createRoomWithDocument(
+        roomName,
+        isPrivate,
+        "Document1"
+      );
       navigate(`/${roomToGoTo}`);
     } catch (error: any) {
       setError(true);
-      setErrorMessage(error.message.replace(/ /g,''));
+      setErrorMessage(error.message.replace(/ /g, ""));
     }
-  }, [roomName, navigate, isPrivate, userContext?.context?.userId, plantService]);
+  }, [
+    roomName,
+    navigate,
+    isPrivate,
+    userContext?.context?.userId,
+    plantService,
+  ]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -74,7 +92,7 @@ export const Landing: React.FC = () => {
       setErrorMessage("no slash allowed x(");
       return;
     }
-    
+
     return;
   };
 
@@ -82,34 +100,31 @@ export const Landing: React.FC = () => {
     try {
       endSession(userContext);
       navigate("/login");
-    } catch(error: any) {
+    } catch (error: any) {
       console.error(error.message);
     }
   };
 
   return (
-    <div>
-      <header className="p-4 flex justify-end bg-slate-900">
+    <div className="h-full flex flex-col bg-slate-900">
+      <header className="p-4 flex justify-end">
         <div>
           <Button size={ButtonSize.md} onClick={handleLoginOut}>
-            {!userContext?.context?.sessionActive || userContext?.context?.isGuest
-            && 'Login' || 'Logout'}
+            {!userContext?.context?.sessionActive ||
+              (userContext?.context?.isGuest && "Login") ||
+              "Logout"}
           </Button>
         </div>
       </header>
-      <div className="w-full h-[100dvh] bg-slate-900 text-white flex justify-center items-center flex-col gap-12">
-        <h1 className="max-w-[100vw] text-6xl relative text-center lg:text-9xl font-mono font-bold">
+      <div className="w-full h-full text-white flex justify-center items-center flex-col gap-10">
+        <h1 className="max-w-[100vw] text-6xl relative text-center lg:text-8xl font-mono font-bold">
           <FontAwesomeIcon
             icon={faSeedling}
-            className="mr-16 hidden lg:inline"
+            className="md:mr-14 lg:mr-16 !hidden md:!inline"
           />
           Plant Together.
         </h1>
-        <FontAwesomeIcon
-          icon={faSeedling}
-          className="text-6xl -my-4 lg:hidden"
-        />
-        <h2 className="text-center text-xl px-8 lg:text-3xl">
+        <h2 className="text-center text-xl px-8 md:text-2xl text-slate-500">
           A simple, collaborative PlantUML editor.
           <br />
           Powered by{" "}
@@ -122,7 +137,7 @@ export const Landing: React.FC = () => {
           </a>
           .
         </h2>
-        <div className="flex gap-4 flex-col box-border mt-8 relative items-center">
+        <div className="flex gap-4 flex-col box-border mt-4 relative items-center md:w-96">
           <p
             role="alert"
             className={`${
@@ -131,14 +146,23 @@ export const Landing: React.FC = () => {
           >
             {errorMessage}
           </p>
-          <InputField
-            onChange={(e) => setRoomName(e.target.value)}
-            type="text"
-            placeholder="enter a room name"
-            onKeyDown={handleKeyDown}
-            onBlur={checkOnBlur}
-          />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row gap-4 w-full">
+            <InputField
+              onChange={(e) => setRoomName(e.target.value)}
+              type="text"
+              placeholder="enter a room name"
+              onKeyDown={handleKeyDown}
+              onBlur={checkOnBlur}
+              className="md:w-2/3 shrink"
+            />
+            <Button size={ButtonSize.lg} onClick={handleGoToRoom}>
+              Submit
+            </Button>
+          </div>
+          <div
+            className="flex items-center gap-2"
+            title="Joining a private room?"
+          >
             <label htmlFor="room-privacy" className="cursor-pointer relative">
               <input
                 type="checkbox"
@@ -151,16 +175,10 @@ export const Landing: React.FC = () => {
               />
               <div className="w-11 h-6 bg-gray-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500" />
             </label>
-            <span className="text-2xl font-medium select-none">
-              Private
-            </span>
+            <span className="text-2xl select-none">Private</span>
           </div>
         </div>
-        <div className="flex flex-col md:flex-row box-border relative">
-          <Button size={ButtonSize.lg} onClick={handleGoToRoom}>
-            Submit
-          </Button>          
-        </div>
+        <div className="flex flex-col md:flex-row box-border relative"></div>
       </div>
       <Footer className="w-full" />
     </div>

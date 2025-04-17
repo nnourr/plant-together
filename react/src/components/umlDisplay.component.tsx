@@ -95,7 +95,7 @@ export const UmlDisplay: React.FC<UmlDisplayProps> = ({
         <FontAwesomeIcon icon={faSpinner} spinPulse className="text-5xl" />
       ) : (
         <TransformWrapper doubleClick={{ mode: "toggle" }} centerOnInit>
-          <TransformComponent wrapperClass="!w-full !h-full">
+          <TransformComponent wrapperClass="w-full! h-full!">
             <img className={`object-scale-down`} src={imgSource} />
           </TransformComponent>
         </TransformWrapper>

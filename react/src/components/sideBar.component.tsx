@@ -94,7 +94,7 @@ export const SideBar: React.FC<SideBarProps> = ({
           size={ButtonSize.md}
           onClick={() => setCurrDocument(document)}
           primary={true}
-          className="w-full flex-shrink-0"
+          className="w-full shrink-0"
         >
           <div className={`flex`}>
             {edit && (
@@ -156,7 +156,7 @@ export const SideBar: React.FC<SideBarProps> = ({
         <Button
           key={document.id}
           size={ButtonSize.md}
-          className={`w-full text-left truncate flex-shrink-0`}
+          className={`w-full text-left truncate shrink-0`}
           onClick={() => setCurrDocument(document)}
           primary={false}
         >
@@ -207,7 +207,7 @@ export const SideBar: React.FC<SideBarProps> = ({
           <Button
             size={ButtonSize.md}
             onClick={() => newDocument()}
-            className="w-full flex-shrink-0"
+            className="w-full shrink-0"
             data-testid="add-button"
           >
             <FontAwesomeIcon icon={faPlus} />
@@ -215,7 +215,7 @@ export const SideBar: React.FC<SideBarProps> = ({
         </div>
         <div className="absolute bottom-4 left-4">
           <button
-            className="text-white focus:outline-none"
+            className="text-white focus:outline-hidden"
             aria-label="Help"
             onClick={() => setShowTooltip(!showTooltip)}
           >
@@ -223,7 +223,7 @@ export const SideBar: React.FC<SideBarProps> = ({
           </button>
           {showTooltip && (
             <div
-              className="absolute bottom-14 left-0 bg-[#1e1e1e] text-white text-lg p-3 rounded shadow-lg cursor-pointer whitespace-nowrap"
+              className="absolute bottom-14 left-0 bg-[#1e1e1e] text-white text-lg p-3 rounded-sm shadow-lg cursor-pointer whitespace-nowrap"
               onClick={() => window.open("https://plantuml.com/", "_blank")}
             >
               About Plant UML
@@ -245,7 +245,7 @@ export const SideBar: React.FC<SideBarProps> = ({
 
       {
         isLastDoc && (
-          <div data-testid="error-modal" className="fixed inset-0  backdrop-blur-sm flex items-center justify-center z-[9999] transition-opacity duration-200">
+          <div data-testid="error-modal" className="fixed inset-0  backdrop-blur-xs flex items-center justify-center z-9999 transition-opacity duration-200">
             <div className="bg-slate-800 p-6 rounded-xl w-[32rem] shadow-xl">
                 <div className="items-center justify-between mb-6 space-y-2">
                     <h2 className="text-white text-2xl font-bold">Cannot delete last document in room!</h2>
