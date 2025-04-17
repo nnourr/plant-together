@@ -2,7 +2,7 @@ import NourHeadshot from "../assets/headshots/NoureldeenAhmed.jpeg";
 import JasonHeadshot from "../assets/headshots/JasonTan.jpg";
 import BrettHeadshot from "../assets/headshots/BrettanCutchall.jpg";
 import ValmikHeadshot from "../assets/headshots/ValmikHeadshot.jpeg";
-import MazenHeadshot from "../assets/headshots/MazenHeadshot.jpeg";
+import MazenHeadshot from "../assets/headshots/MazenHeadshot.jpg";
 import { Button, ButtonSize } from "./button.component";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClose } from "@fortawesome/free-solid-svg-icons";
@@ -31,7 +31,7 @@ const contributors: Contributor[] = [
   },
   {
     name: "Brettan\nCutchall",
-    link: "https://nnourr.tech",
+    link: "https://github.com/Bcutch",
     image: BrettHeadshot,
   },
   {
