@@ -50,9 +50,9 @@ jobs:
         uses: azure/login@v2
         with:
           auth-type: SERVICE_PRINCIPAL
-          client-id: hello
-          tenant-id: hello
-          subscription-id: hello
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Login to Azure Registry
         uses: azure/cli@v2
