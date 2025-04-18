@@ -83,6 +83,7 @@ jobs:
           sed -i "s%AZURE_REGISTRY%${{ secrets.AZURE_REGISTRY }}%g" ../az-deploy/containers.yaml
           sed -i "s%AZURE_SUBSCRIPTION_ID%${{ secrets.AZURE_SUBSCRIPTION_ID }}%g" ../az-deploy/containers.yaml
           sed -i "s%AZURE_TENANT_ID%${{ secrets.AZURE_TENANT_ID }}%g" ../az-deploy/containers.yaml
+          sed -i "s%AZURE_CLIENT_ID%${{ secrets.AZURE_CLIENT_ID }}%g" ../az-deploy/containers.yaml
 
       - name: Deploy Azure Container App
         uses: azure/cli@v2
