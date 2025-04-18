@@ -41,7 +41,7 @@ jobs:
     environment:
       name: express-deployment
 
-    if: needs.filter.outputs.backend == 'true' || inputs.force_deploy
+    # if: needs.filter.outputs.backend == 'true' || inputs.force_deploy
 
     steps:
       - name: Checkout Code
