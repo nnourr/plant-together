@@ -79,9 +79,9 @@ jobs:
 
       - name: Replace Deployment Secrets
         run: |
-          sed -i "s%<AZURE_REGISTRY>%${{ secrets.AZURE_REGISTRY }}%g" ../az-deploy/containers.yaml
-          sed -i "s%<AZURE_SUBSCRIPTION_ID>%${{ secrets.AZURE_SUBSCRIPTION_ID }}%g" ../az-deploy/containers.yaml
-          sed -i "s%<AZURE_KEYVAULT_URL>%${{ secrets.AZURE_KEYVAULT_URL }}%g" ../az-deploy/containers.yaml
+          sed -i "s%<AZURE_REGISTRY>%${{ secrets.AZURE_REGISTRY }}%g" ./.github/az-deploy/containers.yaml
+          sed -i "s%<AZURE_SUBSCRIPTION_ID>%${{ secrets.AZURE_SUBSCRIPTION_ID }}%g" ./.github/az-deploy/containers.yaml
+          sed -i "s%<AZURE_KEYVAULT_URL>%${{ secrets.AZURE_KEYVAULT_URL }}%g" ./.github/az-deploy/containers.yaml
 
       - name: Deploy Azure Container App
         uses: azure/cli@v2
