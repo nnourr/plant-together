@@ -53,15 +53,15 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Login to Azure Registry
         uses: azure/cli@v2
         with:
           azcliversion: 2.71.0
           inlineScript: |
             az acr login --name ${{ secrets.AZURE_REGISTRY }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
 
       - name: Build Express Image
         run: |
