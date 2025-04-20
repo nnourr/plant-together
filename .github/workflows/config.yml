@@ -97,7 +97,7 @@ jobs:
     needs: filter
     environment:
       name: express-deployment
-    if: ${{ vars.BACKEND_DEPLOYMENT_CLOUD }} == 'GCP' && (needs.filter.outputs.backend == 'true' || inputs.force_deploy)
+    if: vars.BACKEND_DEPLOYMENT_CLOUD == 'GCP' && (needs.filter.outputs.backend == 'true' || inputs.force_deploy)
 
     steps:
       - name: Checkout Code
@@ -166,7 +166,7 @@ jobs:
     needs: filter
     environment:
       name: express-deployment
-    if: ${{ vars.BACKEND_DEPLOYMENT_CLOUD }} == 'GCP' && (needs.filter.outputs.y_redis == 'true' || inputs.force_deploy)
+    if: vars.BACKEND_DEPLOYMENT_CLOUD == 'GCP' && (needs.filter.outputs.y_redis == 'true' || inputs.force_deploy)
 
     steps:
       - name: Checkout Code
