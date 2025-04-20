@@ -31,40 +31,40 @@ properties:
     secrets:
       - name: firebase-api-key
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/firebase-api-key
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-api-key
       - name: postgres-connection-string
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/postgres-connection-string
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/postgres-connection-string
       - name: db-name
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/db-name
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-name
       - name: db-user
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/db-user
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-user
       - name: firebase-project-id
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/firebase-project-id
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-project-id
       - name: redis-host
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/redis-host
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/redis-host
       - name: db-pass
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/db-pass
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-pass
       - name: room-signature-secret
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/room-signature-secret
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/room-signature-secret
       - name: db-host
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/db-host
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-host
       - name: db-port
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/db-port
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-port
       - name: firebase-auth-domain
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/firebase-auth-domain
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-auth-domain
       - name: gcp-credential
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>/secrets/service-account-credential
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/service-account-credential
   template:
     containers:
       - name: express
