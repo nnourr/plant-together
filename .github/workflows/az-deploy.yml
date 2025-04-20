@@ -56,12 +56,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # - name: Login to Azure Registry
-      #   uses: azure/cli@v2
-      #   with:
-      #     azcliversion: 2.71.0
-      #     inlineScript: |
-      #       az acr login --name ${{ secrets.AZURE_REGISTRY }}
+      - name: Login to Azure Registry
+        run: |
+          TOKEN=$(az acr login --name ${{ secrets.AZURE_REGISTRY }} --expose-token --output tsv --query accessToken)
+          docker login ${{ secrets.AZURE_REGISTRY }}.azurecr.io --username 00000000-0000-0000-0000-000000000000 --password-stdin <<< $TOKEN
 
       - name: Build Express Image
         run: |
