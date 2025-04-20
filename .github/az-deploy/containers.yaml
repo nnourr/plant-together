@@ -64,7 +64,7 @@ properties:
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-auth-domain
       - name: gcp-credential
         identity: system
-        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/service-account-credential
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/gcp-credential
   template:
     containers:
       - name: express
