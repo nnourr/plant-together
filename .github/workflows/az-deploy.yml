@@ -44,7 +44,7 @@ jobs:
     environment:
       name: express-deployment
 
-    if: (${{ vars.BACKEND_DEPLOYMENT_CLOUD }} == 'AZURE') || inputs.force_deploy
+    if: ${{ vars.BACKEND_DEPLOYMENT_CLOUD }} == 'AZURE' && (needs.filter.outputs.express == 'true' || needs.filter.outputs.yredis == 'true' || inputs.force_deploy)
 
     steps:
       - name: Checkout Code
