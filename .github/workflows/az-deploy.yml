@@ -88,4 +88,4 @@ jobs:
         with:
           azcliversion: 2.71.0
           inlineScript: |
-            az containerapp update -n plant-containers -g plant_together --yaml ../az-deploy/containers.yaml
+            az containerapp update -n plant-containers -g plant_together --yaml ./.github/az-deploy/containers.yaml
