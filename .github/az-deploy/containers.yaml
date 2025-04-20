@@ -99,7 +99,7 @@ properties:
           ephemeralStorage: 1Gi
           memory: 0.5Gi
       - name: yredis
-        image: <AZURE_REGISTRY>.azurecr.io/plant-yredis:latest
+        image: <AZURE_REGISTRY>.azurecr.io/y_redis:latest
         env:
           - name: REDIS
             secretRef: redis-host
