@@ -115,9 +115,9 @@ properties:
           memory: 1Gi
     scale:
       maxReplicas: 2
-      minReplicas: 1
+      minReplicas: 0
       rules:
         - name: tcp-scaler
           tcp:
             metadata:
-              concurrentConnections: "10"
+              concurrentConnections: "150"
