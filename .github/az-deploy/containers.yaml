@@ -1,0 +1,123 @@
+name: plant-containers
+resourceGroup: plant_together
+type: Microsoft.App/containerApps
+location: Central US
+id: /subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/providers/Microsoft.App/containerapps/plant-containers
+identity:
+  type: SystemAssigned
+properties:
+  managedEnvironmentId: /subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/providers/Microsoft.App/managedEnvironments/plant-env
+  eventStreamEndpoint: https://centralus.azurecontainerapps.dev/subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/containerApps/plant-containers/eventstream
+  workloadProfileName: Consumption
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      transport: Tcp
+      allowInsecure: false
+      maxInactiveRevisions: 10
+      external: true
+      targetPort: 3000
+      exposedPort: 3000
+      additionalPortMappings:
+        - exposedPort: 3003
+          external: true
+          targetPort: 3003
+      traffic:
+        - latestRevision: true
+          weight: 100
+    registries:
+      - identity: system
+        server: <AZURE_REGISTRY>.azurecr.io
+    secrets:
+      - name: firebase-api-key
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-api-key
+      - name: postgres-connection-string
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/postgres-connection-string
+      - name: db-name
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-name
+      - name: db-user
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-user
+      - name: firebase-project-id
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-project-id
+      - name: redis-host
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/redis-host
+      - name: db-pass
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-pass
+      - name: room-signature-secret
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/room-signature-secret
+      - name: db-host
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-host
+      - name: db-port
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-port
+      - name: firebase-auth-domain
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-auth-domain
+      - name: gcp-credential
+        identity: system
+        keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/gcp-credential
+  template:
+    containers:
+      - name: express
+        image: <AZURE_REGISTRY>.azurecr.io/plant-express:latest
+        env:
+          - name: SERVICE_ACCOUNT_CREDENTIAL
+            secretRef: gcp-credential
+          - name: DB_USER
+            secretRef: db-user
+          - name: DB_PASS
+            secretRef: db-pass
+          - name: DB_NAME
+            secretRef: db-name
+          - name: FIREBASE_API_KEY
+            secretRef: firebase-api-key
+          - name: FIREBASE_AUTH_DOMAIN
+            secretRef: firebase-auth-domain
+          - name: ROOM_SIGNATURE_SECRET
+            secretRef: room-signature-secret
+          - name: DB_PORT
+            secretRef: db-port
+          - name: PORT
+            value: 3000
+          - name: FIREBASE_PROJECT_ID
+            secretRef: firebase-project-id
+          - name: DB_HOST
+            secretRef: db-host
+          - name: REDIS_HOST
+            secretRef: redis-host
+        resources:
+          cpu: 0.25
+          ephemeralStorage: 1Gi
+          memory: 0.5Gi
+      - name: yredis
+        image: <AZURE_REGISTRY>.azurecr.io/y_redis:latest
+        env:
+          - name: REDIS
+            secretRef: redis-host
+          - name: PORT
+            value: 3003
+          - name: LOG
+            value: ^(?!No tasks available).*$
+          - name: POSTGRES
+            secretRef: postgres-connection-string
+        resources:
+          cpu: 0.5
+          ephemeralStorage: 1Gi
+          memory: 1Gi
+    scale:
+      maxReplicas: 2
+      minReplicas: 0
+      rules:
+        - name: tcp-scaler
+          tcp:
+            metadata:
+              concurrentConnections: "150"

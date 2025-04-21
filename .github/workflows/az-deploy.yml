@@ -1,0 +1,97 @@
+name: Deploy Backend Services to Azure
+
+on:
+  push:
+    branches: ["main"]
+
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: "Force deploy all services"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  filter:
+    name: Determine Changed Paths
+    runs-on: ubuntu-latest
+    outputs:
+      express: ${{ steps.filter.outputs.express }}
+      yredis: ${{ steps.filter.outputs.yredis }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up paths-filter
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            express:
+              - 'express/**'
+            yredis:
+              - 'y-redis/**'
+
+  build-deploy-backend-azure:
+    name: Build and Deploy Backend to Azure
+    runs-on: ubuntu-latest
+    needs: filter
+    environment:
+      name: express-deployment
+
+    if: vars.BACKEND_DEPLOYMENT_CLOUD == 'AZURE' && (needs.filter.outputs.express == 'true' || needs.filter.outputs.yredis == 'true' || inputs.force_deploy == 'true')
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Azure Registry
+        run: |
+          TOKEN=$(az acr login --name ${{ secrets.AZURE_REGISTRY }} --expose-token --output tsv --query accessToken)
+          docker login ${{ secrets.AZURE_REGISTRY }}.azurecr.io --username 00000000-0000-0000-0000-000000000000 --password-stdin <<< $TOKEN
+
+      - name: Build Express Image
+        if: needs.filter.outputs.express == 'true'
+        run: |
+          docker build -t ${{ secrets.AZURE_REGISTRY }}.azurecr.io/plant-express:latest ./express
+
+      - name: Build Y-Redis Image
+        if: needs.filter.outputs.yredis == 'true'
+        run: |
+          docker build -t ${{ secrets.AZURE_REGISTRY }}.azurecr.io/y_redis:latest ./y-redis
+
+      - name: Push Express Image to Registry
+        if: needs.filter.outputs.express == 'true'
+        run: |
+          docker push ${{ secrets.AZURE_REGISTRY }}.azurecr.io/plant-express:latest
+
+      - name: Push Y-Redis Image to Registry
+        if: needs.filter.outputs.yredis == 'true'
+        run: |
+          docker push ${{ secrets.AZURE_REGISTRY }}.azurecr.io/y_redis:latest
+
+      - name: Replace Deployment Secrets
+        run: |
+          sed -i "s%<AZURE_REGISTRY>%${{ secrets.AZURE_REGISTRY }}%g" ./.github/az-deploy/containers.yaml
+          sed -i "s%<AZURE_SUBSCRIPTION_ID>%${{ secrets.AZURE_SUBSCRIPTION_ID }}%g" ./.github/az-deploy/containers.yaml
+          sed -i "s%<AZURE_KEYVAULT_URL>%${{ secrets.AZURE_KEYVAULT_URL }}%g" ./.github/az-deploy/containers.yaml
+
+      - name: Deploy Azure Container App
+        uses: azure/cli@v2
+        with:
+          azcliversion: 2.71.0
+          inlineScript: |
+            az containerapp update -n plant-containers -g plant_together --yaml ./.github/az-deploy/containers.yaml
