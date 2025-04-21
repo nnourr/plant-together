@@ -110,9 +110,9 @@ properties:
           - name: POSTGRES
             secretRef: postgres-connection-string
         resources:
-          cpu: 0.25
+          cpu: 0.5
           ephemeralStorage: 1Gi
-          memory: 0.5Gi
+          memory: 1Gi
     scale:
       maxReplicas: 2
       minReplicas: 1
