@@ -41,10 +41,10 @@ jobs:
 
       - name: Echo stuff
         run: |
-          echo ${{ vars.BACKEND_DEPLOYMENT_CLOUD }}
-          echo ${{ steps.filter.outputs.express }}
-          echo ${{ steps.filter.outputs.yredis }}
-          echo ${{ inputs.force_deploy }}
+          echo "---${{ vars.BACKEND_DEPLOYMENT_CLOUD }}---"
+          echo "---${{ steps.filter.outputs.express }}---"
+          echo "---${{ steps.filter.outputs.yredis }}---"
+          echo "---${{ inputs.force_deploy }}---"
 
   build-deploy-backend-azure:
     name: Build and Deploy Backend to Azure
