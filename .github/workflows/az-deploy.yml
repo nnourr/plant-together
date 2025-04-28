@@ -64,22 +64,22 @@ jobs:
           docker login ${{ secrets.AZURE_REGISTRY }}.azurecr.io --username 00000000-0000-0000-0000-000000000000 --password-stdin <<< $TOKEN
 
       - name: Build Express Image
-        if: needs.filter.outputs.express == 'true'
+        if: needs.filter.outputs.express == 'true' || inputs.force_deploy
         run: |
           docker build -t ${{ secrets.AZURE_REGISTRY }}.azurecr.io/plant-express:latest ./express
 
       - name: Build Y-Redis Image
-        if: needs.filter.outputs.yredis == 'true'
+        if: needs.filter.outputs.yredis == 'true' || inputs.force_deploy
         run: |
           docker build -t ${{ secrets.AZURE_REGISTRY }}.azurecr.io/y_redis:latest ./y-redis
 
       - name: Push Express Image to Registry
-        if: needs.filter.outputs.express == 'true'
+        if: needs.filter.outputs.express == 'true' || inputs.force_deploy
         run: |
           docker push ${{ secrets.AZURE_REGISTRY }}.azurecr.io/plant-express:latest
 
       - name: Push Y-Redis Image to Registry
-        if: needs.filter.outputs.yredis == 'true'
+        if: needs.filter.outputs.yredis == 'true' || inputs.force_deploy
         run: |
           docker push ${{ secrets.AZURE_REGISTRY }}.azurecr.io/y_redis:latest
 
