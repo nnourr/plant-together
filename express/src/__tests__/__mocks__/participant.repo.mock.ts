@@ -1,8 +1,7 @@
-import { jest } from '@jest/globals';
+import { jest } from '@jest/globals'
 
 export const participantRepoMock = {
-  userPrivateAccess: jest.fn<(roomId: string, userId: string) => Promise<boolean>>(),
+  userPrivateAccess:
+    jest.fn<(roomId: string, userId: string) => Promise<boolean>>(),
   addUserAccess: jest.fn<(roomId: string, userId: string) => Promise<void>>(),
-};
-
-
+}

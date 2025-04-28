@@ -12,7 +12,11 @@ import * as array from 'lib0/array'
 const run = async subscriber => {
   while (true) {
     try {
-      const ms = await subscriber.client.getMessages(array.from(subscriber.subs.entries()).map(([stream, s]) => ({ key: stream, id: s.id })))
+      const ms = await subscriber.client.getMessages(
+        array
+          .from(subscriber.subs.entries())
+          .map(([stream, s]) => ({ key: stream, id: s.id })),
+      )
       for (let i = 0; i < ms.length; i++) {
         const m = ms[i]
         const sub = subscriber.subs.get(m.stream)
@@ -43,7 +47,7 @@ export class Subscriber {
   /**
    * @param {api.Api} client
    */
-  constructor (client) {
+  constructor(client) {
     this.client = client
     /**
      * @type {Map<string,{fs:Set<SubHandler>,id:string,nextId:string?}>}
@@ -56,7 +60,7 @@ export class Subscriber {
    * @param {string} stream
    * @param {string} id
    */
-  ensureSubId (stream, id) {
+  ensureSubId(stream, id) {
     const sub = this.subs.get(stream)
     if (sub != null && api.isSmallerRedisId(id, sub.id)) {
       sub.nextId = id
@@ -67,11 +71,15 @@ export class Subscriber {
    * @param {string} stream
    * @param {SubHandler} f
    */
-  subscribe (stream, f) {
-    const sub = map.setIfUndefined(this.subs, stream, () => ({ fs: new Set(), id: '0', nextId: null }))
+  subscribe(stream, f) {
+    const sub = map.setIfUndefined(this.subs, stream, () => ({
+      fs: new Set(),
+      id: '0',
+      nextId: null,
+    }))
     sub.fs.add(f)
     return {
-      redisId: sub.id
+      redisId: sub.id,
     }
   }
 
@@ -79,7 +87,7 @@ export class Subscriber {
    * @param {string} stream
    * @param {SubHandler} f
    */
-  unsubscribe (stream, f) {
+  unsubscribe(stream, f) {
     const sub = this.subs.get(stream)
     if (sub) {
       sub.fs.delete(f)
@@ -89,7 +97,7 @@ export class Subscriber {
     }
   }
 
-  destroy () {
+  destroy() {
     this.client.destroy()
   }
 }

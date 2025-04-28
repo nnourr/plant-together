@@ -1,225 +1,220 @@
-import { UmlEditor } from "../components/umlEditor.component";
-import { UmlDisplay } from "../components/umlDisplay.component";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useEffect, useState, useContext, useMemo } from "react";
-import { NavBar } from "../components/navBar.component";
-import * as plantService from "../service/plant.service.tsx";
-import { DocumentModel } from "../models/document.model";
-import { SideBar } from "../components/sideBar.component";
-import { io, Socket } from "socket.io-client";
-import { IPlantUmlError } from "../models/plantUmlError.model.tsx";
-import { Button, ButtonSize } from "../components/button.component.tsx";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars } from "@fortawesome/free-solid-svg-icons";
-import { UserContext } from "../components/user.context";
+import { UmlEditor } from '../components/umlEditor.component'
+import { UmlDisplay } from '../components/umlDisplay.component'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useEffect, useState, useContext, useMemo } from 'react'
+import { NavBar } from '../components/navBar.component'
+import * as plantService from '../service/plant.service.tsx'
+import { DocumentModel } from '../models/document.model'
+import { SideBar } from '../components/sideBar.component'
+import { io, Socket } from 'socket.io-client'
+import { IPlantUmlError } from '../models/plantUmlError.model.tsx'
+import { Button, ButtonSize } from '../components/button.component.tsx'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBars } from '@fortawesome/free-solid-svg-icons'
+import { UserContext } from '../components/user.context'
 
 const serverHttpUrl =
-  (import.meta.env.VITE_SERVER_HTTP_URL || "http://localhost:3000") +
-  "/documents";
+  (import.meta.env.VITE_SERVER_HTTP_URL || 'http://localhost:3000') +
+  '/documents'
 
 export const CollabRoom: React.FC = () => {
-  const { roomName, ownerId } = useParams();
-  const [searchParams] = useSearchParams();
-  const signature = searchParams.get('signature');
-  const navigate = useNavigate();
+  const { roomName, ownerId } = useParams()
+  const [searchParams] = useSearchParams()
+  const signature = searchParams.get('signature')
+  const navigate = useNavigate()
   //useSocketEvent("/document", console.log());
-  const [editorValue, setEditorValue] = useState<string>("");
-  const [roomDocuments, setRoomDocuments] = useState<DocumentModel[]>([]);
-  const [currDocument, setCurrDocument] = useState<DocumentModel>();
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [syntaxError, setSyntaxError] = useState<IPlantUmlError>();
-  const [sideBarOpen, setSideBarOpen] = useState<boolean>(true);
-  const [mobile, setMobile] = useState<boolean>(false);
-  const [umlClosed, setUmlClosed] = useState<boolean>(false);
-  const [umlStyle, setUmlStyle] = useState<string>("h-full");
-  const [roomId, setRoomId] = useState<string>('');
-  const userContext = useContext(UserContext);
-  
-  const [isOwner, setIsOwner] = useState<boolean>(false);
-  const isPrivate = useMemo<boolean>(() => Boolean(ownerId), [ownerId]);
+  const [editorValue, setEditorValue] = useState<string>('')
+  const [roomDocuments, setRoomDocuments] = useState<DocumentModel[]>([])
+  const [currDocument, setCurrDocument] = useState<DocumentModel>()
+  const [socket, setSocket] = useState<Socket | null>(null)
+  const [syntaxError, setSyntaxError] = useState<IPlantUmlError>()
+  const [sideBarOpen, setSideBarOpen] = useState<boolean>(true)
+  const [mobile, setMobile] = useState<boolean>(false)
+  const [umlClosed, setUmlClosed] = useState<boolean>(false)
+  const [umlStyle, setUmlStyle] = useState<string>('h-full')
+  const [roomId, setRoomId] = useState<string>('')
+  const userContext = useContext(UserContext)
 
-  useEffect(() => { 
-    if (!userContext?.context?.userId) return;
+  const [isOwner, setIsOwner] = useState<boolean>(false)
+  const isPrivate = useMemo<boolean>(() => Boolean(ownerId), [ownerId])
+
+  useEffect(() => {
+    if (!userContext?.context?.userId) return
     const getRoomInfo = async () => {
       try {
-        const room = isPrivate 
-          ? await plantService.getPrivateRoom(ownerId!, roomName!, signature) 
-          : await plantService.getPublicRoom(roomName!);
-        
+        const room = isPrivate
+          ? await plantService.getPrivateRoom(ownerId!, roomName!, signature)
+          : await plantService.getPublicRoom(roomName!)
+
         if (!room) {
-          alert("Room not found");
-          navigate('/');
-          return;
+          alert('Room not found')
+          navigate('/')
+          return
         }
 
-        setIsOwner(room.owner_id === userContext?.context?.userId);
-        setRoomId(room.id);
-        setRoomDocuments(room.documents);
-        setCurrDocument(room.documents[0]);
+        setIsOwner(room.owner_id === userContext?.context?.userId)
+        setRoomId(room.id)
+        setRoomDocuments(room.documents)
+        setCurrDocument(room.documents[0])
       } catch (error) {
-        console.error("Error getting room info:", error);
-        alert(`Error getting room info: ${error}`);
-        navigate('/');
+        console.error('Error getting room info:', error)
+        alert(`Error getting room info: ${error}`)
+        navigate('/')
       }
-    };
+    }
 
     if (roomName) {
-      getRoomInfo();
+      getRoomInfo()
     }
-  }, [userContext, roomName, ownerId, signature]);
+  }, [userContext, roomName, ownerId, signature])
 
   if (roomName === undefined) {
-    navigate("/");
-    return;
+    navigate('/')
+    return
   }
 
   const createNewDocument = async (_roomId: string, documentName: any) => {
-    if (!userContext?.context?.sessionActive) return;
+    if (!userContext?.context?.sessionActive) return
 
     await plantService.createDocumentInRoom(socket!, documentName, ({ id }) => {
-      setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
-      setCurrDocument({ id: id, name: documentName });
-    });
-  };
+      setRoomDocuments(docs => [...docs, { id: id, name: documentName }])
+      setCurrDocument({ id: id, name: documentName })
+    })
+  }
 
   useEffect(() => {
     if (window.innerWidth <= 767) {
-      setSideBarOpen(false);
-      setMobile(true);
+      setSideBarOpen(false)
+      setMobile(true)
     }
-  }, []);
+  }, [])
 
   const updateDocument = async (documentId: any, documentNewName: string) => {
-    if (!userContext?.context?.sessionActive) return;
+    if (!userContext?.context?.sessionActive) return
 
     await plantService.updateDocumentInRoom(
       socket!,
       documentId,
       documentNewName,
       ({ documentName }) => {
-        const updatedRoomDocuments = [...roomDocuments];
+        const updatedRoomDocuments = [...roomDocuments]
         const updatedDoc = updatedRoomDocuments.find(
-          (doc) => doc.id === documentId
-        );
-        updatedDoc!.name = documentName;
-        setRoomDocuments(updatedRoomDocuments);
-      }
-    );
-  };
+          doc => doc.id === documentId,
+        )
+        updatedDoc!.name = documentName
+        setRoomDocuments(updatedRoomDocuments)
+      },
+    )
+  }
 
   const deleteDocument = async (documentId: any) => {
-    if (!userContext?.context?.sessionActive) return;
+    if (!userContext?.context?.sessionActive) return
 
     await plantService.deleteDocumentInRoom(
       socket!,
       documentId,
       ({ documentId }) => {
-        const updatedRoomDocuments = [...roomDocuments];
+        const updatedRoomDocuments = [...roomDocuments]
         const deletedDoc = updatedRoomDocuments.find(
-          (doc) => doc.id === documentId
-        );
-        const index = updatedRoomDocuments.indexOf(deletedDoc!);
+          doc => doc.id === documentId,
+        )
+        const index = updatedRoomDocuments.indexOf(deletedDoc!)
 
-        const deleted = updatedRoomDocuments.splice(index, 1);
-        setRoomDocuments(updatedRoomDocuments);
+        const deleted = updatedRoomDocuments.splice(index, 1)
+        setRoomDocuments(updatedRoomDocuments)
 
         if (currDocument === deleted[0]) {
-          setCurrDocument(updatedRoomDocuments[0]);
+          setCurrDocument(updatedRoomDocuments[0])
         }
-      }
-    );
-  };
+      },
+    )
+  }
 
   useEffect(() => {
-    (async () => {
-      if (!userContext?.context?.sessionActive || !roomId) return;
+    ;(async () => {
+      if (!userContext?.context?.sessionActive || !roomId) return
 
-      const authToken = await plantService.retrieveToken();
+      const authToken = await plantService.retrieveToken()
 
       const newSocket = io(serverHttpUrl, {
         extraHeaders: {
-          "room-id": roomId,
+          'room-id': roomId,
           Authorization: `Bearer ${authToken}`,
         },
-      });
+      })
 
-      setSocket(newSocket);
-    })();
-  }, [userContext, roomId]);
+      setSocket(newSocket)
+    })()
+  }, [userContext, roomId])
 
   useEffect(() => {
-    socket?.on("/document", ({ code, documentName, id }: any) => {
+    socket?.on('/document', ({ code, documentName, id }: any) => {
       if (code != 200) {
-        alert("Unable to update new document");
+        alert('Unable to update new document')
       }
 
-      setRoomDocuments((docs) => [...docs, { id: id, name: documentName }]);
-    });
+      setRoomDocuments(docs => [...docs, { id: id, name: documentName }])
+    })
 
     socket?.on(
-      "/document/rename",
+      '/document/rename',
       ({ code, newDocumentName, documentId }: any) => {
         if (code != 200) {
-          alert("Unable to rename document");
+          alert('Unable to rename document')
         }
 
         setRoomDocuments((docs: any) => {
-          const updatedRoomDocuments = [...docs];
+          const updatedRoomDocuments = [...docs]
           const updatedDoc = updatedRoomDocuments.find(
-            (doc) => doc.id === documentId
-          );
-          updatedDoc!.name = newDocumentName;
-          return updatedRoomDocuments;
-        });
+            doc => doc.id === documentId,
+          )
+          updatedDoc!.name = newDocumentName
+          return updatedRoomDocuments
+        })
+      },
+    )
+
+    socket?.on('/document/delete', ({ code, documentId }: any) => {
+      if (code != 200) {
+        alert('Unable to delete document')
       }
-    );
 
-    socket?.on(
-      "/document/delete",
-      ({ code, documentId }: any) => {
-        if (code != 200) {
-          alert("Unable to delete document");
-        }
+      setRoomDocuments((docs: any) => {
+        const updatedRoomDocuments = [...docs]
 
-        setRoomDocuments((docs: any) => {
-          const updatedRoomDocuments = [...docs];
-          
-          const deletedDoc = updatedRoomDocuments.find(
-            (doc) => doc.id === documentId
-          );
-          const index = updatedRoomDocuments.indexOf(deletedDoc!);
+        const deletedDoc = updatedRoomDocuments.find(
+          doc => doc.id === documentId,
+        )
+        const index = updatedRoomDocuments.indexOf(deletedDoc!)
 
-          const deleted = updatedRoomDocuments.splice(index, 1);
+        const deleted = updatedRoomDocuments.splice(index, 1)
 
-          setCurrDocument((doc: any) =>{
-            if (doc === deleted[0]) {
-              return updatedRoomDocuments[0];
-            } else {
-              return doc;
-            }
-          })
+        setCurrDocument((doc: any) => {
+          if (doc === deleted[0]) {
+            return updatedRoomDocuments[0]
+          } else {
+            return doc
+          }
+        })
 
-          return updatedRoomDocuments;
-        });
-
-        
-      }
-    );
+        return updatedRoomDocuments
+      })
+    })
 
     return () => {
-      socket?.disconnect();
-    };
-  }, [socket]);
+      socket?.disconnect()
+    }
+  }, [socket])
 
   useEffect(() => {
     if (mobile && sideBarOpen) {
-      setUmlStyle("h-1/4 overflow-auto");
-      setUmlClosed(true);
+      setUmlStyle('h-1/4 overflow-auto')
+      setUmlClosed(true)
     } else {
-      setUmlStyle("h-full");
-      setUmlClosed(false);
+      setUmlStyle('h-full')
+      setUmlClosed(false)
     }
-  }, [sideBarOpen]);
+  }, [sideBarOpen])
 
   const mobileSideBar = () => {
     if (sideBarOpen) {
@@ -233,26 +228,26 @@ export const CollabRoom: React.FC = () => {
           }
           updateDocument={updateDocument}
           deleteDocument={deleteDocument}
-          className="w-full h-1/2"
+          className='h-1/2 w-full'
           setClose={() => setSideBarOpen(false)}
           roomId={roomId}
         />
-      );
+      )
     } else {
       return (
         <div
-          className={`border-white/0 flex-col gap-2 bg-slate-900 text-white px-2 border-t-4 border-slate-500 py-1`}
+          className={`flex-col gap-2 border-t-4 border-slate-500 border-white/0 bg-slate-900 px-2 py-1 text-white`}
         >
           <button
             onClick={() => setSideBarOpen(true)}
-            className={`border-white/20 border-2 rounded-xl px-2 py-1 text-base font-bold w-full`}
+            className={`w-full rounded-xl border-2 border-white/20 px-2 py-1 text-base font-bold`}
           >
             <FontAwesomeIcon icon={faBars} />
           </button>
         </div>
-      );
+      )
     }
-  };
+  }
 
   const closableSideBar = () => {
     if (sideBarOpen) {
@@ -266,47 +261,53 @@ export const CollabRoom: React.FC = () => {
           }
           updateDocument={updateDocument}
           deleteDocument={deleteDocument}
-          className="w-80"
+          className='w-80'
           setClose={() => setSideBarOpen(false)}
           roomId={roomId}
         />
-      );
+      )
     } else {
       return (
         <div
-          className={`h-1/2 md:w-16 md:h-full md:flex flex-col gap-2 bg-slate-900 text-white px-2 border-t-4 border-slate-500 py-4`}
+          className={`h-1/2 flex-col gap-2 border-t-4 border-slate-500 bg-slate-900 px-2 py-4 text-white md:flex md:h-full md:w-16`}
         >
           <Button size={ButtonSize.sm} onClick={() => setSideBarOpen(true)}>
             <FontAwesomeIcon icon={faBars} />
           </Button>
         </div>
-      );
+      )
     }
-  };
+  }
 
   const mobileToggle = () => {
     if (window.innerWidth <= 767) {
-      setSideBarOpen(false);
-      setMobile(true);
+      setSideBarOpen(false)
+      setMobile(true)
     } else {
-      setSideBarOpen(true);
-      setMobile(false);
-      setUmlClosed(false);
+      setSideBarOpen(true)
+      setMobile(false)
+      setUmlClosed(false)
     }
-    setUmlStyle("h-full");
-  };
+    setUmlStyle('h-full')
+  }
 
-  window.addEventListener("resize", mobileToggle);
+  window.addEventListener('resize', mobileToggle)
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <NavBar isPrivate={isPrivate} roomId={roomId} roomName={roomName} isOwner={isOwner} ownerId={ownerId!} />
-      <div className="flex w-full h-[calc(100%-4rem)] max-w-[100vw] flex-col-reverse md:flex-row">
+    <div className='flex h-full w-full flex-col'>
+      <NavBar
+        isPrivate={isPrivate}
+        roomId={roomId}
+        roomName={roomName}
+        isOwner={isOwner}
+        ownerId={ownerId!}
+      />
+      <div className='flex h-[calc(100%-4rem)] w-full max-w-[100vw] flex-col-reverse md:flex-row'>
         {!mobile && closableSideBar()}
         {mobile && mobileSideBar()}
         {currDocument && (
           <UmlEditor
-            className="h-1/2 md:w-1/3 md:h-full"
+            className='h-1/2 md:h-full md:w-1/3'
             roomId={roomId}
             currDocument={currDocument}
             setEditorValue={setEditorValue}
@@ -322,5 +323,5 @@ export const CollabRoom: React.FC = () => {
         />
       </div>
     </div>
-  );
-};
+  )
+}
