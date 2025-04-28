@@ -43,13 +43,18 @@ const updateCallback = async (room, ydoc) => {
     // @todo only convert ydoc to updatev2 once
     formData.append('ydoc', new Blob([Y.encodeStateAsUpdateV2(ydoc)]))
     // @todo should add a timeout to fetch (see fetch signal abortcontroller)
-    const res = await fetch(new URL(room, ydocUpdateCallback), { body: formData, method: 'PUT' })
+    const res = await fetch(new URL(room, ydocUpdateCallback), {
+      body: formData,
+      method: 'PUT',
+    })
     if (!res.ok) {
-      console.error(`Issue sending data to YDOC_UPDATE_CALLBACK. status="${res.status}" statusText="${res.statusText}"`)
+      console.error(
+        `Issue sending data to YDOC_UPDATE_CALLBACK. status="${res.status}" statusText="${res.statusText}"`,
+      )
     }
   }
 }
 
 yredis.createWorker(store, redisPrefix, {
-  updateCallback
+  updateCallback,
 })

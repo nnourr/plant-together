@@ -23,7 +23,7 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      'no-extra-boolean-cast': false
+      'no-extra-boolean-cast': false,
     },
   },
 )

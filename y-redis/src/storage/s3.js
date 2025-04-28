@@ -16,7 +16,7 @@ const log = logging.createModuleLogger('@y/redis/s3')
  * @todo perform some sanity checks here before starting (bucket exists, ..)
  * @param {string} bucketName
  */
-export const createS3Storage = (bucketName) => {
+export const createS3Storage = bucketName => {
   const endPoint = env.ensureConf('s3-endpoint')
   const port = number.parseInt(env.ensureConf('s3-port'))
   const useSSL = !['false', '0'].includes(env.getConf('s3-ssl') || 'false')
@@ -27,7 +27,7 @@ export const createS3Storage = (bucketName) => {
     port,
     useSSL,
     accessKey,
-    secretKey
+    secretKey,
   })
 }
 
@@ -35,7 +35,8 @@ export const createS3Storage = (bucketName) => {
  * @param {string} room
  * @param {string} docid
  */
-export const encodeS3ObjectName = (room, docid, r = random.uuidv4()) => `${encodeURIComponent(room)}/${encodeURIComponent(docid)}/${r}`
+export const encodeS3ObjectName = (room, docid, r = random.uuidv4()) =>
+  `${encodeURIComponent(room)}/${encodeURIComponent(docid)}/${r}`
 
 /**
  * @param {string} objectName
@@ -45,7 +46,11 @@ export const decodeS3ObjectName = objectName => {
   if (match == null) {
     throw new Error('Malformed y:room stream name!')
   }
-  return { room: decodeURIComponent(match[1]), docid: decodeURIComponent(match[2]), r: match[3] }
+  return {
+    room: decodeURIComponent(match[1]),
+    docid: decodeURIComponent(match[2]),
+    r: match[3],
+  }
 }
 
 /**
@@ -61,15 +66,16 @@ export const decodeS3ObjectName = objectName => {
  * @param {import('stream').Stream} stream
  * @return {Promise<Buffer>}
  */
-const readStream = stream => promise.create((resolve, reject) => {
-  /**
-   * @type {Array<Buffer>}
-   */
-  const chunks = []
-  stream.on('data', chunk => chunks.push(Buffer.from(chunk)))
-  stream.on('error', reject)
-  stream.on('end', () => resolve(Buffer.concat(chunks)))
-})
+const readStream = stream =>
+  promise.create((resolve, reject) => {
+    /**
+     * @type {Array<Buffer>}
+     */
+    const chunks = []
+    stream.on('data', chunk => chunks.push(Buffer.from(chunk)))
+    stream.on('error', reject)
+    stream.on('end', () => resolve(Buffer.concat(chunks)))
+  })
 
 /**
  * @implements {AbstractStorage}
@@ -79,14 +85,14 @@ export class S3Storage {
    * @param {string} bucketName
    * @param {S3StorageConf} conf
    */
-  constructor (bucketName, { endPoint, port, useSSL, accessKey, secretKey }) {
+  constructor(bucketName, { endPoint, port, useSSL, accessKey, secretKey }) {
     this.bucketName = bucketName
     this.client = new minio.Client({
       endPoint,
       port,
       useSSL,
       accessKey,
-      secretKey
+      secretKey,
     })
   }
 
@@ -96,9 +102,13 @@ export class S3Storage {
    * @param {Y.Doc} ydoc
    * @returns {Promise<void>}
    */
-  async persistDoc (room, docname, ydoc) {
+  async persistDoc(room, docname, ydoc) {
     const objectName = encodeS3ObjectName(room, docname)
-    await this.client.putObject(this.bucketName, objectName, Buffer.from(Y.encodeStateAsUpdateV2(ydoc)))
+    await this.client.putObject(
+      this.bucketName,
+      objectName,
+      Buffer.from(Y.encodeStateAsUpdateV2(ydoc)),
+    )
   }
 
   /**
@@ -106,18 +116,42 @@ export class S3Storage {
    * @param {string} docname
    * @return {Promise<{ doc: Uint8Array, references: Array<string> } | null>}
    */
-  async retrieveDoc (room, docname) {
+  async retrieveDoc(room, docname) {
     log('retrieving doc room=' + room + ' docname=' + docname)
-    const objNames = await this.client.listObjectsV2(this.bucketName, encodeS3ObjectName(room, docname, ''), true).toArray()
+    const objNames = await this.client
+      .listObjectsV2(
+        this.bucketName,
+        encodeS3ObjectName(room, docname, ''),
+        true,
+      )
+      .toArray()
     const references = objNames.map(obj => obj.name)
-    log('retrieved doc room=' + room + ' docname=' + docname + ' refs=' + JSON.stringify(references))
+    log(
+      'retrieved doc room=' +
+        room +
+        ' docname=' +
+        docname +
+        ' refs=' +
+        JSON.stringify(references),
+    )
 
     if (references.length === 0) {
       return null
     }
-    let updates = await promise.all(references.map(ref => this.client.getObject(this.bucketName, ref).then(readStream)))
+    let updates = await promise.all(
+      references.map(ref =>
+        this.client.getObject(this.bucketName, ref).then(readStream),
+      ),
+    )
     updates = updates.filter(update => update != null)
-    log('retrieved doc room=' + room + ' docname=' + docname + ' updatesLen=' + updates.length)
+    log(
+      'retrieved doc room=' +
+        room +
+        ' docname=' +
+        docname +
+        ' updatesLen=' +
+        updates.length,
+    )
     return { doc: Y.mergeUpdatesV2(updates), references }
   }
 
@@ -126,7 +160,7 @@ export class S3Storage {
    * @param {string} docname
    * @return {Promise<Uint8Array|null>}
    */
-  async retrieveStateVector (room, docname) {
+  async retrieveStateVector(room, docname) {
     const r = await this.retrieveDoc(room, docname)
     return r ? Y.encodeStateVectorFromUpdateV2(r.doc) : null
   }
@@ -137,10 +171,9 @@ export class S3Storage {
    * @param {Array<string>} storeReferences
    * @return {Promise<void>}
    */
-  async deleteReferences (_room, _docname, storeReferences) {
+  async deleteReferences(_room, _docname, storeReferences) {
     await this.client.removeObjects(this.bucketName, storeReferences)
   }
 
-  async destroy () {
-  }
+  async destroy() {}
 }

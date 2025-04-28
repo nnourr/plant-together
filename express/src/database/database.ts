@@ -1,15 +1,14 @@
-import { DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER } from "../config.js";
+import { DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER } from '../config.js'
 import postgres, { type Sql } from 'postgres'
 import prexit from 'prexit'
-import { PostgresMock } from "pgmock";
+import { PostgresMock } from 'pgmock'
 
 interface SqlWithMock extends Sql {
-  mock?: PostgresMock;
+  mock?: PostgresMock
 }
 
 // database.ts
-let sql: SqlWithMock = {} as SqlWithMock;
-
+let sql: SqlWithMock = {} as SqlWithMock
 
 if (process.env.NODE_ENV === 'test') {
   const mock = await PostgresMock.create()
@@ -25,7 +24,7 @@ if (process.env.NODE_ENV === 'test') {
     port: (DB_PORT || 5432) as number,
     idle_timeout: 20,
     max_lifetime: 60 * 30,
-  });
+  })
 }
 
 // TODO: Replace with db migrations
@@ -82,7 +81,7 @@ await sql`
 // Test the connection
 const alive = await sql`SELECT NOW()`
 
-export default sql;
+export default sql
 
 prexit(async () => {
   await sql.end({ timeout: 5 })

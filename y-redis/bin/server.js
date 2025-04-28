@@ -30,4 +30,9 @@ if (s3Endpoint) {
   store = createMemoryStorage()
 }
 
-yredis.createYWebsocketServer({ port, store, checkPermCallbackUrl, redisPrefix })
+yredis.createYWebsocketServer({
+  port,
+  store,
+  checkPermCallbackUrl,
+  redisPrefix,
+})

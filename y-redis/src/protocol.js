@@ -53,7 +53,11 @@ export const mergeMessages = messages => {
           break
         }
         case messageAwareness: {
-          awarenessProtocol.applyAwarenessUpdate(aw, decoding.readVarUint8Array(decoder), null)
+          awarenessProtocol.applyAwarenessUpdate(
+            aw,
+            decoding.readVarUint8Array(decoder),
+            null,
+          )
           break
         }
         default: {
@@ -68,50 +72,62 @@ export const mergeMessages = messages => {
    * @type {Array<Uint8Array>}
    */
   const result = []
-  updates.length > 0 && result.push(encoding.encode(encoder => {
-    encoding.writeVarUint(encoder, messageSync)
-    encoding.writeVarUint(encoder, messageSyncUpdate) // update
-    encoding.writeVarUint8Array(encoder, Y.mergeUpdates(updates))
-  }))
-  aw.states.size > 0 && result.push(encoding.encode(encoder => {
-    encoding.writeVarUint(encoder, messageAwareness)
-    encoding.writeVarUint8Array(
-      encoder,
-      awarenessProtocol.encodeAwarenessUpdate(
-        aw,
-        array.from(aw.getStates().keys())
-      )
+  updates.length > 0 &&
+    result.push(
+      encoding.encode(encoder => {
+        encoding.writeVarUint(encoder, messageSync)
+        encoding.writeVarUint(encoder, messageSyncUpdate) // update
+        encoding.writeVarUint8Array(encoder, Y.mergeUpdates(updates))
+      }),
     )
-  }))
+  aw.states.size > 0 &&
+    result.push(
+      encoding.encode(encoder => {
+        encoding.writeVarUint(encoder, messageAwareness)
+        encoding.writeVarUint8Array(
+          encoder,
+          awarenessProtocol.encodeAwarenessUpdate(
+            aw,
+            array.from(aw.getStates().keys()),
+          ),
+        )
+      }),
+    )
   return result
 }
 
 /**
  * @param {Uint8Array} sv
  */
-export const encodeSyncStep1 = sv => encoding.encode(encoder => {
-  encoding.writeVarUint(encoder, messageSync)
-  encoding.writeVarUint(encoder, messageSyncStep1)
-  encoding.writeVarUint8Array(encoder, sv)
-})
+export const encodeSyncStep1 = sv =>
+  encoding.encode(encoder => {
+    encoding.writeVarUint(encoder, messageSync)
+    encoding.writeVarUint(encoder, messageSyncStep1)
+    encoding.writeVarUint8Array(encoder, sv)
+  })
 
 /**
  * @param {Uint8Array} diff
  */
-export const encodeSyncStep2 = diff => encoding.encode(encoder => {
-  encoding.writeVarUint(encoder, messageSync)
-  encoding.writeVarUint(encoder, messageSyncStep2)
-  encoding.writeVarUint8Array(encoder, diff)
-})
+export const encodeSyncStep2 = diff =>
+  encoding.encode(encoder => {
+    encoding.writeVarUint(encoder, messageSync)
+    encoding.writeVarUint(encoder, messageSyncStep2)
+    encoding.writeVarUint8Array(encoder, diff)
+  })
 
 /**
  * @param {awarenessProtocol.Awareness} awareness
  * @param {Array<number>} clients
  */
-export const encodeAwarenessUpdate = (awareness, clients) => encoding.encode(encoder => {
-  encoding.writeVarUint(encoder, messageAwareness)
-  encoding.writeVarUint8Array(encoder, awarenessProtocol.encodeAwarenessUpdate(awareness, clients))
-})
+export const encodeAwarenessUpdate = (awareness, clients) =>
+  encoding.encode(encoder => {
+    encoding.writeVarUint(encoder, messageAwareness)
+    encoding.writeVarUint8Array(
+      encoder,
+      awarenessProtocol.encodeAwarenessUpdate(awareness, clients),
+    )
+  })
 
 /**
  * @param {number} clientid
@@ -120,10 +136,13 @@ export const encodeAwarenessUpdate = (awareness, clients) => encoding.encode(enc
 export const encodeAwarenessUserDisconnected = (clientid, lastClock) =>
   encoding.encode(encoder => {
     encoding.writeVarUint(encoder, messageAwareness)
-    encoding.writeVarUint8Array(encoder, encoding.encode(encoder => {
-      encoding.writeVarUint(encoder, 1) // one change
-      encoding.writeVarUint(encoder, clientid)
-      encoding.writeVarUint(encoder, lastClock + 1)
-      encoding.writeVarString(encoder, JSON.stringify(null))
-    }))
+    encoding.writeVarUint8Array(
+      encoder,
+      encoding.encode(encoder => {
+        encoding.writeVarUint(encoder, 1) // one change
+        encoding.writeVarUint(encoder, clientid)
+        encoding.writeVarUint(encoder, lastClock + 1)
+        encoding.writeVarString(encoder, JSON.stringify(null))
+      }),
+    )
   })

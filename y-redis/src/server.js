@@ -33,17 +33,23 @@ export const createYWebsocketServer = async ({
   port,
   store,
   checkPermCallbackUrl,
-  initDocCallback = () => { }
+  initDocCallback = () => {},
 }) => {
   checkPermCallbackUrl += checkPermCallbackUrl.slice(-1) !== '/' ? '/' : ''
   const app = uws.App({})
-  await registerYWebsocketServer(app, '/:room', store, async (req) => {
-    const room = req.getParameter(0)
-    return { hasWriteAccess: true, room }
-  }, { redisPrefix, initDocCallback })
+  await registerYWebsocketServer(
+    app,
+    '/:room',
+    store,
+    async req => {
+      const room = req.getParameter(0)
+      return { hasWriteAccess: true, room }
+    },
+    { redisPrefix, initDocCallback },
+  )
 
   await promise.create((resolve, reject) => {
-    app.listen(port, (token) => {
+    app.listen(port, token => {
       if (token) {
         logging.print(logging.GREEN, '[y-redis] Listening to port ', port)
         resolve()
