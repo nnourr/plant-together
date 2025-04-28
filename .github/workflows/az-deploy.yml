@@ -53,7 +53,7 @@ jobs:
     environment:
       name: express-deployment
 
-    if: contains(${{ vars.BACKEND_DEPLOYMENT_CLOUD }}, 'AZURE') && (needs.filter.outputs.express == 'true' || needs.filter.outputs.yredis == 'true' || inputs.force_deploy)
+    if: contains(${{ vars.BACKEND_DEPLOYMENT_CLOUD }}, 'AZURE') && ('false' == 'true')
 
     steps:
       - name: Checkout Code
