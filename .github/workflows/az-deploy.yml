@@ -53,7 +53,7 @@ jobs:
     environment:
       name: express-deployment
 
-    if: (vars.BACKEND_DEPLOYMENT_CLOUD == 'AZURE')
+    if: ${{ vars.BACKEND_DEPLOYMENT_CLOUD == 'AZURE' }}
 
     steps:
       - name: Checkout Code
