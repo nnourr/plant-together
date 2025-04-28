@@ -39,13 +39,6 @@ jobs:
             yredis:
               - 'y-redis/**'
 
-      - name: Echo stuff
-        run: |
-          echo "---${{ vars.BACKEND_DEPLOYMENT_CLOUD }}---"
-          echo "---${{ steps.filter.outputs.express }}---"
-          echo "---${{ steps.filter.outputs.yredis }}---"
-          echo "---${{ inputs.force_deploy }}---"
-
   build-deploy-backend-azure:
     name: Build and Deploy Backend to Azure
     runs-on: ubuntu-latest
@@ -53,7 +46,7 @@ jobs:
     environment:
       name: express-deployment
 
-    if: ${{ vars.BACKEND_DEPLOYMENT_CLOUD != 'GCP' }}
+    if: ${{ vars.BACKEND_DEPLOYMENT_CLOUD != 'GCP' }} && (needs.filter.outputs.express == 'true' || needs.filter.outputs.yredis == 'true' || inputs.force_deploy)
 
     steps:
       - name: Checkout Code
