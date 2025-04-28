@@ -2,7 +2,7 @@ name: Deploy Backend Services to Azure
 
 on:
   push:
-    branches: ["redis-deploy"]
+    branches: ["azure-deploy"]
 
   workflow_dispatch:
     inputs:
