@@ -20,8 +20,6 @@ jobs:
   filter:
     name: Determine Changed Paths
     runs-on: ubuntu-latest
-    environment:
-      name: express-deployment
     outputs:
       express: ${{ steps.filter.outputs.express }}
       yredis: ${{ steps.filter.outputs.yredis }}
