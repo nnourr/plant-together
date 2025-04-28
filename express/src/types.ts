@@ -1,6 +1,6 @@
 // Shared Types
 
 export interface APIError {
-    status: number;
-    error: string;
-};
+    status: number
+    error: string
+}
