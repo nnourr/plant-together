@@ -5,16 +5,16 @@ import { registerYWebsocketServer } from '../src/ws.js'
 import * as promise from 'lib0/promise'
 
 class YWebsocketServer {
-    /**
-     * @param {uws.TemplatedApp} app
-     */
-    constructor(app) {
-        this.app = app
-    }
+  /**
+   * @param {uws.TemplatedApp} app
+   */
+  constructor(app) {
+    this.app = app
+  }
 
-    async destroy() {
-        this.app.close()
-    }
+  async destroy() {
+    this.app.close()
+  }
 }
 
 /**
@@ -29,42 +29,36 @@ class YWebsocketServer {
  * handle concurrent calls.
  */
 export const createYWebsocketServer = async ({
-    redisPrefix = 'y',
-    port,
-    store,
-    checkPermCallbackUrl,
-    initDocCallback = () => {},
+  redisPrefix = 'y',
+  port,
+  store,
+  checkPermCallbackUrl,
+  initDocCallback = () => {},
 }) => {
-    checkPermCallbackUrl += checkPermCallbackUrl.slice(-1) !== '/' ? '/' : ''
-    const app = uws.App({})
-    await registerYWebsocketServer(
-        app,
-        '/:room',
-        store,
-        async req => {
-            const room = req.getParameter(0)
-            return { hasWriteAccess: true, room }
-        },
-        { redisPrefix, initDocCallback },
-    )
+  checkPermCallbackUrl += checkPermCallbackUrl.slice(-1) !== '/' ? '/' : ''
+  const app = uws.App({})
+  await registerYWebsocketServer(
+    app,
+    '/:room',
+    store,
+    async req => {
+      const room = req.getParameter(0)
+      return { hasWriteAccess: true, room }
+    },
+    { redisPrefix, initDocCallback },
+  )
 
-    await promise.create((resolve, reject) => {
-        app.listen(port, token => {
-            if (token) {
-                logging.print(
-                    logging.GREEN,
-                    '[y-redis] Listening to port ',
-                    port,
-                )
-                resolve()
-            } else {
-                const err = error.create(
-                    '[y-redis] Failed to lisen to port ' + port,
-                )
-                reject(err)
-                throw err
-            }
-        })
+  await promise.create((resolve, reject) => {
+    app.listen(port, token => {
+      if (token) {
+        logging.print(logging.GREEN, '[y-redis] Listening to port ', port)
+        resolve()
+      } else {
+        const err = error.create('[y-redis] Failed to lisen to port ' + port)
+        reject(err)
+        throw err
+      }
     })
-    return new YWebsocketServer(app)
+  })
+  return new YWebsocketServer(app)
 }

@@ -20,47 +20,47 @@ import { AuthService } from './user/auth.service.js'
 import signed from 'signed'
 
 export interface Dependecies {
-    roomService: RoomService
-    documentService: DocumentService
-    authService: AuthService
-    fireauthRepo: FireauthRepo
-    userRepo: UserRepo
-    roomParticipantRepo: RoomParticipantRepo
-    roomRepo: RoomRepo
-    documentRepo: DocumentRepo
+  roomService: RoomService
+  documentService: DocumentService
+  authService: AuthService
+  fireauthRepo: FireauthRepo
+  userRepo: UserRepo
+  roomParticipantRepo: RoomParticipantRepo
+  roomRepo: RoomRepo
+  documentRepo: DocumentRepo
 }
 
 export default function loadDependencies(): Dependecies {
-    const fireauthRepo = FireauthRepo.instance()
-    const userRepo = new UserRepo()
-    const roomParticipantRepo = new RoomParticipantRepo(sql)
-    const authService = new AuthService(fireauthRepo, userRepo)
+  const fireauthRepo = FireauthRepo.instance()
+  const userRepo = new UserRepo()
+  const roomParticipantRepo = new RoomParticipantRepo(sql)
+  const authService = new AuthService(fireauthRepo, userRepo)
 
-    // ----- Setup Document & Room Services -----
-    const documentRepo = new DocumentRepo(
-        sql,
-        redisClient as RedisClientType,
-        yjsHelpers,
-    )
+  // ----- Setup Document & Room Services -----
+  const documentRepo = new DocumentRepo(
+    sql,
+    redisClient as RedisClientType,
+    yjsHelpers,
+  )
 
-    const documentService = new DocumentService(documentRepo)
-    const roomRepo = new RoomRepo()
-    const roomService = new RoomService(
-        documentRepo,
-        authService,
-        roomRepo,
-        roomParticipantRepo,
-        signed.default,
-    )
+  const documentService = new DocumentService(documentRepo)
+  const roomRepo = new RoomRepo()
+  const roomService = new RoomService(
+    documentRepo,
+    authService,
+    roomRepo,
+    roomParticipantRepo,
+    signed.default,
+  )
 
-    return {
-        roomService,
-        documentService,
-        authService,
-        fireauthRepo,
-        userRepo,
-        roomParticipantRepo,
-        roomRepo,
-        documentRepo,
-    }
+  return {
+    roomService,
+    documentService,
+    authService,
+    fireauthRepo,
+    userRepo,
+    roomParticipantRepo,
+    roomRepo,
+    documentRepo,
+  }
 }

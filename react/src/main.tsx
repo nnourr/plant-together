@@ -17,50 +17,50 @@ const CLARITY_PROJECT_ID = import.meta.env.VITE_CLARITY_PROJECT_ID
 let options
 
 if (POSTHOG_API_HOST) {
-    options = {
-        api_host: POSTHOG_API_HOST,
-    }
+  options = {
+    api_host: POSTHOG_API_HOST,
+  }
 }
 
 if (CLARITY_PROJECT_ID) {
-    Clarity.init(CLARITY_PROJECT_ID)
+  Clarity.init(CLARITY_PROJECT_ID)
 }
 
 const router = createHashRouter([
-    {
-        path: '*',
-        element: <Landing />,
-    },
-    {
-        path: '/:roomName',
-        element: <CollabRoom />,
-    },
-    {
-        path: '/private/:ownerId/:roomName',
-        element: <CollabRoom />,
-    },
-    {
-        path: '/signup',
-        element: <Signup />,
-    },
-    {
-        path: '/login',
-        element: <Login />,
-    },
+  {
+    path: '*',
+    element: <Landing />,
+  },
+  {
+    path: '/:roomName',
+    element: <CollabRoom />,
+  },
+  {
+    path: '/private/:ownerId/:roomName',
+    element: <CollabRoom />,
+  },
+  {
+    path: '/signup',
+    element: <Signup />,
+  },
+  {
+    path: '/login',
+    element: <Login />,
+  },
 ])
 
 createRoot(document.getElementById('root')!).render(
-    <>
-        {options ? (
-            <PostHogProvider apiKey={POSTHOG_API_KEY} options={options}>
-                <UserContextProvider>
-                    <RouterProvider router={router} />
-                </UserContextProvider>
-            </PostHogProvider>
-        ) : (
-            <UserContextProvider>
-                <RouterProvider router={router} />
-            </UserContextProvider>
-        )}
-    </>,
+  <>
+    {options ? (
+      <PostHogProvider apiKey={POSTHOG_API_KEY} options={options}>
+        <UserContextProvider>
+          <RouterProvider router={router} />
+        </UserContextProvider>
+      </PostHogProvider>
+    ) : (
+      <UserContextProvider>
+        <RouterProvider router={router} />
+      </UserContextProvider>
+    )}
+  </>,
 )

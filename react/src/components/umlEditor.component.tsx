@@ -8,84 +8,81 @@ import { DocumentModel } from '../models/document.model'
 import { IPlantUmlError } from '../models/plantUmlError.model'
 import { UserContext } from './user.context'
 import {
-    generateQuirkyUsername,
-    generateColorFromString,
+  generateQuirkyUsername,
+  generateColorFromString,
 } from '../utils/userIdentity.utils'
 
 const serverWsUrl =
-    import.meta.env.VITE_SERVER_WS_URL || 'http://localhost:3002'
+  import.meta.env.VITE_SERVER_WS_URL || 'http://localhost:3002'
 
 interface UmlEditorProps {
-    roomId: string
-    currDocument: DocumentModel
-    className?: string
-    setEditorValue: (newVal: string) => void
-    error?: IPlantUmlError
+  roomId: string
+  currDocument: DocumentModel
+  className?: string
+  setEditorValue: (newVal: string) => void
+  error?: IPlantUmlError
 }
 
 export const UmlEditor: React.FC<UmlEditorProps> = ({
-    roomId,
-    currDocument,
-    setEditorValue,
-    className,
-    error,
+  roomId,
+  currDocument,
+  setEditorValue,
+  className,
+  error,
 }) => {
-    const [wsID, setWsID] = useState<string>(`${roomId}${currDocument.id}`)
-    const clientsRef = useRef<number[]>([])
-    const [decorations, setDecorations] =
-        useState<editor.IEditorDecorationsCollection | null>(null)
-    const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
-    const monacoRef = useRef<Monaco | null>(null)
-    const providerRef = useRef<WebsocketProvider | null>(null)
-    const docRef = useRef<Y.Doc | null>(null)
-    const bindingRef = useRef<MonacoBinding | null>(null)
-    const userContext = useContext(UserContext)
+  const [wsID, setWsID] = useState<string>(`${roomId}${currDocument.id}`)
+  const clientsRef = useRef<number[]>([])
+  const [decorations, setDecorations] =
+    useState<editor.IEditorDecorationsCollection | null>(null)
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+  const monacoRef = useRef<Monaco | null>(null)
+  const providerRef = useRef<WebsocketProvider | null>(null)
+  const docRef = useRef<Y.Doc | null>(null)
+  const bindingRef = useRef<MonacoBinding | null>(null)
+  const userContext = useContext(UserContext)
 
-    // Generate username for guests or use displayName for signed-in users
-    const username =
-        userContext.context?.displayName ||
-        generateQuirkyUsername(
-            userContext.context?.userId || `guest-${Date.now()}`,
-        )
+  // Generate username for guests or use displayName for signed-in users
+  const username =
+    userContext.context?.displayName ||
+    generateQuirkyUsername(userContext.context?.userId || `guest-${Date.now()}`)
 
-    const userColor = useRef(generateColorFromString(username))
+  const userColor = useRef(generateColorFromString(username))
 
-    useEffect(() => {
-        setWsID(`${roomId}${currDocument.id}`)
-    }, [currDocument, roomId])
+  useEffect(() => {
+    setWsID(`${roomId}${currDocument.id}`)
+  }, [currDocument, roomId])
 
-    useEffect(() => {
-        if (!monacoRef.current || !editorRef.current) return
+  useEffect(() => {
+    if (!monacoRef.current || !editorRef.current) return
 
-        if (error && error.line) {
-            const monaco = monacoRef.current
-            decorations?.set([
-                {
-                    range: new monaco.Range(error.line, 1, error.line, 1),
-                    options: {
-                        isWholeLine: true,
-                        inlineClassName:
-                            'underline decoration-red-700 decoration-wavy',
-                    },
-                },
-            ])
-        } else {
-            decorations?.clear()
-        }
-    }, [error?.line])
+    if (error && error.line) {
+      const monaco = monacoRef.current
+      decorations?.set([
+        {
+          range: new monaco.Range(error.line, 1, error.line, 1),
+          options: {
+            isWholeLine: true,
+            inlineClassName: 'underline decoration-red-700 decoration-wavy',
+          },
+        },
+      ])
+    } else {
+      decorations?.clear()
+    }
+  }, [error?.line])
 
-    const updateClientStyleSheets = (
-        statesArray: [number, { [x: string]: any }][],
-    ) => {
-        statesArray.forEach(state => {
-            const clientId = state[0]
-            if (state[1].user) {
-                // Extract the color and determine best text color for contrast
-                const userColor = state[1].user.color
-                const username = state[1].user.name
+  const updateClientStyleSheets = (
+    statesArray: [number, { [x: string]: any }][],
+  ) => {
+    statesArray.forEach(state => {
+      const clientId = state[0]
+      if (state[1].user) {
+        // Extract the color and determine best text color for contrast
+        const userColor = state[1].user.color
+        const username = state[1].user.name
 
-                const styleSheet = document.createElement('style')
-                styleSheet.innerText = `
+        const styleSheet = document.createElement('style')
+        styleSheet.innerText = `
         .yRemoteSelectionHead-${clientId}{
           border-left: 2px solid ${userColor};
           border-right: 10px solid transparent;
@@ -117,108 +114,109 @@ export const UmlEditor: React.FC<UmlEditorProps> = ({
           opacity:0.8;
         }
       `
-                document.head.appendChild(styleSheet)
-            }
-        })
+        document.head.appendChild(styleSheet)
+      }
+    })
+  }
+
+  const setBinding = useCallback(() => {
+    // Clean up the previous provider if it exists
+    if (providerRef.current) {
+      providerRef.current.destroy()
+      if (bindingRef.current) {
+        bindingRef.current.destroy()
+      }
+      docRef.current = null
+      providerRef.current = null
     }
 
-    const setBinding = useCallback(() => {
-        // Clean up the previous provider if it exists
-        if (providerRef.current) {
-            providerRef.current.destroy()
-            if (bindingRef.current) {
-                bindingRef.current.destroy()
-            }
-            docRef.current = null
-            providerRef.current = null
-        }
+    // Create a new Yjs document and WebSocket provider
+    const doc = new Y.Doc()
+    docRef.current = doc
+    const provider = new WebsocketProvider(serverWsUrl, wsID, doc)
+    providerRef.current = provider
 
-        // Create a new Yjs document and WebSocket provider
-        const doc = new Y.Doc()
-        docRef.current = doc
-        const provider = new WebsocketProvider(serverWsUrl, wsID, doc)
-        providerRef.current = provider
+    provider.awareness.setLocalStateField('user', {
+      name: username,
+      color: userColor.current,
+    })
 
-        provider.awareness.setLocalStateField('user', {
-            name: username,
-            color: userColor.current,
-        })
+    provider.awareness.on('change', () => {
+      const statesArray = Array.from(provider.awareness.getStates())
+      const newClients = statesArray.map(state => state[0])
+      const clientsChanged =
+        !clientsRef.current ||
+        clientsRef.current.length !== newClients.length ||
+        !clientsRef.current.every(client => newClients.includes(client))
 
-        provider.awareness.on('change', () => {
-            const statesArray = Array.from(provider.awareness.getStates())
-            const newClients = statesArray.map(state => state[0])
-            const clientsChanged =
-                !clientsRef.current ||
-                clientsRef.current.length !== newClients.length ||
-                !clientsRef.current.every(client => newClients.includes(client))
+      if (clientsChanged) {
+        clientsRef.current = newClients
+        updateClientStyleSheets(statesArray)
+      }
+    })
 
-            if (clientsChanged) {
-                clientsRef.current = newClients
-                updateClientStyleSheets(statesArray)
-            }
-        })
+    // Bind Yjs doc to Monaco editor model
+    const type = doc.getText('monaco')
 
-        // Bind Yjs doc to Monaco editor model
-        const type = doc.getText('monaco')
-
-        // Check if the editor is initialized before creating the binding
-        if (editorRef.current) {
-            const binding = new MonacoBinding(
-                type,
-                editorRef.current.getModel()!,
-                new Set([editorRef.current]),
-                provider.awareness,
-            )
-            bindingRef.current = binding
-        }
-
-        // Clean up on component unmount or when wsID changes
-        return () => {
-            provider.awareness.destroy()
-            provider.destroy()
-            bindingRef.current?.destroy()
-        }
-    }, [wsID, username])
-
-    useEffect(() => {
-        if (!!!currDocument || !!!roomId) {
-            return
-        }
-
-        setBinding()
-    }, [currDocument, roomId, setBinding])
-
-    function handleEditorDidMount(
-        editor: editor.IStandaloneCodeEditor,
-        monaco: Monaco,
-    ) {
-        editorRef.current = editor
-        monacoRef.current = monaco
-        // init the decorations so we can update them later
-        const decorationCollection =
-            editorRef.current.createDecorationsCollection([])
-        setDecorations(decorationCollection)
-
-        const newModel = editorRef.current.getModel()
-        if (newModel === null) {
-            console.log('Model is null')
-            return
-        }
-        // this is a hack to fix the issue with different line endings on different platforms
-        newModel.setEOL(0)
-        editorRef.current.setModel(newModel)
-
-        setBinding()
+    // Check if the editor is initialized before creating the binding
+    if (editorRef.current) {
+      const binding = new MonacoBinding(
+        type,
+        editorRef.current.getModel()!,
+        new Set([editorRef.current]),
+        provider.awareness,
+      )
+      bindingRef.current = binding
     }
 
-    return (
-        <div className={`${className}`}>
-            <Editor
-                theme={'vs-dark'}
-                defaultLanguage={'python'}
-                onMount={handleEditorDidMount}
-                onChange={value => setEditorValue(value || '')}
-            />
-        </div>
+    // Clean up on component unmount or when wsID changes
+    return () => {
+      provider.awareness.destroy()
+      provider.destroy()
+      bindingRef.current?.destroy()
+    }
+  }, [wsID, username])
+
+  useEffect(() => {
+    if (!!!currDocument || !!!roomId) {
+      return
+    }
+
+    setBinding()
+  }, [currDocument, roomId, setBinding])
+
+  function handleEditorDidMount(
+    editor: editor.IStandaloneCodeEditor,
+    monaco: Monaco,
+  ) {
+    editorRef.current = editor
+    monacoRef.current = monaco
+    // init the decorations so we can update them later
+    const decorationCollection = editorRef.current.createDecorationsCollection(
+      [],
     )
+    setDecorations(decorationCollection)
+
+    const newModel = editorRef.current.getModel()
+    if (newModel === null) {
+      console.log('Model is null')
+      return
+    }
+    // this is a hack to fix the issue with different line endings on different platforms
+    newModel.setEOL(0)
+    editorRef.current.setModel(newModel)
+
+    setBinding()
+  }
+
+  return (
+    <div className={`${className}`}>
+      <Editor
+        theme={'vs-dark'}
+        defaultLanguage={'python'}
+        onMount={handleEditorDidMount}
+        onChange={value => setEditorValue(value || '')}
+      />
+    </div>
+  )
 }
