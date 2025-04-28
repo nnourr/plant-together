@@ -2,7 +2,7 @@ name: Deploy Backend Services to Azure
 
 on:
   push:
-    branches: ["azure-deploy"]
+    branches: ["main"]
 
   workflow_dispatch:
     inputs:
