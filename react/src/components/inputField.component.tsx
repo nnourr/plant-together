@@ -9,10 +9,12 @@ export const InputField: React.FC<InputFieldProps> = ({
   ...props
 }) => {
   return (
-    <div className={`${className} flex gap-4 flex-col md:flex-row box-border`}>
+    <div
+      className={`${className} rounded-xl border-2 px-4 py-2 border-white/20 focus-within:border-white/40 flex gap-4 bg-transparent flex-col md:flex-row box-border`}
+    >
       {title && <label htmlFor={id}>{title}</label>}
       <input
-        className="rounded-xl bg-transparent border-2 border-white/20 text-2xl w-full px-4 py-2"
+        className="text-lg md:text-2xl w-full focus:outline-none"
         {...props}
         id={id}
       />
