@@ -67,6 +67,12 @@ properties:
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/gcp-credential
   template:
     containers:
+      - name: redis
+        image: docker.io/redis:6.2
+        resources:
+          cpu: 0.25
+          ephemeralStorage: 1Gi
+          memory: 0.5Gi
       - name: express
         image: <AZURE_REGISTRY>.azurecr.io/plant-express:latest
         env:
