@@ -66,7 +66,7 @@ export const Landing: React.FC = () => {
     roomName,
     navigate,
     isPrivate,
-    userContext?.context?.userId,
+    userContext,
     plantService,
   ])
 
