@@ -84,8 +84,10 @@ export const Signup: React.FC = () => {
         </div>
 
         <div className='rounded-md border-0 bg-[#1a2234] shadow-lg'>
-          <h1 className='px-12 py-10'>
-            <div className='text-center text-2xl'>Create an Account</div>
+          <h1 className='p-8 md:py-10'>
+            <div className='text-center text-2xl font-bold'>
+              Create an Account
+            </div>
           </h1>
           <div className='px-12 pb-12'>
             {error && (

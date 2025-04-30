@@ -124,7 +124,7 @@ export const Landing: React.FC = () => {
           />
           Plant Together.
         </h1>
-        <h2 className='px-8 text-center text-xl text-slate-500 md:text-2xl'>
+        <h2 className='px-8 text-center text-lg text-slate-500 md:text-2xl'>
           A simple, collaborative PlantUML editor.
           <br />
           Powered by{' '}
@@ -175,7 +175,7 @@ export const Landing: React.FC = () => {
               />
               <div className="peer h-6 w-11 rounded-full bg-gray-400 peer-checked:bg-blue-500 after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white" />
             </label>
-            <span className='text-2xl select-none'>Private</span>
+            <span className='text-lg select-none md:text-2xl'>Private</span>
           </div>
         </div>
         <div className='relative box-border flex flex-col md:flex-row'></div>

@@ -71,8 +71,8 @@ export const Login: React.FC = () => {
         </div>
 
         <div className='rounded-md border-0 bg-[#1a2234] shadow-lg'>
-          <h1 className='px-12 py-10'>
-            <div className='text-center text-2xl'>Log In</div>
+          <h1 className='p-8 md:py-10'>
+            <div className='text-center text-2xl font-bold'>Log In</div>
           </h1>
           <div className='px-12 pb-12'>
             {error && (
