@@ -6,7 +6,7 @@ id: /subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/provide
 identity:
   type: SystemAssigned
 properties:
-  managedEnvironmentId: /subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/providers/Microsoft.App/managedEnvironments/plant-env
+  managedEnvironmentId: /subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/providers/Microsoft.App/managedEnvironments/plant-environment
   eventStreamEndpoint: https://centralus.azurecontainerapps.dev/subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/containerApps/plant-containers/eventstream
   workloadProfileName: Consumption
   configuration:
