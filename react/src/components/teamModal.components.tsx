@@ -31,7 +31,7 @@ const contributors: Contributor[] = [
   },
   {
     name: 'Brettan\nCutchall',
-    link: 'https://github.com/Bcutch',
+    link: 'https://brettan.tech/',
     image: BrettHeadshot,
   },
   {
