@@ -4,7 +4,9 @@ type: Microsoft.App/containerApps
 location: Central US
 id: /subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/providers/Microsoft.App/containerapps/plant-containers
 identity:
-  type: SystemAssigned
+  type: UserAssigned
+  userAssignedIdentities:
+    <AZURE_UAMI>: {}
 properties:
   managedEnvironmentId: /subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/providers/Microsoft.App/managedEnvironments/plant-environment
   eventStreamEndpoint: https://centralus.azurecontainerapps.dev/subscriptions/<AZURE_SUBSCRIPTION_ID>/resourceGroups/plant_together/containerApps/plant-containers/eventstream
@@ -26,44 +28,44 @@ properties:
         - latestRevision: true
           weight: 100
     registries:
-      - identity: system
+      - identity: <AZURE_UAMI>
         server: <AZURE_REGISTRY>.azurecr.io
     secrets:
       - name: firebase-api-key
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-api-key
       - name: postgres-connection-string
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/postgres-connection-string
       - name: db-name
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-name
       - name: db-user
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-user
       - name: firebase-project-id
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-project-id
       - name: redis-host
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/redis-host
       - name: db-pass
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-pass
       - name: room-signature-secret
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/room-signature-secret
       - name: db-host
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-host
       - name: db-port
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/db-port
       - name: firebase-auth-domain
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/firebase-auth-domain
       - name: gcp-credential
-        identity: system
+        identity: <AZURE_UAMI>
         keyVaultUrl: <AZURE_KEYVAULT_URL>secrets/gcp-credential
   template:
     containers:
@@ -74,7 +76,7 @@ properties:
           ephemeralStorage: 1Gi
           memory: 0.5Gi
       - name: express
-        image: <AZURE_REGISTRY>.azurecr.io/plant-express:latest
+        image: planttogether.azurecr.io/plant-express:latest
         env:
           - name: SERVICE_ACCOUNT_CREDENTIAL
             secretRef: gcp-credential
