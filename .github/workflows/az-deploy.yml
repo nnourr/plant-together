@@ -94,4 +94,5 @@ jobs:
         with:
           azcliversion: 2.71.0
           inlineScript: |
+            az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
             az containerapp update -n plant-containers -g plant_together --yaml ./.github/az-deploy/containers.yaml
